@@ -13,6 +13,8 @@ import { SocketModule } from './socket/socket.module';
 import { ConfigModule } from '@nestjs/config';
 import { UnidadMedidaModule } from './unidad-medida/unidad-medida.module';
 import { ProductosModule } from './productos/productos.module';
+import { VentasModule } from './ventas/ventas.module';
+import { VentasProductosModule } from './ventas-productos/ventas-productos.module';
 
 @Module({
   imports: [
@@ -40,7 +42,7 @@ import { ProductosModule } from './productos/productos.module';
     UsuariosModule, 
     AuthModule,
     InicializacionModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
-    SocketModule, UnidadMedidaModule, ProductosModule,          // Para trabajar con WebSocket
+    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule,          // Para trabajar con WebSocket
     
   ],
   

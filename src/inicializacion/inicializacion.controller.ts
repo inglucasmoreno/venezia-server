@@ -14,7 +14,7 @@ export class InicializacionController {
     async initUsuarios(@Res() res){
         await this.inicializacionService.initUsuarios();
         res.status(HttpStatus.OK).json({
-            message: 'Inicializacion de usuarios completado correctamente'
+            message: 'Inicializacion completado correctamente'
         })
     } 
 

@@ -11,6 +11,7 @@ export const ventasProductosSchema = new Schema({
 
     descripcion: {
         type: String,
+        uppercase: true,
         required: true,
     },
 

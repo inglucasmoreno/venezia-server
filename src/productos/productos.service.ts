@@ -64,6 +64,61 @@ export class ProductosService {
 
   } 
 
+  // Buscar producto
+  async getProductoParametro(query: any): Promise<IProducto> {
+
+    const { codigo } = query;
+
+    const productoDB = await this.productosModel.findOne({ codigo });
+    if(!productoDB) throw new NotFoundException('El producto no existe');
+
+    const pipeline = [];
+
+    // Busqueda por codigo
+    if(codigo) pipeline.push({ $match:{  codigo } }); 
+  
+    // Informacion de unidad_medida
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'unidad_medida',
+          localField: 'unidad_medida',
+          foreignField: '_id',
+          as: 'unidad_medida'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$unidad_medida' });
+
+    // Informacion de usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'usuarios',
+          localField: 'creatorUser',
+          foreignField: '_id',
+          as: 'creatorUser'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$creatorUser' });
+
+    // Informacion de usuario actualizador
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'usuarios',
+          localField: 'updatorUser',
+          foreignField: '_id',
+          as: 'updatorUser'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$updatorUser' });
+
+    const producto = await this.productosModel.aggregate(pipeline);
+    
+    return producto[0];
+
+  } 
+
   // Listar productos
   async listarProductos(querys: any): Promise<IProducto[]> {
         

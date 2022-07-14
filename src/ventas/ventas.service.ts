@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { IVentasProductos } from 'src/ventas-productos/interface/ventas-productos.interface';
 import { VentasUpdateDTO } from './dto/ventas-update.dto';
 import { VentasDTO } from './dto/ventas.dto';
 import { IVentas } from './interface/ventas.interface';
@@ -8,7 +9,10 @@ import { IVentas } from './interface/ventas.interface';
 @Injectable()
 export class VentasService {
 
-  constructor(@InjectModel('Ventas') private readonly ventasModel: Model<IVentas>){}
+  constructor(
+    @InjectModel('Ventas') private readonly ventasModel: Model<IVentas>,
+    @InjectModel('VentasProductos') private readonly ventasProductosModel: Model<IVentasProductos>,
+  ){}
   
   // Venta por ID
   async getVentas(id: string): Promise<IVentas> {
@@ -90,6 +94,7 @@ export class VentasService {
           pipeline.push({$sort: ordenar});
       }      
 
+      // Se crea la venta
       const ventas = await this.ventasModel.aggregate(pipeline);
       
       return ventas;
@@ -98,8 +103,21 @@ export class VentasService {
 
   // Crear venta
   async crearVenta(ventasDTO: VentasDTO): Promise<IVentas> {
-      const nuevaVenta = new this.ventasModel(ventasDTO);
-      return await nuevaVenta.save();
+      
+    const { productos } = ventasDTO;
+
+    const productosTMP: any[] = productos;
+
+    const nuevaVenta = new this.ventasModel(ventasDTO);
+    const venta = await nuevaVenta.save();
+
+    for(const producto of productosTMP){ producto.venta = venta._id; }
+
+    // Se cargan los productos
+    await this.ventasProductosModel.insertMany(productos);
+
+    return venta;
+
   }
 
   // Actualizar venta

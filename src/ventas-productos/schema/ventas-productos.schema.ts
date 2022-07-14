@@ -3,6 +3,12 @@ import { Schema } from 'mongoose';
 
 export const ventasProductosSchema = new Schema({
    
+    venta: {
+        type: Schema.Types.ObjectId,
+        ref: 'venta',
+        required: true
+    },
+
     producto: {
         type: Schema.Types.ObjectId,
         ref: 'producto',
@@ -12,6 +18,17 @@ export const ventasProductosSchema = new Schema({
     descripcion: {
         type: String,
         uppercase: true,
+        required: true,
+    },
+
+    unidad_medida: {
+        type: String,
+        uppercase: true,
+        required: true,
+    },
+
+    cantidad: {
+        type: Number,
         required: true,
     },
 

@@ -115,14 +115,18 @@ export class UnidadMedidaService {
   // Actualizar unidad
   async actualizarUnidad(id: string, unidadMedidaUpdateDTO: UnidadMedidaUpdateDTO): Promise<IUnidadMedida> {
 
+      const { descripcion, activo } = unidadMedidaUpdateDTO;
+
       const unidadDB = await this.unidadMedidaModel.findById(id);
       
       // Verificacion: descripcion repetida
-      const unidadDescripcion = await this.unidadMedidaModel.findOne({descripcion: unidadMedidaUpdateDTO.descripcion.trim().toUpperCase()})
-      if(unidadDescripcion && unidadDescripcion._id.toString() !== id) throw new NotFoundException('La unidad ya se encuentra cargada');
+      if(descripcion){
+        const unidadDescripcion = await this.unidadMedidaModel.findOne({descripcion: descripcion.trim().toUpperCase()})
+        if(unidadDescripcion && unidadDescripcion._id.toString() !== id) throw new NotFoundException('La unidad ya se encuentra cargada');
+      }
 
       // Baja de unidad - Siempre y cuando no este asociada a un producto
-      if(unidadDB.activo && !unidadMedidaUpdateDTO.activo){
+      if(unidadDB.activo && !activo){
         const producto = await this.productoModel.findOne({ unidad_medida: unidadDB._id });
         if(producto) throw new NotFoundException('Esta unidad de medida esta asociada a un producto');   
       }

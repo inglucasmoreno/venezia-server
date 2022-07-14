@@ -1,10 +1,13 @@
 import { IsNotEmpty } from "class-validator";
 
 export class VentasDTO {
-    
+
+  @IsNotEmpty()
+  readonly productos: [];
+
   @IsNotEmpty()
   readonly forma_pago: [];
-  
+
   @IsNotEmpty()
   readonly precio_total: number;
   

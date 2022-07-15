@@ -15,7 +15,7 @@ export class VentasService {
   ){}
   
   // Venta por ID
-  async getVentas(id: string): Promise<IVentas> {
+  async getVentas(id: string): Promise<any> {
 
       const ventaDB = await this.ventasModel.findById(id);
       if(!ventaDB) throw new NotFoundException('La venta no existe');
@@ -50,8 +50,13 @@ export class VentasService {
       pipeline.push({ $unwind: '$updatorUser' });
 
       const venta = await this.ventasModel.aggregate(pipeline);
+
+      const productos = await this.ventasProductosModel.find({venta: id});
       
-      return venta[0];
+      return {
+        venta: venta[0],
+        productos
+      };
 
   } 
 

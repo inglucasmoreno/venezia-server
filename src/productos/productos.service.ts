@@ -198,9 +198,13 @@ export class ProductosService {
   // Actualizar producto
   async actualizarProducto(id: string, productoUpdateDTO: ProductosUpdateDTO): Promise<IProducto> {
     
+    const { descripcion } = productoUpdateDTO;
+
     // Verificacion: descripcion repetida
-    const productoDescripcion = await this.productosModel.findOne({descripcion: productoUpdateDTO.descripcion.trim().toUpperCase()})
-    if(productoDescripcion && productoDescripcion._id.toString() !== id) throw new NotFoundException('El producto ya se encuentra cargada');
+    if(descripcion){
+      const productoDescripcion = await this.productosModel.findOne({descripcion: productoUpdateDTO.descripcion.trim().toUpperCase()})
+      if(productoDescripcion && productoDescripcion._id.toString() !== id) throw new NotFoundException('El producto ya se encuentra cargada');
+    }
 
     // Verificacion de codigo repetido
     if(productoUpdateDTO.codigo && productoUpdateDTO.codigo !== ''){

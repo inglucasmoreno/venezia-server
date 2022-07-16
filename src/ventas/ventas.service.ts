@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as XMLWriter from 'xml-writer';
 import { Model, Types } from 'mongoose';
 import { IVentasProductos } from 'src/ventas-productos/interface/ventas-productos.interface';
 import { VentasUpdateDTO } from './dto/ventas-update.dto';
@@ -129,6 +130,25 @@ export class VentasService {
   async actualizarVenta(id: string, ventasUpdateDTO: VentasUpdateDTO): Promise<IVentas> {
       const venta = await this.ventasModel.findByIdAndUpdate(id, ventasUpdateDTO, {new: true});
       return venta;
+  }
+
+  // Facturacion
+  async facturacion(): Promise<any> {
+    
+    let xml = new XMLWriter();
+
+    xml.startDocument().startElement('personas');
+
+    xml.startElement('persona');
+    xml.writeElement('id', 1001);
+    xml.writeElement('nombre', 'Moreno Lucas Omar');
+    xml.writeElement('email','morenolucasomar@gmail.com');
+    xml.endElement();
+
+    xml.endElement();
+
+    return xml;
+
   }
 
 }

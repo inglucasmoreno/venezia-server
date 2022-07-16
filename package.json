@@ -48,7 +48,8 @@
         "swagger-ui-express": "^4.3.0",
         "uuidv4": "^6.2.12",
         "winston": "^3.3.3",
-        "xlsx": "0.17.2"
+        "xlsx": "0.17.2",
+        "xml-writer": "^1.7.0"
     },
     "devDependencies": {
         "@nestjs/cli": "^8.0.0",

@@ -7,54 +7,73 @@ import { VentasService } from './ventas.service';
 @Controller('ventas')
 export class VentasController {
   
-  constructor( private ventasService: VentasService ){}
+    constructor( private ventasService: VentasService ){}
 
-  // Venta por ID
-  @UseGuards(JwtAuthGuard)
-  @Get('/:id')
-  async getVenta(@Res() res, @Param('id') ventaID) {
-      const respuesta = await this.ventasService.getVentas(ventaID);
-      res.status(HttpStatus.OK).json({
-          message: 'Venta obtenida correctamente',
-          venta: respuesta.venta,
-          productos: respuesta.productos
-      });
-  }
+    // Venta por ID
+    @UseGuards(JwtAuthGuard)
+    @Get('/:id')
+    async getVenta(@Res() res, @Param('id') ventaID) {
+        const respuesta = await this.ventasService.getVentas(ventaID);
+        res.status(HttpStatus.OK).json({
+            message: 'Venta obtenida correctamente',
+            venta: respuesta.venta,
+            productos: respuesta.productos
+        });
+    }
 
-  // Listar ventas
-  @UseGuards(JwtAuthGuard)
-  @Get('/')
-  async listarVentas(@Res() res, @Query() querys) {
-      const ventas = await this.ventasService.listarVentas(querys);
-      res.status(HttpStatus.OK).json({
-          message: 'Listado de ventas correcto',
-          ventas
-      });
-  }
+    // Listar ventas
+    @UseGuards(JwtAuthGuard)
+    @Get('/')
+    async listarVentas(@Res() res, @Query() querys) {
+        const ventas = await this.ventasService.listarVentas(querys);
+        res.status(HttpStatus.OK).json({
+            message: 'Listado de ventas correcto',
+            ventas
+        });
+    }
 
-  // Crear venta
-  @UseGuards(JwtAuthGuard)
-  @Post('/')
-  async crearVenta(@Res() res, @Body() ventasDTO: VentasDTO ) {
-      const venta = await this.ventasService.crearVenta(ventasDTO);        
-      res.status(HttpStatus.CREATED).json({
-          message: 'Venta creada correctamente',
-          venta
-      });
-  }
+    // Crear venta
+    @UseGuards(JwtAuthGuard)
+    @Post('/')
+    async crearVenta(@Res() res, @Body() ventasDTO: VentasDTO ) {
+        const venta = await this.ventasService.crearVenta(ventasDTO);        
+        res.status(HttpStatus.CREATED).json({
+            message: 'Venta creada correctamente',
+            venta
+        });
+    }
     
-  // Actualizar venta
-  @UseGuards(JwtAuthGuard)
-  @Put('/:id')
-  async actualizarVenta(@Res() res, @Body() ventasUpdateDTO: VentasUpdateDTO, @Param('id') ventaID ) {
-      
-      const venta = await this.ventasService.actualizarVenta(ventaID, ventasUpdateDTO);
+    // Actualizar venta
+    @UseGuards(JwtAuthGuard)
+    @Put('/:id')
+    async actualizarVenta(@Res() res, @Body() ventasUpdateDTO: VentasUpdateDTO, @Param('id') ventaID ) {
+        
+        const venta = await this.ventasService.actualizarVenta(ventaID, ventasUpdateDTO);
 
-      res.status(HttpStatus.OK).json({
-          message: 'Venta actualizada correctamente',
-          venta
-      });
+        res.status(HttpStatus.OK).json({
+            message: 'Venta actualizada correctamente',
+            venta
+        });
 
-  }  
+    }  
+
+    // Facturacion
+    // @UseGuards(JwtAuthGuard)
+    @Get('/facturacion/testing')
+    async facturacion(@Res() res) {
+        
+        const xml = await this.ventasService.facturacion();
+
+        // res.status(HttpStatus.OK).json({
+        //     message: 'Facturacion completada correctamente',
+        //     respuesta
+        // });
+
+        console.log(xml);
+
+        res.writeHead(200, {'Content-Type':'application/xml','Access-Control-Allow-Origin':'*'});
+        res.end(xml.toString(), 'utf-8');
+
+    }  
 
 }

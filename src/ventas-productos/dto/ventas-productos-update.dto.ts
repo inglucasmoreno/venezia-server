@@ -6,6 +6,8 @@ export class VentasProductosUpdateDTO {
 
     readonly descripcion: string;
 
+    readonly balanza: boolean;
+
     readonly unidad_medida: string;
 
     readonly cantidad: number;

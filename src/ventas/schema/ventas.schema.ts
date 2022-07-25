@@ -22,9 +22,44 @@ export const ventasSchema = new Schema({
       required: true
     },
 
-    afip: {
-      type: Boolean,
-      default: false
+    precio_total_limpio: {
+      type: Number,
+      required: true
+    },
+
+    adicional_credito: {
+      type: Number,
+      required: true
+    },
+
+    total_balanza: {
+      type: Number,
+      required: true
+    },
+
+    total_no_balanza: {
+      type: Number,
+      required: true
+    },
+
+    comprobante: {
+      type: String,
+      default: 'Normal'
+    },
+
+    facturacion: {
+      puntoVenta: {
+        type: Number,
+        default: 0,
+      },
+      tipoComprobante: {
+        type: Number,
+        default: 0,
+      },
+      nroComprobante: {
+        type: Number,
+        default: 0,        
+      }
     },
 
     creatorUser: {

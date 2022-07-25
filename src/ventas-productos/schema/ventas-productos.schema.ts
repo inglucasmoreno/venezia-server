@@ -21,6 +21,11 @@ export const ventasProductosSchema = new Schema({
         required: true,
     },
 
+    balanza: {
+        type: Boolean,
+        required: true,
+      },
+
     unidad_medida: {
         type: String,
         uppercase: true,

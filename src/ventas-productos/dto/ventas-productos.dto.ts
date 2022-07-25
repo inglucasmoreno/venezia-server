@@ -11,6 +11,8 @@ export class VentasProductosDTO {
     @IsNotEmpty()
     readonly descripcion: string;
 
+    readonly balanza: boolean;
+
     @IsNotEmpty()
     readonly unidad_medida: string;
 

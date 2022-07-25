@@ -57,23 +57,4 @@ export class VentasController {
 
     }  
 
-    // Facturacion
-    // @UseGuards(JwtAuthGuard)
-    @Get('/facturacion/testing')
-    async facturacion(@Res() res) {
-        
-        const xml = await this.ventasService.facturacion();
-
-        // res.status(HttpStatus.OK).json({
-        //     message: 'Facturacion completada correctamente',
-        //     respuesta
-        // });
-
-        console.log(xml);
-
-        res.writeHead(200, {'Content-Type':'application/xml','Access-Control-Allow-Origin':'*'});
-        res.end(xml.toString(), 'utf-8');
-
-    }  
-
 }

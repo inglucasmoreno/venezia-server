@@ -45,13 +45,10 @@ export class UnidadMedidaController {
   @UseGuards(JwtAuthGuard)
   @Put('/:id')
   async actualizarUnidad(@Res() res, @Body() unidadMedidaUpdateDTO: UnidadMedidaUpdateDTO, @Param('id') unidadID ) {
-      
       const unidad = await this.unidadMedidaService.actualizarUnidad(unidadID, unidadMedidaUpdateDTO);
-
       res.status(HttpStatus.OK).json({
           message: 'Unidad actualizada correctamente',
           unidad
       });
-
   }
 }

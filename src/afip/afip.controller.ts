@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, NotFoundException, Param, Post, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AfipService } from './afip.service';
 import { AfipFacturaDTO } from './dto/afip-factura';
@@ -120,10 +120,8 @@ export class AfipController {
   @Post('/factura-electronica')
   async facturaElectronica(@Res() res, @Body() data: AfipFacturaDTO) {
       const factura = await this.afipService.facturaElectronica(data);
-      res.status(HttpStatus.OK).json({
-          message: 'Factura generada correctamente',
-          factura
-      });
+      if(!factura['CAE'] || factura['CAE'] === null) throw new NotFoundException('Error al realizar la facturacion');  
+
   }
 
   // Ajustar fecha

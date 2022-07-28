@@ -64,9 +64,9 @@ export class AfipService {
       'CbteDesde' 	: cbteNro,                          // Número de comprobante o numero del primer comprobante en caso de ser mas de uno
       'CbteHasta' 	: cbteNro,                          // Número de comprobante o numero del último comprobante en caso de ser mas de uno
       'CbteFch' 	  : parseInt(date.replace(/-/g, '')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
-      'ImpTotal' 	  : impTotal,                         // Importe total del comprobante
+      'ImpTotal' 	  : impTotal,                     // Importe total del comprobante
       'ImpTotConc' 	: 0,                                // Importe neto no gravado
-      'ImpNeto' 	  : impTotal,                         // Importe neto gravado
+      'ImpNeto' 	  : impTotal,                       // Importe neto gravado
       'ImpOpEx' 	  : 0,                                // Importe exento de IVA
       'ImpIVA' 	    : 0,                                // Importe total de IVA
       'ImpTrib' 	  : 0,                                // Importe total de tributos
@@ -74,7 +74,8 @@ export class AfipService {
       'MonCotiz' 	  : 1,                                // Cotización de la moneda usada (1 para pesos argentinos)  
     };
 
-    return this.afip.ElectronicBilling.createVoucher(dataFactura);
+    const res = this.afip.ElectronicBilling.createVoucher(dataFactura);        
+    return res;
 
   }
 

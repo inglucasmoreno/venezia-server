@@ -47,14 +47,22 @@ export class VentasController {
     @UseGuards(JwtAuthGuard)
     @Put('/:id')
     async actualizarVenta(@Res() res, @Body() ventasUpdateDTO: VentasUpdateDTO, @Param('id') ventaID ) {
-        
         const venta = await this.ventasService.actualizarVenta(ventaID, ventasUpdateDTO);
-
         res.status(HttpStatus.OK).json({
             message: 'Venta actualizada correctamente',
             venta
         });
+    }  
 
+    // Actualizacion de facturacion
+    @UseGuards(JwtAuthGuard)
+    @Put('/actualizar/facturacion/:id')
+    async actualizarFacturacion(@Res() res, @Body() data: any, @Param('id') ventaID ) {
+        const venta = await this.ventasService.actualizarFacturacion(ventaID, data);
+        res.status(HttpStatus.OK).json({
+            message: 'Venta facturada correctamente',
+            venta
+        });
     }  
 
 }

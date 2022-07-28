@@ -28,6 +28,9 @@ export class CajasDTO {
 
   @IsNotEmpty()
   readonly total_adicional_credito: number;
+
+  @IsNotEmpty()
+  readonly total_pedidosYa: number;
   
   @IsNotEmpty()
   readonly total_mercadopago: number;

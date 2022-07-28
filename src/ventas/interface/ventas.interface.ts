@@ -5,9 +5,10 @@ export interface IVentas extends Document {
     readonly precio_total: number;
     readonly precio_total_limpio: number;
     readonly adicional_credito: number;
+    readonly comprobante: string;
+    readonly pedidosya_comprobante: string;
     readonly total_balanza: number;
     readonly total_no_balanza: number;
-    readonly comprobante: string;
     readonly facturacion: {
         puntoVenta: number,
         tipoComprobante: number,

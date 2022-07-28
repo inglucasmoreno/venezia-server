@@ -68,6 +68,11 @@ export const cajasSchema = new Schema({
       required: true
     },
 
+    total_pedidosYa: {
+      type: Number,
+      required: true
+    },
+
     diferencia: {
       type: Number,
       required: true

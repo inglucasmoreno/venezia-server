@@ -32,6 +32,17 @@ export const ventasSchema = new Schema({
       required: true
     },
 
+    comprobante: {
+      type: String,
+      default: 'Normal'
+    },
+
+    pedidosya_comprobante: {
+      type: String,
+      uppercase: true,
+      default: ''
+    },
+
     total_balanza: {
       type: Number,
       required: true
@@ -40,11 +51,6 @@ export const ventasSchema = new Schema({
     total_no_balanza: {
       type: Number,
       required: true
-    },
-
-    comprobante: {
-      type: String,
-      default: 'Normal'
     },
 
     facturacion: {

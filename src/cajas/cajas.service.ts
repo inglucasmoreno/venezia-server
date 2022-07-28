@@ -114,13 +114,14 @@ export class CajasService {
     let total_facturado = 0;
     let total_credito = 0;
     let total_debito = 0;
+    let total_pedidosYa = 0;
     let total_mercadopago = 0;
     let total_efectivo = 0;
     let total_balanza = 0;
     let total_no_balanza = 0;
     let total_postnet = 0;
 
-    ventasActivas.map(venta => {
+    ventasActivas.map(venta => {  // Recorrido de ventas
 
       // Adicional credito
       total_adicional_credito += venta.adicional_credito;
@@ -141,6 +142,7 @@ export class CajasService {
         if(formaPago.descripcion === 'Crédito') total_credito += formaPago.valor; 
         if(formaPago.descripcion === 'Débito') total_debito += formaPago.valor; 
         if(formaPago.descripcion === 'Mercado pago') total_mercadopago += formaPago.valor;  
+        if(formaPago.descripcion === 'PedidosYa') total_pedidosYa += formaPago.valor;  
         if(formaPago.descripcion === 'Crédito' || formaPago.descripcion === 'Débito' || formaPago.descripcion === 'Mercado pago') total_postnet += formaPago.valor;      
       })
     
@@ -176,6 +178,7 @@ export class CajasService {
       totalGastos,
       totalIngresos,
       total_ventas,
+      total_pedidosYa,
       total_balanza,
       total_adicional_credito,
       total_no_balanza,

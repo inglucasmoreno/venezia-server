@@ -12,6 +12,8 @@ export class VentasUpdateDTO {
 
   readonly comprobante: string;
   
+  readonly pedidosya_comprobante: string;
+
   readonly total_balanza: number;
   
   readonly total_no_balanza: number;

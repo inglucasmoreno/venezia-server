@@ -17,6 +17,8 @@ export class CajasUpdateDTO {
   readonly total_credito: number;
 
   readonly total_adicional_credito: number;
+
+  readonly total_pedidosYa: number;
   
   readonly total_mercadopago: number;
   

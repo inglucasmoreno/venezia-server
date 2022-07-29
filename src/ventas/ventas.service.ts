@@ -6,6 +6,7 @@ import { VentasUpdateDTO } from './dto/ventas-update.dto';
 import { VentasDTO } from './dto/ventas.dto';
 import { IVentas } from './interface/ventas.interface';
 import * as Afip from '@afipsdk/afip.js';
+import { add, format } from 'date-fns';
 
 @Injectable()
 export class VentasService {
@@ -73,11 +74,26 @@ export class VentasService {
   // Listar ventas
   async listarVentas(querys: any): Promise<IVentas[]> {
 
-      const {columna, direccion, activo} = querys;
+      const {columna, fechaDesde, fechaHasta, direccion, activo} = querys;
 
       const pipeline = [];
       pipeline.push({$match:{}});
 
+      // Fecha desde
+      if(fechaDesde && fechaDesde.trim() !== ''){
+        pipeline.push({$match: { 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        }});
+      }
+      
+      // Fecha hasta
+      if(fechaHasta && fechaHasta.trim() !== ''){
+        pipeline.push({$match: { 
+          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+        }});
+      }
+
+      // Filtrado por activos/inactivos
       if(activo !== 'todo') pipeline.push({$match:{ activo: activo === 'true' ? true : false }});
 
       // Informacion de usuario creador

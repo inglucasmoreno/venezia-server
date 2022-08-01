@@ -4,6 +4,8 @@ export class ProductosUpdateDTO {
 
   readonly precio: number;
 
+  readonly precio_mayorista: number;
+
   readonly unidad_medida: string;
 
   readonly balanza: boolean;

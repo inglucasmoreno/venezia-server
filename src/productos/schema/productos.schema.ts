@@ -15,6 +15,11 @@ export const productosSchema = new Schema({
       required: true,
     },
 
+    precio_mayorista: {
+      type: Number,
+      required: true,
+    },
+
     unidad_medida: {
       type: Schema.Types.ObjectId,
       ref: 'unidad_medida',

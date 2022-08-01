@@ -9,6 +9,9 @@ export class ProductosDTO {
   readonly precio: number;
 
   @IsNotEmpty()
+  readonly precio_mayorista: number;
+
+  @IsNotEmpty()
   readonly unidad_medida: string;
 
   @IsNotEmpty()

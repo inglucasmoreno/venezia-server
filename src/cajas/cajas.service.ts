@@ -138,7 +138,7 @@ export class CajasService {
 
       // Calculos sobre -> Formas de pago
       venta['forma_pago'].map(formaPago => {
-        if(formaPago.descripcion === 'Efectivo') total_efectivo += formaPago.valor;
+        if(formaPago.descripcion === 'Efectivo' || formaPago.descripcion === 'PedidosYa - Efectivo') total_efectivo += formaPago.valor;
         if(formaPago.descripcion === 'Crédito') total_credito += formaPago.valor; 
         if(formaPago.descripcion === 'Débito') total_debito += formaPago.valor; 
         if(formaPago.descripcion === 'Mercado pago') total_mercadopago += formaPago.valor;  

@@ -14,7 +14,7 @@ export class VentasService {
   public afip = new Afip({ CUIT: 20176652536 });
 
   public facturacion = {
-    ptoVta: 4,
+    ptoVta: 5,
     docTipo: 99,    // Consumidor final
     docNro: 0,      // Consumidor final
     cbteTipo: 11,   // Factura tipo C (COD 11)
@@ -172,6 +172,8 @@ export class VentasService {
 
       let impTotal = ventasDTO.precio_total;
 
+      console.log(ventasDTO);
+
       // Ultimo numero de comprobante
       const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, this.facturacion.cbteTipo).catch( () => {
         throw new NotFoundException('Problemas al obtener numero de comprobante');
@@ -208,7 +210,7 @@ export class VentasService {
       // --> CREANDO VENTA
       
       const facturacion = {
-        puntoVenta: 4,
+        puntoVenta: 5,
         tipoComprobante: 11,
         nroComprobante: cbteNro,
       }

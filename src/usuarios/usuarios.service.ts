@@ -21,7 +21,7 @@ export class UsuariosService {
 
     // Usuario por nombre de usuario
     async getUsuarioPorNombre(nombreUsuario: string): Promise<IUsuario> {
-        const usuario = await this.usuariosModel.findOne({ usuario: nombreUsuario });
+        const usuario = await this.usuariosModel.findOne({ usuario: nombreUsuario, activo: true });
         return usuario;
     }  
 

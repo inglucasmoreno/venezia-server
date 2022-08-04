@@ -118,10 +118,9 @@ export class AfipController {
   // Factura electronica
   @UseGuards(JwtAuthGuard)
   @Post('/factura-electronica')
-  async facturaElectronica(@Res() res, @Body() data: AfipFacturaDTO) {
+  async facturaElectronica(@Res() res, @Body() data: any) {
       const factura = await this.afipService.facturaElectronica(data);
       if(!factura['CAE'] || factura['CAE'] === null) throw new NotFoundException('Error al realizar la facturacion');  
-
   }
 
   // Ajustar fecha

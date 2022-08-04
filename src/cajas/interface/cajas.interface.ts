@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 export interface ICajas extends Document {
     readonly saldo_inicial: number;
     readonly saldo_proxima_caja: number;
+    readonly _ventas: number;
     readonly total_ventas: number;
     readonly total_facturado: number;
     readonly total_balanza: number;

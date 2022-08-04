@@ -9,6 +9,9 @@ export class CajasDTO {
   readonly saldo_proxima_caja: number;
 
   @IsNotEmpty()
+  readonly cantidad_ventas: number;
+
+  @IsNotEmpty()
   readonly total_ventas: number;
 
   @IsNotEmpty()

@@ -4,6 +4,8 @@ export class CajasUpdateDTO {
 
   readonly saldo_proxima_caja: number;
 
+  readonly cantidad_ventas: number;
+
   readonly total_ventas: number;
 
   readonly total_facturado: number;

@@ -120,8 +120,12 @@ export class CajasService {
     let total_balanza = 0;
     let total_no_balanza = 0;
     let total_postnet = 0;
+    let cantidad_ventas = 0;
 
     ventasActivas.map(venta => {  // Recorrido de ventas
+
+      // Cantidad de ventas activas (Sin cierre de caja)
+      cantidad_ventas += 1;
 
       // Adicional credito
       total_adicional_credito += venta.adicional_credito;
@@ -188,6 +192,7 @@ export class CajasService {
       total_debito,
       total_efectivo,
       total_mercadopago,
+      cantidad_ventas
     }
 
   }  

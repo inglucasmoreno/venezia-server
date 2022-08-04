@@ -13,6 +13,11 @@ export const cajasSchema = new Schema({
       required: true,
     },
 
+    cantidad_ventas: {
+      type: Number,
+      required: true
+    },
+
     total_ventas: {
       type: Number,
       required: true

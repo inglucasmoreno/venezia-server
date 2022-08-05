@@ -67,14 +67,20 @@ export class ProductosService {
   // Buscar producto
   async getProductoParametro(query: any): Promise<IProducto> {
 
-    const { codigo } = query;
+    let { codigo } = query;
 
-    const productoDB = await this.productosModel.findOne({ codigo });
-    if(!productoDB) throw new NotFoundException('El producto no existe');
+    let productoDB = await this.productosModel.findOne({ codigo }); // Producto - No balanza
+
+    if(!productoDB){ 
+      codigo = codigo.slice(2,7);
+      productoDB = await this.productosModel.findOne({ codigo });   // Producto - Balanza
+      if(!productoDB) throw new NotFoundException('El producto no existe');
+    }
 
     const pipeline = [];
 
-    // Busqueda por codigo
+    // Busqueda por codigo - No balanza
+
     if(codigo) pipeline.push({ $match:{  codigo } }); 
   
     // Informacion de unidad_medida

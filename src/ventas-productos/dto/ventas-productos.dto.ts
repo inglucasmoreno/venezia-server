@@ -21,6 +21,9 @@ export class VentasProductosDTO {
     
     @IsNotEmpty()
     readonly precio: number;
+
+    @IsNotEmpty()
+    readonly precio_unitario: number;
     
     readonly creatorUser: string;
     

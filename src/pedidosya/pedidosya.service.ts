@@ -5,6 +5,7 @@ import * as mongoose  from 'mongoose';
 import { IPedidosYa } from './interface/pedidosya.interface';
 import { PedidosYaDTO } from './dto/pedidosya.dto';
 import { PedidosYaUpdateDTO } from './dto/pedidosya-update.dto';
+import { add } from 'date-fns';
 
 @Injectable()
 export class PedidosyaService {
@@ -55,10 +56,24 @@ export class PedidosyaService {
   // Listar pedidosYa
   async listarPedidosYa(querys: any): Promise<IPedidosYa[]> {
 
-    const {columna, direccion} = querys;
+    const {columna, direccion, fechaDesde, fechaHasta} = querys;
 
     const pipeline = [];
     pipeline.push({$match:{}});
+
+    // Fecha desde
+    if(fechaDesde && fechaDesde.trim() !== ''){
+      pipeline.push({$match: { 
+        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+      }});
+    }
+    
+    // Fecha hasta
+    if(fechaHasta && fechaHasta.trim() !== ''){
+      pipeline.push({$match: { 
+        createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+      }});
+    }
 
     // Informacion de usuario creador
     pipeline.push({

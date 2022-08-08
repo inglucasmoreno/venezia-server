@@ -42,6 +42,11 @@ export const ventasProductosSchema = new Schema({
         required: true,
     },
 
+    precio_unitario: {
+        type: Number,
+        required: true,
+    },
+
     creatorUser: {
         type: Schema.Types.ObjectId,
         ref: 'usuario',

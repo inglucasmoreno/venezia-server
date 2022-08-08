@@ -65,4 +65,14 @@ export class VentasController {
         });
     }  
 
+    // Generacion de comprobante
+    @UseGuards(JwtAuthGuard)
+    @Get('/comprobante/:id')
+    async generarComprobante(@Res() res, @Param('id') ventaID) {
+        await this.ventasService.comprobanteElectronico(ventaID);
+        res.status(HttpStatus.OK).json({
+            message: 'Comprobante generado correctamente'
+        });
+    }
+
 }

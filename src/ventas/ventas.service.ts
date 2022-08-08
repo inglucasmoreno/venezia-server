@@ -7,6 +7,8 @@ import { VentasDTO } from './dto/ventas.dto';
 import { IVentas } from './interface/ventas.interface';
 import * as Afip from '@afipsdk/afip.js';
 import { add, format } from 'date-fns';
+import * as fs from 'fs';
+import * as pdf from 'pdf-creator-node';
 
 @Injectable()
 export class VentasService {
@@ -17,7 +19,7 @@ export class VentasService {
     ptoVta: 5,
     docTipo: 99,    // Consumidor final
     docNro: 0,      // Consumidor final
-    cbteTipo: 11,   // Factura tipo C (COD 11)
+    cbteTipo: 6,   // Factura tipo C (COD 11)
   }
 
   constructor(
@@ -134,6 +136,17 @@ export class VentasService {
 
   }
 
+  // Funcion para redondeo
+  redondear(numero:number, decimales:number):number {
+  
+    if (typeof numero != 'number' || typeof decimales != 'number') return null;
+
+    let signo = numero >= 0 ? 1 : -1;
+
+    return Number((Math.round((numero * Math.pow(10, decimales)) + (signo * 0.0001)) / Math.pow(10, decimales)).toFixed(decimales));
+  
+  }
+
   // Crear venta
   async crearVenta(ventasDTO: VentasDTO): Promise<IVentas> {
 
@@ -172,8 +185,6 @@ export class VentasService {
 
       let impTotal = ventasDTO.precio_total;
 
-      console.log(ventasDTO);
-
       // Ultimo numero de comprobante
       const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, this.facturacion.cbteTipo).catch( () => {
         throw new NotFoundException('Problemas al obtener numero de comprobante');
@@ -182,6 +193,9 @@ export class VentasService {
       let cbteNro = ultimoNumero + 1;
 
       const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+      let impNeto = this.redondear((impTotal / 1.21), 2);
+      let impIVA = this.redondear((impTotal - impNeto), 2);
 
       let dataFactura = {
         'CantReg' 	  : 1,                                // Cantidad de comprobantes a registrar
@@ -195,12 +209,19 @@ export class VentasService {
         'CbteFch' 	  : parseInt(date.replace(/-/g, '')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
         'ImpTotal' 	  : impTotal,                         // Importe total del comprobante
         'ImpTotConc' 	: 0,                                // Importe neto no gravado
-        'ImpNeto' 	  : impTotal,                         // Importe neto gravado
+        'ImpNeto' 	  : impNeto,                          // Importe neto gravado
         'ImpOpEx' 	  : 0,                                // Importe exento de IVA
-        'ImpIVA' 	    : 0,                                // Importe total de IVA
+        'ImpIVA' 	    : impIVA,                           // Importe total de IVA
         'ImpTrib' 	  : 0,                                // Importe total de tributos
         'MonId' 	    : 'PES',                            // Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
         'MonCotiz' 	  : 1,                                // Cotización de la moneda usada (1 para pesos argentinos)
+        'Iva' 		: [                                     // (Opcional) Alícuotas asociadas al comprobante
+        {
+          'Id' 		: 5,                                    // Id del tipo de IVA (5 para 21%)(ver tipos disponibles) 
+          'BaseImp' 	: impNeto,                          // Base imponible
+          'Importe' 	: impIVA                            // Importe 
+        }
+      ],
       };
 
       const facturaElectronica = await this.afip.ElectronicBilling.createVoucher(dataFactura).catch((error) => {
@@ -210,8 +231,8 @@ export class VentasService {
       // --> CREANDO VENTA
       
       const facturacion = {
-        puntoVenta: 5,
-        tipoComprobante: 11,
+        puntoVenta: this.facturacion.ptoVta,
+        tipoComprobante: this.facturacion.cbteTipo,
         nroComprobante: cbteNro,
       }
 
@@ -257,6 +278,9 @@ export class VentasService {
 
     const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
+    let impNeto = this.redondear((impTotal / 1.21), 2);
+    let impIVA = this.redondear((impTotal - impNeto), 2);
+
     let dataFactura = {
       'CantReg' 	  : 1,                                // Cantidad de comprobantes a registrar
       'PtoVta' 	    : this.facturacion.ptoVta,          // Punto de venta
@@ -269,24 +293,164 @@ export class VentasService {
       'CbteFch' 	  : parseInt(date.replace(/-/g, '')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
       'ImpTotal' 	  : impTotal,                         // Importe total del comprobante
       'ImpTotConc' 	: 0,                                // Importe neto no gravado
-      'ImpNeto' 	  : impTotal,                         // Importe neto gravado
+      'ImpNeto' 	  : impNeto,                          // Importe neto gravado
       'ImpOpEx' 	  : 0,                                // Importe exento de IVA
-      'ImpIVA' 	    : 0,                                // Importe total de IVA
+      'ImpIVA' 	    : impIVA,                                // Importe total de IVA
       'ImpTrib' 	  : 0,                                // Importe total de tributos
       'MonId' 	    : 'PES',                            // Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
       'MonCotiz' 	  : 1,                                // Cotización de la moneda usada (1 para pesos argentinos)
+      'Iva' 		: [                                     // (Opcional) Alícuotas asociadas al comprobante
+      {
+        'Id' 		: 5,                                    // Id del tipo de IVA (5 para 21%)(ver tipos disponibles) 
+        'BaseImp' 	: impNeto,                          // Base imponible
+        'Importe' 	: impIVA                            // Importe 
+      }
+    ],
     };
 
     const facturaElectronica = await this.afip.ElectronicBilling.createVoucher(dataFactura).catch((error) => {
       throw new NotFoundException('Error al realizar la facturación');
     })
 
-    // --> ACTUALIZACION DE VENTA -> Comprobante fiscal
-    const venta = await this.ventasModel.findByIdAndUpdate(id, { 
+    const dataUpdate = {
       comprobante: 'Fiscal',
+      facturacion: {
+        puntoVenta: this.facturacion.ptoVta,
+        tipoComprobante: this.facturacion.cbteTipo,
+        nroComprobante: cbteNro
+      },
       updatorUser
-    });
+    }
+
+    // --> ACTUALIZACION DE VENTA -> Comprobante fiscal
+    const venta = await this.ventasModel.findByIdAndUpdate(id, dataUpdate);
     return venta;
+
+  }
+
+  // Comprobante electronico
+  async comprobanteElectronico(idVenta: string): Promise<any> {
+
+    // Buscando venta
+    const ventaDB: any = await this.ventasModel.findById(idVenta);
+
+    // Buscando productos
+    const productosDB = await this.ventasProductosModel.find({ venta: ventaDB._id });
+
+    // Productos
+    let productos = [];
+    productosDB.map( producto => {
+      productos.push({
+        descripcion: producto.descripcion,
+        unidad_medida: producto.unidad_medida,
+        precio: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio),
+        precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_unitario),
+        cantidad: producto.balanza === false ? producto.cantidad : Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.cantidad),
+      })
+    })
+
+    // Formas de pago
+    let forma_pago = '';
+    let first = true;
+    ventaDB.forma_pago.map(forma => {
+        if(first){
+          forma.descripcion === 'PedidosYa - Efectivo' ? forma_pago += 'PedidosYa' : forma_pago += `${forma.descripcion}`
+          first = false;
+        }else{
+          forma.descripcion === 'PedidosYa - Efectivo' ? forma_pago += ' - PedidosYa' : forma_pago += ` - ${forma.descripcion}`  
+        }
+    })
+
+    let dataPDF = {};
+    let html: any;
+
+    if(ventaDB.comprobante === 'Normal'){ // Comprobante - Normal
+      html = fs.readFileSync(process.env.PDF_TEMPLATE_DIR + '/comprobante.html', 'utf-8');
+      dataPDF = {
+        forma_pago,
+        total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
+        productos: productos,
+      };
+    }else{ // - Comprobante - Fiscal
+
+      // Informacion de comprobante
+      const { puntoVenta, nroComprobante, tipoComprobante } = ventaDB.facturacion;
+      const comprobante = await this.afip.ElectronicBilling.getVoucherInfo(nroComprobante, puntoVenta, tipoComprobante).catch((error) => {
+        throw new NotFoundException('Error al obtener información de comprobante');
+      })
+
+      // -- Ajustando fechas --
+      
+      // Fecha de vto de CAE
+      const vtoCAEtmp = await this.afip.ElectronicBilling.formatDate(comprobante.FchVto);
+      const vtoCAE = format(add(new Date(vtoCAEtmp),{ hours: 3 }), 'dd/MM/yyyy');
+
+      // Fecha de emision de comprobante
+      const fechaEmisionTmp = await this.afip.ElectronicBilling.formatDate(comprobante.CbteFch);
+      const fechaEmision = format(add(new Date(fechaEmisionTmp), { hours: 3 }), 'dd/MM/yyyy');
+
+      // Tipo comprobante
+      let tipoCte = '';
+      if(tipoComprobante === 1) tipoCte = 'A';
+      if(tipoComprobante === 6) tipoCte = 'B';
+      if(tipoComprobante === 11) tipoCte = 'C';
+
+      let nroFactura = '';
+      // Generacion de numero de factura
+      if(nroComprobante <= 9){
+        nroFactura =  '0000' + puntoVenta + '-0000000' + nroComprobante;
+      }else if(nroComprobante <= 99){
+        nroFactura =  '0000' + puntoVenta + '-000000' + nroComprobante;
+      }else if(nroComprobante <= 999){
+        nroFactura =  '0000' + puntoVenta + '-00000' + nroComprobante;
+      }else if(nroComprobante <= 9999){
+        nroFactura =  '0000' + puntoVenta + '-0000' + nroComprobante;
+      }else if(nroComprobante <= 99999){
+        nroFactura =  '0000' + puntoVenta + '-000' + nroComprobante;
+      }else if(nroComprobante <= 999999){
+        nroFactura =  '0000' + puntoVenta + '-00' + nroComprobante;
+      }else if(nroComprobante <= 9999999){
+        nroFactura =  '0000' + puntoVenta + '-0' + nroComprobante;
+      }else if(nroComprobante <= 99999999){
+        nroFactura =  '0000' + puntoVenta + '-' + nroComprobante;
+      }
+
+      html = fs.readFileSync(process.env.PDF_TEMPLATE_DIR + '/comprobante_fiscal.html', 'utf-8');
+      dataPDF = {
+        CAE: comprobante.CodAutorizacion,
+        nroFactura,
+        vtoCAE,
+        tipoCte,
+        ideTipoCte: tipoComprobante,
+        fechaEmision,
+        tipoComprobante,
+        forma_pago,
+        total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
+        productos: productos,
+      };
+    }
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+            height: "0mm",
+            contents: {}
+      }  
+    } 
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data: dataPDF,
+      path: process.env.PUBLIC_DIR + '/pdf/comprobante.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
+    return 'Comprobante generado correctamente';
 
   }
 

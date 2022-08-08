@@ -7,6 +7,7 @@ export interface IVentasProductos extends Document {
     readonly unidad_medida: string;
     readonly cantidad: number;
     readonly precio: number;
+    readonly precio_unitario: number;
     readonly creatorUser: string;
     readonly updatorUser: string;
     readonly activo: boolean;

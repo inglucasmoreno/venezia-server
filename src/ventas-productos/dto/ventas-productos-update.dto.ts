@@ -13,6 +13,8 @@ export class VentasProductosUpdateDTO {
     readonly cantidad: number;
     
     readonly precio: number;
+
+    readonly precio_unitario: number;
     
     readonly creatorUser: string;
     

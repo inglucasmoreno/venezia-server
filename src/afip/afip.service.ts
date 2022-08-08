@@ -5,7 +5,7 @@ import * as Afip from '@afipsdk/afip.js';
 export class AfipService {
 
   // public afip = new Afip({ CUIT: 20176652536 });
-  public afip = new Afip({ CUIT: 20176652536, production: true });
+  public afip = new Afip({ CUIT: 20176652536 });
 
   constructor(){}
 
@@ -35,7 +35,7 @@ export class AfipService {
     const { puntoVenta, nroComprobante, tipoComprobante } = data;
     return this.afip.ElectronicBilling.getVoucherInfo(nroComprobante, puntoVenta, tipoComprobante);
   }
-
+  
   // Ajustar formato de fecha
   ajustarFecha(data: any): Promise<any> {
     return this.afip.ElectronicBilling.formatDate(data.fecha);  

@@ -19,6 +19,8 @@ import { AfipModule } from './afip/afip.module';
 import { CajasModule } from './cajas/cajas.module';
 import { IngresosGastosModule } from './ingresos-gastos/ingresos-gastos.module';
 import { PedidosyaModule } from './pedidosya/pedidosya.module';
+import { VentasMayoristasModule } from './ventas-mayoristas/ventas-mayoristas.module';
+import { VentasMayoristasProductosModule } from './ventas-mayoristas-productos/ventas-mayoristas-productos.module';
 
 @Module({
   imports: [
@@ -46,7 +48,7 @@ import { PedidosyaModule } from './pedidosya/pedidosya.module';
     UsuariosModule, 
     AuthModule,
     InicializacionModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
-    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule,          // Para trabajar con WebSocket
+    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule,          // Para trabajar con WebSocket
     
   ],
   

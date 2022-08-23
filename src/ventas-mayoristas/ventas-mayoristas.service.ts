@@ -150,8 +150,19 @@ async listarVentas(querys: any): Promise<IVentasMayoristas[]> {
 
   // Actualizar venta
   async actualizarVenta(id: string, ventaUpdateDTO: any): Promise<IVentasMayoristas> {
+
+      const { activo } = ventaUpdateDTO;
+
+      // Se finalizan los productos de la venta
+      if(!activo) {
+        await this.productosModel.updateMany({ventas_mayorista: id}, { activo: false } );
+      };
+      
+      // Se actualiza la venta
       const venta = await this.ventasModel.findByIdAndUpdate(id, ventaUpdateDTO, {new: true});
+      
       return venta;
+
   }
 
 }

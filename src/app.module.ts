@@ -21,6 +21,7 @@ import { IngresosGastosModule } from './ingresos-gastos/ingresos-gastos.module';
 import { PedidosyaModule } from './pedidosya/pedidosya.module';
 import { VentasMayoristasModule } from './ventas-mayoristas/ventas-mayoristas.module';
 import { VentasMayoristasProductosModule } from './ventas-mayoristas-productos/ventas-mayoristas-productos.module';
+import { MayoristasModule } from './mayoristas/mayoristas.module';
 
 @Module({
   imports: [
@@ -48,7 +49,7 @@ import { VentasMayoristasProductosModule } from './ventas-mayoristas-productos/v
     UsuariosModule, 
     AuthModule,
     InicializacionModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
-    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule,          // Para trabajar con WebSocket
+    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule, MayoristasModule,          // Para trabajar con WebSocket
     
   ],
   

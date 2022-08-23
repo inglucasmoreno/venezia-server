@@ -17,7 +17,7 @@ export const productosSchema = new Schema({
 
     precio_mayorista: {
       type: Number,
-      required: true,
+      default: ''
     },
 
     unidad_medida: {

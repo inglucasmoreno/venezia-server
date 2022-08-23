@@ -8,7 +8,6 @@ export class ProductosDTO {
   @IsNotEmpty()
   readonly precio: number;
 
-  @IsNotEmpty()
   readonly precio_mayorista: number;
 
   @IsNotEmpty()

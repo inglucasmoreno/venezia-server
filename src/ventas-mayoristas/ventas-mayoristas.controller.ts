@@ -44,13 +44,13 @@ export class VentasMayoristasController {
   @UseGuards(JwtAuthGuard)
   @Put('/:id')
   async actualizarVenta(@Res() res, @Body() ventaUpdateDTO: VentasMayoristasUpdateDTO, @Param('id') ventaID ) {
-      
-      const venta = await this.ventasService.actualizarVenta(ventaID, ventaUpdateDTO);
+              
+        const venta = await this.ventasService.actualizarVenta(ventaID, ventaUpdateDTO);
 
-      res.status(HttpStatus.OK).json({
-          message: 'Venta actualizada correctamente',
-          venta
-      });
+        res.status(HttpStatus.OK).json({
+            message: 'Venta actualizada correctamente',
+            venta
+        });
 
   }
 

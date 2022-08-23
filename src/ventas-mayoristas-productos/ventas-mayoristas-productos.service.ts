@@ -93,10 +93,17 @@ export class VentasMayoristasProductosService {
 // Listar productos
 async listarProductos(querys: any): Promise<IVentasMayoristasProductos[]> {
       
-    const {columna, direccion, pedido} = querys;
+    const {columna, direccion, pedido, activo} = querys;
 
     const pipeline = [];
     pipeline.push({$match:{}});
+
+    // Activo / Inactivo
+    let filtroActivo = {};
+    if(activo && activo !== '') {
+      filtroActivo = { activo: activo === 'true' ? true : false };
+      pipeline.push({$match: filtroActivo});
+    }
 
     // Filtrado por pedido
     if(pedido && pedido !== ''){

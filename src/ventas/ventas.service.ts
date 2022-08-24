@@ -365,7 +365,7 @@ export class VentasService {
     let html: any;
 
     if(ventaDB.comprobante === 'Normal'){ // Comprobante - Normal
-      html = fs.readFileSync(process.env.PDF_TEMPLATE_DIR + '/comprobante.html', 'utf-8');
+      html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/comprobante.html', 'utf-8');
       dataPDF = {
         forma_pago,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
@@ -415,7 +415,7 @@ export class VentasService {
         nroFactura =  '0000' + puntoVenta + '-' + nroComprobante;
       }
 
-      html = fs.readFileSync(process.env.PDF_TEMPLATE_DIR + '/comprobante_fiscal.html', 'utf-8');
+      html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/comprobante_fiscal.html', 'utf-8');
       dataPDF = {
         CAE: comprobante.CodAutorizacion,
         nroFactura,
@@ -444,7 +444,7 @@ export class VentasService {
     var document = {
       html: html,
       data: dataPDF,
-      path: process.env.PUBLIC_DIR + '/pdf/comprobante.pdf'
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/comprobante.pdf'
     }
 
     // Generacion de PDF

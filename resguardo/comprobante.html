@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+  <link rel="stylesheet" href="template.css">
+
+  <style>
+
+      /* CSS de PDF */
+
+      * {
+          box-sizing: border-box;
+          margin: 0px;
+          padding: 0px;
+          font-family: Arial, Helvetica, sans-serif;
+      }
+
+  </style>
+
+  <head>
+      <mate charest="utf-8" />
+      <title> Comprobante electronico </title>
+  </head>
+
+  <body style="font-family: Arial, Helvetica, sans-serif;">
+
+    <div style="position: absolute; margin-left: 330px;">
+      <img style="width: 200px;" src="http://localhost:3000/pdf/logo.png">            
+    </div>
+
+    <div position: absolute;">
+      <div>
+        <p style="margin-top: 12px; font-size: 20px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Domicilio del local </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664860642 </p>
+      </div>
+    </div>
+
+    <div style="position: absolute; width: 100%; border: 1px solid black; margin-top: 70px;"></div>
+
+    <div style="position: absolute; font-size: 9px; margin-top: 80px;">
+      <p style="font-weight: bold;"> DATOS DE CLIENTE </p>
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> CUIT: </span> - </p>
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Condición frente al IVA: </span> Consumidor final </p>
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Forma de pago: </span> 
+        {{ forma_pago }}
+      </p>
+    </div>
+
+    <div style="position: absolute; font-size: 9px; margin-top: 90px; margin-left: 280px;">
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Apellido y Nombre / Razón social: </span> Consumidor final </p>
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> - </p>
+    </div>
+
+    <div style="position: absolute; width: 100%; border: 1px solid black; margin-top: 170px;"></div>
+    
+    <!-- Tabla de productos -->
+    <div style="position: absolute; margin-top: 180px; font-size: 9px;">
+      <table>
+        <tr>
+          <th style="width: 250px; text-align: left;"> Descripción </th>
+          <th style="width: 100px; text-align: right;"> Cantidad </th>
+          <th style="width: 150px; text-align: right;"> Unidad de medida </th>
+          <th style="width: 100px; text-align: right;"> Precio Unit. </th>
+          <th style="width: 100px; text-align: right;"> Total </th>
+        </tr>
+        {{#each productos}}
+        <tr>
+          <td style="text-align:left; padding-top: 5px;"> {{ descripcion }}</td>
+          <td style="text-align:right; padding-top: 5px;"> {{ cantidad }} </td>
+          <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida }} </td>
+          <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario }} </td>
+          <td style="text-align:right; padding-top: 5px;"> ${{ precio }} </td>
+        </tr>
+        {{/each}} 
+      </table>          
+      <div style="width: 100%; border: 1px solid black; margin-top: 10px;"></div>
+      <p style="margin-top: 10px; font-size: 10px; text-align: right"> <span style="font-weight: bold;"> Total: </span> ${{ total }} </p>
+    </div>
+  
+  </body>
+
+</html>

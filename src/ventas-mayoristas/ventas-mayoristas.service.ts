@@ -24,6 +24,18 @@ export class VentasMayoristasService {
       const idVenta = new Types.ObjectId(id);
       pipeline.push({ $match:{ _id: idVenta } }) 
 
+      // Informacion - Repartidor
+      pipeline.push({
+        $lookup: { // Lookup
+            from: 'repartidores',
+            localField: 'repartidor',
+            foreignField: '_id',
+            as: 'repartidor'
+        }}
+      );
+
+      pipeline.push({ $unwind: '$repartidor' });  
+
       // Informacion - Mayorista
       pipeline.push({
         $lookup: { // Lookup
@@ -79,6 +91,18 @@ async listarVentas(querys: any): Promise<IVentasMayoristas[]> {
       const idMayorista = new Types.ObjectId(mayorista);
       pipeline.push({ $match:{ _id: idMayorista } }) 
     }
+
+    // Informacion - Repartidor
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'repartidores',
+          localField: 'repartidor',
+          foreignField: '_id',
+          as: 'repartidor'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$repartidor' });  
 
     // Informacion - Mayorista
     pipeline.push({

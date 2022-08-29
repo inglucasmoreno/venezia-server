@@ -20,6 +20,25 @@ export class MayoristasController {
         });
     }
 
+    // Crear mayorista
+    @Post('/')
+    async crearMayorista(@Res() res, @Body() mayoristaDTO: MayoristasDTO ) {
+
+        const { password } = mayoristaDTO;
+
+        // Se encripta el password
+        const salt = bcryptjs.genSaltSync();
+        mayoristaDTO.password = bcryptjs.hashSync(password, salt);
+
+        // Se crea el mayorista
+        const mayoristaCreado = await this.mayoristasService.crearMayorista(mayoristaDTO);        
+        res.status(HttpStatus.CREATED).json({
+            message: 'Mayorista creado correctamente',
+            mayorista: mayoristaCreado
+        });
+    
+    }
+
     // Listar mayoristas
     @UseGuards(JwtAuthGuard)
     @Get('/')

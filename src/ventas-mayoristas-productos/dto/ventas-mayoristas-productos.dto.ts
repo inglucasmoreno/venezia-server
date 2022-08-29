@@ -10,7 +10,9 @@ export class VentasMayoristasProductosDTO {
 
   @IsNotEmpty()
   readonly descripcion: string;
-  
+
+  readonly entregado: boolean;
+
   @IsNotEmpty()
   readonly precio: number;
 

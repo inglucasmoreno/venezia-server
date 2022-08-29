@@ -5,6 +5,7 @@ import * as bcryptjs from 'bcryptjs';
 import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
 import { IProducto } from 'src/productos/interface/productos.interface';
 import { ISaldoInicial } from 'src/cajas/interface/saldo-inicial.interface';
+import { IRepartidores } from 'src/repartidores/interface/repartidores.interface';
 
 @Injectable()
 export class InicializacionService {
@@ -12,7 +13,8 @@ export class InicializacionService {
     constructor(
         @InjectModel('Usuario') private readonly usuarioModel: Model<IUsuario>,
         @InjectModel('SaldoInicial') private readonly saldoInicialModel: Model<ISaldoInicial>,
-        @InjectModel('UnidadMedida') private readonly unidadMedidaModel: Model<IProducto>
+        @InjectModel('UnidadMedida') private readonly unidadMedidaModel: Model<IProducto>,
+        @InjectModel('Repartidores') private readonly repartidoresModel: Model<IRepartidores>,
     ){}
 
     async initUsuarios(): Promise<any> {
@@ -72,6 +74,16 @@ export class InicializacionService {
         })
 
         await saldoInicial.save();
+
+        // 5) - Inicializacion de repartidor - "Sin repartidor"
+        const repartidor = new this.repartidoresModel({
+            _id: '333333333333333333333333',
+            descripcion: 'Sin repartidor',
+            creatorUser: usuario._id,
+            updatorUser: usuario._id           
+        })
+
+        await repartidor.save();
         
     }
 

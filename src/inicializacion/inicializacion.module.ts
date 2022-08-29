@@ -5,12 +5,14 @@ import { InicializacionService } from './inicializacion.service';
 import { usuarioSchema } from 'src/usuarios/schema/usuarios.schema';
 import { unidadMedidaSchema } from 'src/unidad-medida/schema/unidad-medida.schema';
 import { saldoInicialSchema } from 'src/cajas/schema/saldo-inicial.schema';
+import { repartidoresSchema } from 'src/repartidores/schema/repartidores.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{name: 'Usuario', schema: usuarioSchema}]),
     MongooseModule.forFeature([{name: 'SaldoInicial', schema: saldoInicialSchema}]),
-    MongooseModule.forFeature([{name: 'UnidadMedida', schema: unidadMedidaSchema}])
+    MongooseModule.forFeature([{name: 'UnidadMedida', schema: unidadMedidaSchema}]),
+    MongooseModule.forFeature([{name: 'Repartidores', schema: repartidoresSchema}]),
   ],
   controllers: [InicializacionController],
   providers: [InicializacionService]

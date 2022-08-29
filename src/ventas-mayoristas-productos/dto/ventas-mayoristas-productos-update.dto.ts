@@ -6,6 +6,8 @@ export class VentasMayoristasProductosUpdateDTO {
 
   readonly descripcion: string;
   
+  readonly entregado: boolean;
+
   readonly precio: number;
 
   readonly precio_unitario: number;

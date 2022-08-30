@@ -63,7 +63,7 @@ export class VentasMayoristasProductosService {
       // Informacion - Usuario creador
       pipeline.push({
         $lookup: { // Lookup
-            from: 'usuarios',
+            from: 'mayoristas',
             localField: 'creatorUser',
             foreignField: '_id',
             as: 'creatorUser'
@@ -75,7 +75,7 @@ export class VentasMayoristasProductosService {
       // Informacion - Usuario actualizador
       pipeline.push({
         $lookup: { // Lookup
-            from: 'usuarios',
+            from: 'mayoristas',
             localField: 'updatorUser',
             foreignField: '_id',
             as: 'updatorUser'

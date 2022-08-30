@@ -18,7 +18,7 @@
 
   <head>
       <mate charest="utf-8" />
-      <title> Comprobante electronico </title>
+      <title> Detalles de envio </title>
   </head>
 
   <body style="font-family: Arial, Helvetica, sans-serif;">
@@ -39,16 +39,16 @@
 
     <div style="position: absolute; font-size: 9px; margin-top: 80px;">
       <p style="font-weight: bold;"> DATOS DE CLIENTE </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> CUIT: </span> - </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Condición frente al IVA: </span> Consumidor final </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Forma de pago: </span> 
-        {{ forma_pago }}
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Descripción: </span> {{ mayorista }} </p>
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio </span> {{ direccion }} </p>
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Repartidor: </span> 
+        {{ repartidor }}
       </p>
     </div>
 
     <div style="position: absolute; font-size: 9px; margin-top: 90px; margin-left: 280px;">
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Apellido y Nombre / Razón social: </span> Consumidor final </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> - </p>
+      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> {{ telefono }} </p>
+      <!-- <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> - </p> -->
     </div>
 
     <div style="position: absolute; width: 100%; border: 1px solid black; margin-top: 170px;"></div>

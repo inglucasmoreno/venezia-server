@@ -5,7 +5,7 @@ import * as Afip from '@afipsdk/afip.js';
 export class AfipService {
 
   // public afip = new Afip({ CUIT: 20176652536 });
-  public afip = new Afip({ CUIT: 20176652536 });
+  public afip = new Afip({ CUIT: '', production: true });
 
   constructor(){}
 

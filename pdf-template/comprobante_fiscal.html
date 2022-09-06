@@ -21,97 +21,67 @@
       <title> Comprobante electronico </title>
   </head>
 
-  <body style="font-family: Arial, Helvetica, sans-serif;">
+  <body style="font-family: Arial, Helvetica, sans-serif; padding-left: 10px; padding-top: 10px;">
 
-    <div style="font-size: 9px; margin-top: 23px; position: absolute;">
-      <img style="width: 135px;" src="http://localhost:3000/pdf/logo.png">            
-      <div style="margin-top: 15px;">
-        <p style="margin-top: 5px;"> <span style="font-weight: bold"> Razon social: </span> Panaderia Venezia S.R.L </p>
-        <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo del valle 202 </p>
-        <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664860642 </p>
+    <table style="margin-left: 5px;">
+      <tr>
+        <td>
+          <img style="width: 100px;" src="http://localhost:3000/pdf/logo.png">            
+        </td>
+        <td>
+          <p style="margin-top: 10px; font-size: 8px; margin-left: 20px;"> <span> Fecha y hora </p>
+          <p style="font-size: 8px; margin-left: 20px;"> <span> {{ fecha }} </p>
+        </td>
+      </tr>
+    </table>
+
+    <div style="margin-top: 15px; width: 200px;">
+      <div>
+        <p style="margin-top: 12px; font-size: 9px;"> <span> VENEZIA S.R.L </span> </p>
+        <p style="margin-top: 5px; font-size: 9px;"> <span> CUIT:30717460258   IIBB:12-3071746025-8 </span> </p>
+        <p style="margin-top: 5px; font-size: 8px;"> ARISTOBULO DEL VALLE 202 </p>
+        <p style="margin-top: 5px; font-size: 8px;"> SAN LUIS (5700) - SAN LUIS </p>
+        <p style="margin-top: 5px; font-size: 8px;"> INICIO DE ACTIVIDAD: 23/08/2021 </p>
       </div>
+    </div>    
+    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="font-size: 9px; width: 200px;">
+      <p style="font-weight: bold; padding-left: 70px;"> FACTURA B </p>
+      <p> ORIGINAL (Cod. 006) - A CONSUMIDO FINAL </p>
     </div>
-
-    <div style="position: absolute; margin-left: 220px; text-align: center; border: 2px solid black; padding: 8px;">
-      <p style="font-weight: bold; font-size: 17px"> {{ tipoCte }} </p>
-      <p style="font-size: 7px"> DOC. {{ ideTipoCte }} </p>
-    </div>
-
-    <div style="font-size:20px; position:absolute; padding-left: 300px; margin-top: 20px; font-weight: bold;">
-      FACTURA
-    </div>
-
-    <div style="position: absolute; font-weight: bold; font-size: 9px; margin-top: 60px; margin-left: 300px;">
-      <p> Nro: {{ nroFactura }} </p>
-      <p style="margin-top: 5px"> Fecha de emision: {{ fechaEmision }} </p>
-    </div>
-
-    <div style="font-size: 9px; margin-left: 300px; margin-top: 90px; position: absolute;">
-      <div style="margin-top: 30px;">
-        <p style="margin-top: 5px;"> <span style="font-weight: bold"> CUIT: </span> 30717460258 </p>
-        <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Ingresos brutos: </span> 12201612314121 </p>
-        <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Fecha de inicio de actividad: </span> 02/02/2022 </p>
-        <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Condición frente al IVA: </span> Responsable inscripto </p>
-      </div>
-    </div>
-
-    <div style="position: absolute; width: 100%; border: 1px solid black; margin-top: 200px;"></div>
-
-    <div style="position: absolute; font-size: 9px; margin-top: 202px;">
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> CUIT: </span> - </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Condición frente al IVA: </span> Consumidor final </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Condición de venta: </span>  {{ forma_pago }} </p>
-    </div>
-
-    <div style="position: absolute; font-size: 9px; margin-top: 202px; margin-left: 280px;">
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Apellido y Nombre / Razón social: </span> Consumidor final </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> - </p>
-    </div>
-
-    <div style="position: absolute; width: 100%; border: 1px solid black; margin-top: 280px;"></div>
+    <div style="width: 200px;"> ---------------------------------- </div>
     
-    <!-- Tabla de productos -->
-    <div style="position: absolute; margin-top: 290px; font-size: 9px;">
+    <!-- Productos -->
+
+    <div style="font-size: 9px; width: 200px;">
+      {{#each productos}}
+      <div style="margin-bottom: 5px;">
+        <p> {{ descripcion }} </p>
+        <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>  
+        <p style="font-size: 8px;"> Cantidad: {{ cantidad }} (${{ precio }}) </p>  
+      </div>
+      {{/each}}     
+    </div>
+
+    <div style="width: 200px;"> ---------------------------------- </div>
+
+    <p style="font-size: 9px;"> <span style="font-weight: bold;"> TOTAL: </span> ${{ total }} </p>
+    <p style="font-size: 9px;"> <span style="font-weight: bold;"> Forma de pago: </span> {{ forma_pago }} </p>
+
+    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="font-size: 8px; width: 200px;">
+      <p> REFERENCIA ELECTRONICA DEL COMPROBANTE </p>
       <table>
         <tr>
-          <th style="width: 250px; text-align: left;"> Descripción </th>
-          <th style="width: 100px; text-align: right;"> Cantidad </th>
-          <th style="width: 150px; text-align: right;"> Unidad de medida </th>
-          <th style="width: 100px; text-align: right;"> Precio Unit. </th>
-          <!-- <th style="width: 100px; text-align: right;"> % Bonif. </th> -->
-          <th style="width: 100px; text-align: right;"> Subtotal </th>
+          <td style="padding-left: 5px;"> CAE 72290542617900 </td>
+          <td style="padding-left: 20px;"> Fecha Vto.: 01/08/2022 </td>
         </tr>
-        {{#each productos}}
-        <tr>
-          <td style="text-align:left; padding-top: 5px;"> {{ descripcion }}</td>
-          <td style="text-align:right; padding-top: 5px;"> {{ cantidad }} </td>
-          <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida }} </td>
-          <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario }} </td>
-          <!-- <td style="text-align:right; padding-top: 5px;"> 0,00 % </td> -->
-          <td style="text-align:right; padding-top: 5px;"> ${{ precio }} </td>
-        </tr>
-        {{/each}} 
-      </table>          
+      </table>
     </div>
-  
-    <!-- Footer -->
-    <div style="position: absolute; width: 100%; border: 1px solid black; margin-top: 610px;"></div>
-    <div style="position: absolute; margin-top: 620px; margin-left: 390px; font-size: 9px;">
-      <p> <span> Subtotal: </span> <span style="text-align:right;">  ${{ total }} </span>  </p>
-      <p style="margin-top: 5px;"> <span> Importe otros tributos: </span> $0,00 </p>
-      <p style="margin-top: 5px; font-size: 10px;"> <span style="font-weight: bold;"> Total: </span> ${{ total }} </p>
-    </div>
-    <div style="position: absolute; width: 100%; border: 1px solid black; margin-top: 680px;"></div>
+    <div style="width: 200px;"> ---------------------------------- </div>
 
-
-    <div style="position: absolute; margin-top: 690px;">
-      <img style="width: 350px" src="http://localhost:3000/pdf/afip.png">   
-    </div>
-
-    <div style="position: absolute; margin-top: 740px; margin-left: 380px; font-size: 8px;">
-      <p> <span style="font-weight: bold; margin-left: 40px;"> CAE N°: </span> {{ CAE }} </p>
-      <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Fecha de Vto de CAE°: </span> {{ vtoCAE }} </p>
-    </div>
+    <br>
+    <br>
   
   </body>
 

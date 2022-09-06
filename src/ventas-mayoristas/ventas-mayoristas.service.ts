@@ -5,6 +5,7 @@ import { IVentasMayoristasProductos } from 'src/ventas-mayoristas-productos/inte
 import { IVentasMayoristas } from './interface/ventas-mayoristas.interface';
 import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
+import { add, format } from 'date-fns';
 
 @Injectable()
 export class VentasMayoristasService {
@@ -295,18 +296,19 @@ async listarVentas(querys: any): Promise<any> {
     
     productos.map( producto => productosPedido.push({
       descripcion: producto.descripcion,
-      precio_unitario: producto.precio_unitario,
-      precio: producto.precio,
-      cantidad: producto.cantidad,
+      precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_unitario),
+      precio: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio), 
+      cantidad: producto.cantidad, 
       unidad_medida: producto.unidad_medida.descripcion
     }));
 
     let dataPDF = {
+      fecha: format(new Date(), 'dd/MM/yyyy'),
       mayorista: pedido.mayorista.descripcion,
       telefono: pedido.mayorista.telefono,
       direccion: pedido.mayorista.direccion,
       numero_pedido: pedido.numero,
-      total: pedido.precio_total,
+      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pedido.precio_total),
       repartidor: pedido.repartidor._id == '333333333333333333333333' ? 'Sin especificar' : pedido.repartidor.descripcion,
       productos: productosPedido
     };

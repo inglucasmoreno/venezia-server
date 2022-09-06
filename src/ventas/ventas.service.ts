@@ -13,7 +13,7 @@ import * as pdf from 'pdf-creator-node';
 @Injectable()
 export class VentasService {
 
-  public afip = new Afip({ CUIT: 20176652536 });
+  public afip = new Afip({ CUIT: '', production: true });
 
   public facturacion = {
     ptoVta: 5,
@@ -367,6 +367,7 @@ export class VentasService {
     if(ventaDB.comprobante === 'Normal'){ // Comprobante - Normal
       html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/comprobante.html', 'utf-8');
       dataPDF = {
+        fecha: format(ventaDB.createdAt, 'dd/MM/yyyy kk:mm:ss'),
         forma_pago,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,

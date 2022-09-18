@@ -226,21 +226,31 @@ async listarVentas(querys: any): Promise<any> {
   // Crear ventas - pedido
   async crearVenta(data: any): Promise<any> {
 
-      const { pedido, productos } = data;
+    const { pedido, productos } = data;
 
-      // Se crea el pedido
-      const nuevaVenta = new this.ventasModel(pedido);
-      const pedidoDB = await nuevaVenta.save();
-      
-      // Carga de productos
-      const productosTMP: any[] = productos;
-      for(const producto of productosTMP){ producto.ventas_mayorista = pedidoDB._id; }
+    // Numero de pedido
+    const ultimoPedido = await this.ventasModel.find().sort({createdAt: -1}).limit(1);
 
-      await this.productosModel.insertMany(productos);
+    let numero = 0;
 
-      return 'Pedido generado correctamente';
+    if(ultimoPedido.length === 0) numero = 1;
+    else numero = ultimoPedido[0].numero + 1;
     
-  }
+    const dataPedido = {...pedido, numero};
+
+    // Se crea el pedido
+    const nuevaVenta = new this.ventasModel(dataPedido);
+    const pedidoDB = await nuevaVenta.save();
+    
+    // Carga de productos
+    const productosTMP: any[] = productos;
+    for(const producto of productosTMP){ producto.ventas_mayorista = pedidoDB._id; }
+
+    await this.productosModel.insertMany(productos);
+
+    return 'Pedido generado correctamente';
+  
+  } 
 
   // Actualizar venta
   async actualizarVenta(id: string, ventaUpdateDTO: any): Promise<IVentasMayoristas> {

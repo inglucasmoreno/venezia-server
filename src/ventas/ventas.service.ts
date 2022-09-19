@@ -16,7 +16,7 @@ export class VentasService {
   public afip = new Afip({ CUIT: '', production: true });
 
   public facturacion = {
-    ptoVta: 5,
+    ptoVta: 4,
     docTipo: 99,    // Consumidor final
     docNro: 0,      // Consumidor final
     cbteTipo: 6,   // Factura tipo C (COD 11)

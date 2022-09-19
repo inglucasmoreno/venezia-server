@@ -45,7 +45,7 @@ export class AfipService {
   facturaElectronica(data: any): Promise<any> {
 
     const {
-      ptoVta = 5, 
+      ptoVta = 4, 
       cbteTipo, 
       docTipo = 99, 
       docNro = 0, 
@@ -57,7 +57,7 @@ export class AfipService {
 
     let dataFactura = {
       'CantReg' 	  : 1,                                   // Cantidad de comprobantes a registrar
-      'PtoVta' 	    : 5,                                   // Punto de venta
+      'PtoVta' 	    : 4,                                   // Punto de venta
       'CbteTipo' 	  : 11,                                  // Tipo de comprobante (Ej. 6 = B y 11 = C)
       'Concepto' 	  : 1,                                   // Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios
       'DocTipo' 	  : 99,                                  // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)

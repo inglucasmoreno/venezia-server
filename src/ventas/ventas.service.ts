@@ -434,7 +434,7 @@ export class VentasService {
     var options = {
       format: 'A4',
       orientation: 'portrait',
-      border: '10mm',
+      border: '0mm',
       footer: {
             height: "0mm",
             contents: {}

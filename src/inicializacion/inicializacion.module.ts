@@ -6,6 +6,7 @@ import { usuarioSchema } from 'src/usuarios/schema/usuarios.schema';
 import { unidadMedidaSchema } from 'src/unidad-medida/schema/unidad-medida.schema';
 import { saldoInicialSchema } from 'src/cajas/schema/saldo-inicial.schema';
 import { repartidoresSchema } from 'src/repartidores/schema/repartidores.schema';
+import { productosSchema } from 'src/productos/schema/productos.schema';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { repartidoresSchema } from 'src/repartidores/schema/repartidores.schema'
     MongooseModule.forFeature([{name: 'SaldoInicial', schema: saldoInicialSchema}]),
     MongooseModule.forFeature([{name: 'UnidadMedida', schema: unidadMedidaSchema}]),
     MongooseModule.forFeature([{name: 'Repartidores', schema: repartidoresSchema}]),
+    MongooseModule.forFeature([{name: 'Productos', schema: productosSchema}]),
   ],
   controllers: [InicializacionController],
   providers: [InicializacionService]

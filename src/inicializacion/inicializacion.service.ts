@@ -6,6 +6,7 @@ import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
 import { IProducto } from 'src/productos/interface/productos.interface';
 import { ISaldoInicial } from 'src/cajas/interface/saldo-inicial.interface';
 import { IRepartidores } from 'src/repartidores/interface/repartidores.interface';
+import * as XLSX from 'xlsx';
 
 @Injectable()
 export class InicializacionService {
@@ -15,6 +16,7 @@ export class InicializacionService {
         @InjectModel('SaldoInicial') private readonly saldoInicialModel: Model<ISaldoInicial>,
         @InjectModel('UnidadMedida') private readonly unidadMedidaModel: Model<IProducto>,
         @InjectModel('Repartidores') private readonly repartidoresModel: Model<IRepartidores>,
+        @InjectModel('Productos') private readonly productosModel: Model<IProducto>,
     ){}
 
     async initUsuarios(): Promise<any> {
@@ -85,6 +87,63 @@ export class InicializacionService {
 
         await repartidor.save();
         
+    }
+
+     // Se importan los productos desde un documento de excel
+     async importarProductos(query: any): Promise<any> {
+
+        const { usuario } = query;
+        
+        const workbook = XLSX.readFile('./importar/productos.xlsx');
+        const workbookSheets = workbook.SheetNames;
+        const sheet = workbookSheets[0];
+        const dataExcel: any = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+
+        // Verificacion de formato excel
+        const condicion = dataExcel.length > 0 &&
+                          dataExcel[0].DESCRIPCION &&
+                          dataExcel[0].PRECIO &&
+                          dataExcel[0].BALANZA &&
+                          dataExcel[0].PRECIO_MAYORISTA
+
+        if(!condicion) throw new NotFoundException('Excel con formato incorrecto');
+
+        let registrosCargados = 0;
+
+        for(const productoRec of dataExcel){
+
+            let producto: any = productoRec;
+
+            if(producto.DESCRIPCION && producto.BALANZA){
+                
+                const data = {
+                    codigo: '',
+                    descripcion: producto.DESCRIPCION,
+                    precio: producto.PRECIO ? producto.PRECIO : 0,
+                    precio_mayorista: producto.PRECIO_MAYORISTA ? producto.PRECIO_MAYORISTA : null,
+                    unidad_medida: producto.balanza === 'SI' ? '000000000000000000000000' : '111111111111111111111111',
+                    balanza: producto.balanza === 'SI' ? true : false,
+                    creatorUser: usuario,
+                    updatorUser: usuario
+                }
+    
+                const productoDB = await this.productosModel.findOne({ descripcion: data.descripcion });
+                if(!productoDB){
+                    registrosCargados += 1;
+                    const nuevoProducto = new this.productosModel(data);
+                    await nuevoProducto.save();        
+                }
+
+            }
+
+        }              
+
+        if(registrosCargados === 0){
+            return 'La base de productos ya se encuentra actualizada';
+        }else{
+            return `Cantidad de registros cargados: ${registrosCargados}`
+        }
+
     }
 
 }

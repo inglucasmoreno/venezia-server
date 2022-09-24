@@ -57,8 +57,10 @@
       {{#each productos}}
       <div style="margin-bottom: 5px;">
         <p> {{ descripcion }} </p>
-        <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>  
-        <p style="font-size: 8px;"> Cantidad: {{ cantidad }} (${{ precio }}) </p>  
+        <!-- <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>   -->
+        <!-- <p style="font-size: 8px;"> Cantidad: {{ cantidad }} (${{ precio }}) </p> -->
+        <p style="font-size: 8px;"> ${{ precio }} </p>  
+
       </div>
       {{/each}}     
     </div>

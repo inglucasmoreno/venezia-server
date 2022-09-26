@@ -420,6 +420,7 @@ export class VentasService {
       dataPDF = {
         CAE: comprobante.CodAutorizacion,
         nroFactura,
+        fecha: format(ventaDB.createdAt, 'dd/MM/yyyy kk:mm:ss'),
         vtoCAE,
         tipoCte,
         ideTipoCte: tipoComprobante,

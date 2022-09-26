@@ -103,8 +103,7 @@ export class InicializacionService {
         const condicion = dataExcel.length > 0 &&
                           dataExcel[0].DESCRIPCION &&
                           dataExcel[0].PRECIO &&
-                          dataExcel[0].BALANZA &&
-                          dataExcel[0].PRECIO_MAYORISTA
+                          dataExcel[0].BALANZA
 
         if(!condicion) throw new NotFoundException('Excel con formato incorrecto');
 
@@ -120,9 +119,8 @@ export class InicializacionService {
                     codigo: '',
                     descripcion: producto.DESCRIPCION,
                     precio: producto.PRECIO ? producto.PRECIO : 0,
-                    precio_mayorista: producto.PRECIO_MAYORISTA ? producto.PRECIO_MAYORISTA : null,
-                    unidad_medida: producto.balanza === 'SI' ? '000000000000000000000000' : '111111111111111111111111',
-                    balanza: producto.balanza === 'SI' ? true : false,
+                    unidad_medida: producto.BALANZA === 'NO' ? '000000000000000000000000' : '111111111111111111111111',
+                    balanza: producto.BALANZA === 'SI' ? true : false,
                     creatorUser: usuario,
                     updatorUser: usuario
                 }

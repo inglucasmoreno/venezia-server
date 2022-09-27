@@ -1,6 +1,6 @@
 {
     "name": "server",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Sistema de venta con facturacion para panaderia venezia",
     "author": "Ing. Lucas Omar Moreno",
     "private": true,

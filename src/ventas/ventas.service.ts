@@ -74,29 +74,63 @@ export class VentasService {
   }
 
   // Listar ventas
-  async listarVentas(querys: any): Promise<IVentas[]> {
+  async listarVentas(querys: any): Promise<any> {
 
-      const {columna, fechaDesde, fechaHasta, direccion, activo} = querys;
+      const {
+        columna,
+        direccion,
+        tipoComprobante, 
+        pedidosYa,
+        desde,
+        registerpp, 
+        fechaDesde, 
+        fechaHasta, 
+        activo,
+        parametro
+      } = querys;
 
+      // Pipelines
       const pipeline = [];
+      const pipelineTotal = [];
+    
       pipeline.push({$match:{}});
+      pipelineTotal.push({$match:{}});
 
-      // Fecha desde
+      // Ordenando datos
+      const ordenar: any = {};
+      if(columna){
+          ordenar[String(columna)] = Number(direccion);
+          pipeline.push({$sort: ordenar});
+      }
+
+      // Filtro - Fecha desde
       if(fechaDesde && fechaDesde.trim() !== ''){
         pipeline.push({$match: { 
           createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
       }
       
-      // Fecha hasta
+      // Filtro - Fecha hasta
       if(fechaHasta && fechaHasta.trim() !== ''){
         pipeline.push({$match: { 
           createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
         }});
       }
 
-      // Filtrado por activos/inactivos
-      if(activo !== 'todo') pipeline.push({$match:{ activo: activo === 'true' ? true : false }});
+      // Filtro - Tipo de comprobante
+      if(tipoComprobante && tipoComprobante !== '') {
+        pipeline.push({$match: { comprobante: tipoComprobante }});
+      };
+
+      // Filtro - Activo / Inactivo
+      let filtroActivo = {};
+      if(activo && activo !== '') {
+        filtroActivo = { activo: activo === 'true' ? true : false };
+        pipeline.push({$match: filtroActivo});
+      }
+
+      // Paginacion
+      pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
       // Informacion de usuario creador
       pipeline.push({
@@ -122,17 +156,75 @@ export class VentasService {
 
       pipeline.push({ $unwind: '$updatorUser' });
 
-      // Ordenando datos
-      const ordenar: any = {};
-      if(columna){
-          ordenar[String(columna)] = Number(direccion);
-          pipeline.push({$sort: ordenar});
+      // Filtro - Parametros
+
+      if(parametro && parametro !== ''){
+        const regex = new RegExp(parametro, 'i');
+        pipeline.push({$match: { $or: [ { pedidosya_comprobante: regex }, { 'creatorUser.apellido': regex }, { 'creatorUser.nombre': regex } ] }});
+        pipelineTotal.push({$match: { $or: [ { pedidosya_comprobante: regex },  { 'creatorUser.apellido': regex }, { 'creatorUser.nombre': regex } ] }});
       }
 
-      // Se crea la venta
-      const ventas = await this.ventasModel.aggregate(pipeline);
+      // Busqueda de ventas
+      const [ventas, ventasTotal] = await Promise.all([
+        this.ventasModel.aggregate(pipeline),
+        this.ventasModel.aggregate(pipelineTotal),
+      ]);
 
-      return ventas;
+      // Calcular totales
+
+      let totalVentas = 0;
+      let totalFacturado = 0;
+      let totalPedidosYaOnline = 0;
+      let totalPedidosYaEfectivo = 0;
+
+      ventasTotal.map(venta => {
+        totalVentas = venta.precio_total + totalVentas;
+        
+        if(venta.comprobante === 'Fiscal') totalFacturado = venta.precio_total + totalFacturado;
+        
+        if(venta.forma_pago[0].descripcion === 'PedidosYa') totalPedidosYaOnline = venta.precio_total;
+                
+        if(venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo') totalPedidosYaEfectivo = venta.precio_total;
+        
+      });
+      
+      // Filtro PedidosYA
+
+      let ventasTMP = ventas;
+      let ventasTMPTotal = ventasTotal;
+
+
+      // PedidosYA - Efectivo
+      if(pedidosYa.trim() !== '' && pedidosYa.trim() !== 'PedidosYa - Efectivo'){
+        ventasTMP = ventas.filter(venta => venta.forma_pago[0].descripcion === 'PedidosYa');
+        ventasTMPTotal = ventas.filter(venta => venta.forma_pago[0].descripcion === 'PedidosYa');
+      }
+
+      // PedidosYA - Online
+      if(pedidosYa.trim() !== '' && pedidosYa.trim() !== 'PedidosYa - App'){
+        ventasTMP = ventas.filter( venta => venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo')
+      }
+
+      // PedidosYa - Completo
+      if(pedidosYa.trim() !== '' && pedidosYa === 'PedidosYa'){
+        ventasTMP = ventas.filter( venta => venta.forma_pago[0].descripcion === 'PedidosYa' || venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo')
+      }
+
+      // Sin pedidosYa
+      if(pedidosYa.trim() !== '' && pedidosYa === 'SinPedidosYa'){
+        ventasTMP = ventas.filter( venta => venta.forma_pago[0].descripcion !== 'PedidosYa' && venta.forma_pago[0].descripcion !== 'PedidosYa - Efectivo'
+        )
+      }
+
+      return {
+        ventas: ventasTMP,
+        totalVentas: ventasTMPTotal,
+        totalFacturado,
+        totalPedidosYa: totalPedidosYaOnline + totalPedidosYaEfectivo,
+        totalPedidosYaOnline,
+        totalPedidosYaEfectivo,
+        totalItems: ventasTotal.length
+      };
 
   }
 

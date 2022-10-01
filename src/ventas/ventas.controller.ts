@@ -25,10 +25,24 @@ export class VentasController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async listarVentas(@Res() res, @Query() querys) {
-        const ventas = await this.ventasService.listarVentas(querys);
+        const {
+            ventas, 
+            totalItems, 
+            totalVentas, 
+            totalFacturado,
+            totalPedidosYa,
+            totalPedidosYaOnline,
+            totalPedidosYaEfectivo,
+        } = await this.ventasService.listarVentas(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de ventas correcto',
-            ventas
+            ventas,
+            totalVentas,
+            totalFacturado,
+            totalPedidosYa,
+            totalPedidosYaOnline,
+            totalPedidosYaEfectivo,
+            totalItems
         });
     }
 

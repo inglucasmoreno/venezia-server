@@ -92,9 +92,11 @@ export class VentasService {
       // Pipelines
       const pipeline = [];
       const pipelineTotal = [];
+      const pipelineTotalCalculos = [];
     
       pipeline.push({$match:{}});
       pipelineTotal.push({$match:{}});
+      pipelineTotalCalculos.push({$match:{}});
 
       // Ordenando datos
       const ordenar: any = {};
@@ -108,6 +110,9 @@ export class VentasService {
         pipeline.push({$match: { 
           createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
+        pipelineTotal.push({$match: { 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        }});
       }
       
       // Filtro - Fecha hasta
@@ -115,11 +120,15 @@ export class VentasService {
         pipeline.push({$match: { 
           createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
         }});
+        pipelineTotal.push({$match: { 
+          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+        }});
       }
 
       // Filtro - Tipo de comprobante
       if(tipoComprobante && tipoComprobante !== '') {
         pipeline.push({$match: { comprobante: tipoComprobante }});
+        pipelineTotal.push({$match: { comprobante: tipoComprobante }});      
       };
 
       // Filtro - Activo / Inactivo
@@ -127,6 +136,8 @@ export class VentasService {
       if(activo && activo !== '') {
         filtroActivo = { activo: activo === 'true' ? true : false };
         pipeline.push({$match: filtroActivo});
+        pipelineTotal.push({$match: filtroActivo});
+        pipelineTotalCalculos.push({$match: filtroActivo});
       }
 
       // Paginacion
@@ -165,9 +176,10 @@ export class VentasService {
       }
 
       // Busqueda de ventas
-      const [ventas, ventasTotal] = await Promise.all([
+      const [ventas, ventasTotal, ventasTotalCalculos] = await Promise.all([
         this.ventasModel.aggregate(pipeline),
         this.ventasModel.aggregate(pipelineTotal),
+        this.ventasModel.aggregate(pipelineTotalCalculos),
       ]);
 
       // Calcular totales
@@ -177,14 +189,14 @@ export class VentasService {
       let totalPedidosYaOnline = 0;
       let totalPedidosYaEfectivo = 0;
 
-      ventasTotal.map(venta => {
+      ventasTotalCalculos.map(venta => {
         totalVentas = venta.precio_total + totalVentas;
         
-        if(venta.comprobante === 'Fiscal') totalFacturado = venta.precio_total + totalFacturado;
+        if(venta.comprobante === 'Fiscal') totalFacturado += venta.precio_total;
         
-        if(venta.forma_pago[0].descripcion === 'PedidosYa') totalPedidosYaOnline = venta.precio_total;
+        if(venta.forma_pago[0].descripcion === 'PedidosYa') totalPedidosYaOnline += venta.precio_total;
                 
-        if(venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo') totalPedidosYaEfectivo = venta.precio_total;
+        if(venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo') totalPedidosYaEfectivo += venta.precio_total;
         
       });
       
@@ -192,7 +204,6 @@ export class VentasService {
 
       let ventasTMP = ventas;
       let ventasTMPTotal = ventasTotal;
-
 
       // PedidosYA - Efectivo
       if(pedidosYa.trim() !== '' && pedidosYa.trim() !== 'PedidosYa - Efectivo'){
@@ -218,12 +229,12 @@ export class VentasService {
 
       return {
         ventas: ventasTMP,
-        totalVentas: ventasTMPTotal,
+        totalVentas: totalVentas,
         totalFacturado,
         totalPedidosYa: totalPedidosYaOnline + totalPedidosYaEfectivo,
         totalPedidosYaOnline,
         totalPedidosYaEfectivo,
-        totalItems: ventasTotal.length
+        totalItems: pedidosYa !== '' ? ventasTMP.length : ventasTotal.length
       };
 
   }

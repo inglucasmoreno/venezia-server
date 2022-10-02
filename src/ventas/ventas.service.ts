@@ -15,6 +15,8 @@ export class VentasService {
 
   public afip = new Afip({ CUIT: '', production: true });
 
+  public LIMITE_FACTURACION = 60000;
+
   public facturacion = {
     ptoVta: 4,
     docTipo: 99,    // Consumidor final
@@ -92,11 +94,15 @@ export class VentasService {
       // Pipelines
       const pipeline = [];
       const pipelineTotal = [];
+      const pipelineCalculos = [];  
       const pipelineTotalCalculos = [];
+      const pipelinePedidosYa = [];
     
       pipeline.push({$match:{}});
       pipelineTotal.push({$match:{}});
+      pipelineCalculos.push({$match:{}});
       pipelineTotalCalculos.push({$match:{}});
+      pipelinePedidosYa.push({$match:{}});
 
       // Ordenando datos
       const ordenar: any = {};
@@ -105,12 +111,30 @@ export class VentasService {
           pipeline.push({$sort: ordenar});
       }
 
+      // Filtro - Activo / Inactivo
+      let filtroActivo = {};
+      console.log(activo)
+      if(activo && activo !== '') {
+        filtroActivo = { activo: activo === 'true' ? true : false };
+        pipeline.push({$match: filtroActivo});
+        pipelineTotal.push({$match: filtroActivo});
+        pipelineCalculos.push({$match: filtroActivo});
+        pipelineTotalCalculos.push({$match: filtroActivo});
+        pipelinePedidosYa.push({$match: filtroActivo});
+      }
+
       // Filtro - Fecha desde
       if(fechaDesde && fechaDesde.trim() !== ''){
         pipeline.push({$match: { 
           createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
         pipelineTotal.push({$match: { 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        }});
+        pipelineTotalCalculos.push({$match: { 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        }});
+        pipelinePedidosYa.push({$match: { 
           createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
       }
@@ -123,6 +147,12 @@ export class VentasService {
         pipelineTotal.push({$match: { 
           createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
         }});
+        pipelineTotalCalculos.push({$match: { 
+          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+        }});
+        pipelinePedidosYa.push({$match: { 
+          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+        }});
       }
 
       // Filtro - Tipo de comprobante
@@ -130,15 +160,6 @@ export class VentasService {
         pipeline.push({$match: { comprobante: tipoComprobante }});
         pipelineTotal.push({$match: { comprobante: tipoComprobante }});      
       };
-
-      // Filtro - Activo / Inactivo
-      let filtroActivo = {};
-      if(activo && activo !== '') {
-        filtroActivo = { activo: activo === 'true' ? true : false };
-        pipeline.push({$match: filtroActivo});
-        pipelineTotal.push({$match: filtroActivo});
-        pipelineTotalCalculos.push({$match: filtroActivo});
-      }
 
       // Paginacion
       pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
@@ -175,31 +196,39 @@ export class VentasService {
         pipelineTotal.push({$match: { $or: [ { pedidosya_comprobante: regex },  { 'creatorUser.apellido': regex }, { 'creatorUser.nombre': regex } ] }});
       }
 
+      // TOTALES - VENTAS Y FACTURADO
+      
+      pipelineCalculos.push({$group:{
+        _id: null,
+        totalVentas: { $sum: "$precio_total" },
+        totalFacturado: { $sum: { $cond: [ {$eq: ["$comprobante", 'Fiscal'] }, "$precio_total", 0] } },
+        cantidad_ventas: { $sum: 1 },
+      }})
+      pipelineCalculos.push({ "$unset": ["_id"] });
+
+      // TOTALES - PEDIDOS YA
+
+      pipelinePedidosYa.push({$unwind: '$forma_pago'});
+      pipelinePedidosYa.push({$group:{
+        _id: null,
+        totalPedidosYaOnline: { $sum: { $cond: [ {$eq: ["$forma_pago.descripcion", 'PedidosYa'] }, "$precio_total", 0] } },
+        totalPedidosYaEfectivo: { $sum: { $cond: [ {$eq: ["$forma_pago.descripcion", 'PedidosYa - Efectivo'] }, "$precio_total", 0] } },
+      }})
+      pipelineCalculos.push({ "$unset": ["_id"] })
+
       // Busqueda de ventas
-      const [ventas, ventasTotal, ventasTotalCalculos] = await Promise.all([
+      const [
+        ventas, 
+        ventasTotal, 
+        totales,
+        totalesPedidosYa
+      ] = await Promise.all([
         this.ventasModel.aggregate(pipeline),
         this.ventasModel.aggregate(pipelineTotal),
-        this.ventasModel.aggregate(pipelineTotalCalculos),
+        this.ventasModel.aggregate(pipelineCalculos),
+        this.ventasModel.aggregate(pipelinePedidosYa),
       ]);
 
-      // Calcular totales
-
-      let totalVentas = 0;
-      let totalFacturado = 0;
-      let totalPedidosYaOnline = 0;
-      let totalPedidosYaEfectivo = 0;
-
-      ventasTotalCalculos.map(venta => {
-        totalVentas = venta.precio_total + totalVentas;
-        
-        if(venta.comprobante === 'Fiscal') totalFacturado += venta.precio_total;
-        
-        if(venta.forma_pago[0].descripcion === 'PedidosYa') totalPedidosYaOnline += venta.precio_total;
-                
-        if(venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo') totalPedidosYaEfectivo += venta.precio_total;
-        
-      });
-      
       // Filtro PedidosYA
 
       let ventasTMP = ventas;
@@ -229,11 +258,11 @@ export class VentasService {
 
       return {
         ventas: ventasTMP,
-        totalVentas: totalVentas,
-        totalFacturado,
-        totalPedidosYa: totalPedidosYaOnline + totalPedidosYaEfectivo,
-        totalPedidosYaOnline,
-        totalPedidosYaEfectivo,
+        totalVentas: totales.length !== 0 ? totales[0].totalVentas : 0 ,
+        totalFacturado: totales.length !== 0 ? totales[0].totalFacturado : 0,
+        totalPedidosYaOnline: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaOnline : 0,
+        totalPedidosYaEfectivo: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaEfectivo : 0,
+        totalPedidosYa: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaOnline + totalesPedidosYa[0].totalPedidosYaEfectivo : 0,
         totalItems: pedidosYa !== '' ? ventasTMP.length : ventasTotal.length
       };
 
@@ -284,6 +313,32 @@ export class VentasService {
 
     }else{
 
+      // Alerta por limite de facturacion DIARIO
+
+      const pipelineAlerta = [];
+
+      // console.log(new Date(add(new Date(),{ hours: -5 })));
+
+      const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
+      const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
+      const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
+
+      pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
+      pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
+      pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
+      
+      pipelineAlerta.push({$group:{
+        _id: null,
+        total_facturado: { $sum: "$precio_total" },
+      }})
+      pipelineAlerta.push({ "$unset": ["_id"] })
+
+      const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
+      
+      const total_facturado = alertaFacturacion[0].total_facturado;
+
+      if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
+      
       // --> FACTURACION ELECTRONICA
 
       let impTotal = ventasDTO.precio_total;
@@ -364,11 +419,35 @@ export class VentasService {
   }
 
   // Actualizar a comprobante fiscal
-  async actualizarFacturacion(id, data: any): Promise<IVentas> {
+  async actualizarFacturacion(id, data: any): Promise<any> {
   
-    const { precio_total, updatorUser } = data;
+    // Alerta por limite de facturacion DIARIO
+
+    const pipelineAlerta = [];
+
+    const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
+    const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
+    const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
+
+    pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
+    pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
+    pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
+    
+    pipelineAlerta.push({$group:{
+      _id: null,
+      total_facturado: { $sum: "$precio_total" },
+    }})
+    pipelineAlerta.push({ "$unset": ["_id"] })
+
+    const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
+    
+    const total_facturado = alertaFacturacion[0].total_facturado;
+
+    if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
 
     // --> FACTURACION ELECTRONICA
+
+    const { precio_total, updatorUser } = data;
 
     let impTotal = precio_total;
 

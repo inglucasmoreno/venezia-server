@@ -113,7 +113,6 @@ export class VentasService {
 
       // Filtro - Activo / Inactivo
       let filtroActivo = {};
-      console.log(activo)
       if(activo && activo !== '') {
         filtroActivo = { activo: activo === 'true' ? true : false };
         pipeline.push({$match: filtroActivo});
@@ -160,7 +159,7 @@ export class VentasService {
         pipeline.push({$match: { comprobante: tipoComprobante }});
         pipelineTotal.push({$match: { comprobante: tipoComprobante }});      
       };
-
+      
       // Paginacion
       pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
@@ -216,54 +215,59 @@ export class VentasService {
       }})
       pipelineCalculos.push({ "$unset": ["_id"] })
 
+      // testing
+      const pipelineTesting = [];
+      pipelineTesting.push({$match: { activo: true }});
+      pipelineTesting.push({$unwind: '$forma_pago'});
+
+      // FILTRO - PEDIDOSYA ONLINE
+      if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'PedidosYa - App'){
+        pipeline.push({$unwind: '$forma_pago'});
+        pipeline.push({$match: {'forma_pago.descripcion':'PedidosYa'}});
+      }
+
+      // FILTRO - PEDIDOSYA EFECTIVO
+      if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'PedidosYa - Efectivo'){
+        pipeline.push({$unwind: '$forma_pago'});
+        pipeline.push({$match: {'forma_pago.descripcion':'PedidosYa - Efectivo'}});
+      }
+
+      // FILTRO - PEDIDOSYA
+      if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'PedidosYa'){
+        pipeline.push({$unwind: '$forma_pago'});
+        pipeline.push({$match: { $or: [ {'forma_pago.descripcion':'PedidosYa'},{'forma_pago.descripcion':'PedidosYa - Efectivo'} ]}});
+      }
+      
+      // FILTRO - DISTINTOS A PEDIDOS YA
+      if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'SinPedidosYa'){
+        pipeline.push({$unwind: '$forma_pago'});
+        pipeline.push({$match: { $and:[{'forma_pago.descripcion':{$ne: 'PedidosYa'}}, {'forma_pago.descripcion':{$ne: 'PedidosYa - Efectivo'}}] }});
+      }
+
       // Busqueda de ventas
       const [
         ventas, 
         ventasTotal, 
         totales,
-        totalesPedidosYa
+        totalesPedidosYa,
       ] = await Promise.all([
         this.ventasModel.aggregate(pipeline),
         this.ventasModel.aggregate(pipelineTotal),
         this.ventasModel.aggregate(pipelineCalculos),
         this.ventasModel.aggregate(pipelinePedidosYa),
+        this.ventasModel.aggregate(pipelineTesting),
       ]);
-
-      // Filtro PedidosYA
-
-      let ventasTMP = ventas;
-      let ventasTMPTotal = ventasTotal;
-
-      // PedidosYA - Efectivo
-      if(pedidosYa.trim() !== '' && pedidosYa.trim() !== 'PedidosYa - Efectivo'){
-        ventasTMP = ventas.filter(venta => venta.forma_pago[0].descripcion === 'PedidosYa');
-        ventasTMPTotal = ventas.filter(venta => venta.forma_pago[0].descripcion === 'PedidosYa');
-      }
-
-      // PedidosYA - Online
-      if(pedidosYa.trim() !== '' && pedidosYa.trim() !== 'PedidosYa - App'){
-        ventasTMP = ventas.filter( venta => venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo')
-      }
-
-      // PedidosYa - Completo
-      if(pedidosYa.trim() !== '' && pedidosYa === 'PedidosYa'){
-        ventasTMP = ventas.filter( venta => venta.forma_pago[0].descripcion === 'PedidosYa' || venta.forma_pago[0].descripcion === 'PedidosYa - Efectivo')
-      }
-
-      // Sin pedidosYa
-      if(pedidosYa.trim() !== '' && pedidosYa === 'SinPedidosYa'){
-        ventasTMP = ventas.filter( venta => venta.forma_pago[0].descripcion !== 'PedidosYa' && venta.forma_pago[0].descripcion !== 'PedidosYa - Efectivo'
-        )
-      }
-
+      
+      if(pedidosYa.trim() !== '') ventas.map( venta => (venta.forma_pago = [venta.forma_pago]) );
+      
       return {
-        ventas: ventasTMP,
+        ventas,
         totalVentas: totales.length !== 0 ? totales[0].totalVentas : 0 ,
         totalFacturado: totales.length !== 0 ? totales[0].totalFacturado : 0,
         totalPedidosYaOnline: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaOnline : 0,
         totalPedidosYaEfectivo: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaEfectivo : 0,
         totalPedidosYa: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaOnline + totalesPedidosYa[0].totalPedidosYaEfectivo : 0,
-        totalItems: pedidosYa !== '' ? ventasTMP.length : ventasTotal.length
+        totalItems: pedidosYa !== '' ? ventas.length : ventasTotal.length
       };
 
   }

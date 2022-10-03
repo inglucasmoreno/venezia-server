@@ -95,13 +95,11 @@ export class VentasService {
       const pipeline = [];
       const pipelineTotal = [];
       const pipelineCalculos = [];  
-      const pipelineTotalCalculos = [];
       const pipelinePedidosYa = [];
     
       pipeline.push({$match:{}});
       pipelineTotal.push({$match:{}});
       pipelineCalculos.push({$match:{}});
-      pipelineTotalCalculos.push({$match:{}});
       pipelinePedidosYa.push({$match:{}});
 
       // Ordenando datos
@@ -118,7 +116,6 @@ export class VentasService {
         pipeline.push({$match: filtroActivo});
         pipelineTotal.push({$match: filtroActivo});
         pipelineCalculos.push({$match: filtroActivo});
-        pipelineTotalCalculos.push({$match: filtroActivo});
         pipelinePedidosYa.push({$match: filtroActivo});
       }
 
@@ -128,9 +125,6 @@ export class VentasService {
           createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
         pipelineTotal.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
-        }});
-        pipelineTotalCalculos.push({$match: { 
           createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
         pipelinePedidosYa.push({$match: { 
@@ -144,9 +138,6 @@ export class VentasService {
           createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
         }});
         pipelineTotal.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
-        }});
-        pipelineTotalCalculos.push({$match: { 
           createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
         }});
         pipelinePedidosYa.push({$match: { 
@@ -255,7 +246,6 @@ export class VentasService {
         this.ventasModel.aggregate(pipelineTotal),
         this.ventasModel.aggregate(pipelineCalculos),
         this.ventasModel.aggregate(pipelinePedidosYa),
-        this.ventasModel.aggregate(pipelineTesting),
       ]);
       
       if(pedidosYa.trim() !== '') ventas.map( venta => (venta.forma_pago = [venta.forma_pago]) );
@@ -320,8 +310,6 @@ export class VentasService {
       // Alerta por limite de facturacion DIARIO
 
       const pipelineAlerta = [];
-
-      // console.log(new Date(add(new Date(),{ hours: -5 })));
 
       const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
       const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });

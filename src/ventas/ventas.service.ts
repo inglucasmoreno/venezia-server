@@ -194,7 +194,7 @@ export class VentasService {
         totalFacturado: { $sum: { $cond: [ {$eq: ["$comprobante", 'Fiscal'] }, "$precio_total", 0] } },
         cantidad_ventas: { $sum: 1 },
       }})
-      pipelineCalculos.push({ "$unset": ["_id"] });
+      // pipelineCalculos.push({ "$unset": ["_id"] });
 
       // TOTALES - PEDIDOS YA
 
@@ -204,7 +204,7 @@ export class VentasService {
         totalPedidosYaOnline: { $sum: { $cond: [ {$eq: ["$forma_pago.descripcion", 'PedidosYa'] }, "$precio_total", 0] } },
         totalPedidosYaEfectivo: { $sum: { $cond: [ {$eq: ["$forma_pago.descripcion", 'PedidosYa - Efectivo'] }, "$precio_total", 0] } },
       }})
-      pipelineCalculos.push({ "$unset": ["_id"] })
+      // pipelineCalculos.push({ "$unset": ["_id"] })
 
       // testing
       const pipelineTesting = [];
@@ -323,7 +323,7 @@ export class VentasService {
         _id: null,
         total_facturado: { $sum: "$precio_total" },
       }})
-      pipelineAlerta.push({ "$unset": ["_id"] })
+      // pipelineAlerta.push({ "$unset": ["_id"] })
 
       const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
       
@@ -429,7 +429,7 @@ export class VentasService {
       _id: null,
       total_facturado: { $sum: "$precio_total" },
     }})
-    pipelineAlerta.push({ "$unset": ["_id"] })
+    // pipelineAlerta.push({ "$unset": ["_id"] })
 
     const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
     

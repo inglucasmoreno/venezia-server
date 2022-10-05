@@ -122,26 +122,32 @@ export class VentasService {
       // Filtro - Fecha desde
       if(fechaDesde && fechaDesde.trim() !== ''){
         pipeline.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
         }});
         pipelineTotal.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
         }});
         pipelinePedidosYa.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
+        }});
+        pipelineCalculos.push({$match: { 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
         }});
       }
       
       // Filtro - Fecha hasta
       if(fechaHasta && fechaHasta.trim() !== ''){
         pipeline.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
         }});
         pipelineTotal.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
         }});
         pipelinePedidosYa.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ hours: 3, days: 1 })} 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
+        }});
+        pipelineCalculos.push({$match: { 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
         }});
       }
 
@@ -151,9 +157,6 @@ export class VentasService {
         pipelineTotal.push({$match: { comprobante: tipoComprobante }});      
       };
       
-      // Paginacion
-      pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
-
       // Informacion de usuario creador
       pipeline.push({
         $lookup: { // Lookup
@@ -206,34 +209,40 @@ export class VentasService {
       }})
       // pipelineCalculos.push({ "$unset": ["_id"] })
 
-      // testing
-      const pipelineTesting = [];
-      pipelineTesting.push({$match: { activo: true }});
-      pipelineTesting.push({$unwind: '$forma_pago'});
-
       // FILTRO - PEDIDOSYA ONLINE
       if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'PedidosYa - App'){
         pipeline.push({$unwind: '$forma_pago'});
+        pipelineTotal.push({$unwind: '$forma_pago'});
         pipeline.push({$match: {'forma_pago.descripcion':'PedidosYa'}});
+        pipelineTotal.push({$match: {'forma_pago.descripcion':'PedidosYa'}});
       }
 
       // FILTRO - PEDIDOSYA EFECTIVO
       if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'PedidosYa - Efectivo'){
         pipeline.push({$unwind: '$forma_pago'});
+        pipelineTotal.push({$unwind: '$forma_pago'});
         pipeline.push({$match: {'forma_pago.descripcion':'PedidosYa - Efectivo'}});
+        pipelineTotal.push({$match: {'forma_pago.descripcion':'PedidosYa - Efectivo'}});
       }
 
       // FILTRO - PEDIDOSYA
       if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'PedidosYa'){
         pipeline.push({$unwind: '$forma_pago'});
+        pipelineTotal.push({$unwind: '$forma_pago'});
         pipeline.push({$match: { $or: [ {'forma_pago.descripcion':'PedidosYa'},{'forma_pago.descripcion':'PedidosYa - Efectivo'} ]}});
+        pipelineTotal.push({$match: { $or: [ {'forma_pago.descripcion':'PedidosYa'},{'forma_pago.descripcion':'PedidosYa - Efectivo'} ]}});
       }
       
       // FILTRO - DISTINTOS A PEDIDOS YA
       if(pedidosYa.trim() !== '' && pedidosYa.trim() === 'SinPedidosYa'){
         pipeline.push({$unwind: '$forma_pago'});
+        pipelineTotal.push({$unwind: '$forma_pago'});
         pipeline.push({$match: { $and:[{'forma_pago.descripcion':{$ne: 'PedidosYa'}}, {'forma_pago.descripcion':{$ne: 'PedidosYa - Efectivo'}}] }});
+        pipelineTotal.push({$match: { $and:[{'forma_pago.descripcion':{$ne: 'PedidosYa'}}, {'forma_pago.descripcion':{$ne: 'PedidosYa - Efectivo'}}] }});
       }
+
+      // Paginacion
+      pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
       // Busqueda de ventas
       const [
@@ -257,7 +266,8 @@ export class VentasService {
         totalPedidosYaOnline: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaOnline : 0,
         totalPedidosYaEfectivo: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaEfectivo : 0,
         totalPedidosYa: totalesPedidosYa.length !== 0 ? totalesPedidosYa[0].totalPedidosYaOnline + totalesPedidosYa[0].totalPedidosYaEfectivo : 0,
-        totalItems: pedidosYa !== '' ? ventas.length : ventasTotal.length
+        // totalItems: pedidosYa !== '' ? ventas.length : ventasTotal.length
+        totalItems: ventasTotal.length
       };
 
   }

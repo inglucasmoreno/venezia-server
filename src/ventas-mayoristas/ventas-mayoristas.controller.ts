@@ -23,13 +23,14 @@ export class VentasMayoristasController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async listarVentas(@Res() res, @Query() querys) {
-        const { ventas, totalItems, totalDeuda, totalIngresos } = await this.ventasService.listarVentas(querys);
+        const { ventas, totalItems, totalDeuda, totalIngresos, totalMonto } = await this.ventasService.listarVentas(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de ventas correcto',
             ventas,
             totalItems,
             totalDeuda,
-            totalIngresos
+            totalIngresos,
+            totalMonto
         });
     }
 

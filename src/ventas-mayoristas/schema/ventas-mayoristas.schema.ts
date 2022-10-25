@@ -16,7 +16,7 @@ export const ventasMayoristasSchema = new Schema({
 
     repartidor: {
       type: Schema.Types.ObjectId,
-      ref: 'repartidores',
+      ref: 'usuarios',
       required: true,
     },
     

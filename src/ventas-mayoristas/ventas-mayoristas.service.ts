@@ -30,7 +30,7 @@ export class VentasMayoristasService {
       // Informacion - Repartidor
       pipeline.push({
         $lookup: { // Lookup
-            from: 'repartidores',
+            from: 'usuarios',
             localField: 'repartidor',
             foreignField: '_id',
             as: 'repartidor'
@@ -83,39 +83,69 @@ export class VentasMayoristasService {
 // Listar ventas
 async listarVentas(querys: any): Promise<any> {
     
-    const {
-      columna, 
-      direccion, 
-      mayorista,
-      desde,
-      registerpp,
-      estado,
-      parametro
-    } = querys;
+      const {
+        columna, 
+        direccion,
+        repartidor, 
+        mayorista,
+        desde,
+        registerpp,
+        estado,
+        parametro,
+        fechaDesde,
+        fechaHasta
+      } = querys;
 
-    const pipeline = [];
-    const pipelineTotal = [];
+      const pipeline = [];
+      const pipelineTotal = [];
 
-    pipeline.push({$match:{}});
-    pipelineTotal.push({$match:{}});
+      pipeline.push({$match:{}});
+      pipelineTotal.push({$match:{}});
 
-    // Mayorista por ID
-    if(mayorista && mayorista !== ''){
-      const idMayorista = new Types.ObjectId(mayorista);
-      pipeline.push({ $match:{ _id: idMayorista } })
-      pipelineTotal.push({ $match:{ _id: idMayorista } }) 
-    }
+      // Repartido por ID
+      if(repartidor && repartidor !== ''){
+        const idRepartidor = new Types.ObjectId(repartidor);
+        pipeline.push({ $match:{ repartidor: idRepartidor } })
+        pipelineTotal.push({ $match:{ repartidor: idRepartidor } }) 
+      }
+
+      // Mayorista por ID
+      if(mayorista && mayorista !== ''){
+        const idMayorista = new Types.ObjectId(mayorista);
+        pipeline.push({ $match:{ mayorista: idMayorista } })
+        pipelineTotal.push({ $match:{ mayorista: idMayorista } }) 
+      }
 
      // Activo / Inactivo
      if(estado && estado !== '') {
        pipeline.push({$match: { estado }});
        pipelineTotal.push({$match: { estado }});
      }
+
+    // Filtro - Fecha desde
+    if(fechaDesde && fechaDesde.trim() !== ''){
+      pipeline.push({$match: { 
+        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+      }});
+      pipelineTotal.push({$match: { 
+        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+      }});
+    }
     
+    // Filtro - Fecha hasta
+    if(fechaHasta && fechaHasta.trim() !== ''){
+      pipeline.push({$match: { 
+        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+      }});
+      pipelineTotal.push({$match: { 
+        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+      }});
+    }
+
     // Informacion - Repartidor
     pipeline.push({
       $lookup: { // Lookup
-          from: 'repartidores',
+          from: 'usuarios',
           localField: 'repartidor',
           foreignField: '_id',
           as: 'repartidor'
@@ -139,7 +169,7 @@ async listarVentas(querys: any): Promise<any> {
     // Informacion - Repartidor
     pipelineTotal.push({
       $lookup: { // Lookup
-          from: 'repartidores',
+          from: 'usuarios',
           localField: 'repartidor',
           foreignField: '_id',
           as: 'repartidor'
@@ -163,9 +193,16 @@ async listarVentas(querys: any): Promise<any> {
     // Filtro por parametros
     if(parametro && parametro !== ''){
       const regex = new RegExp(parametro, 'i');
-      pipeline.push({$match: { $or: [ { 'repartidor.descripcion': regex }, { 'mayorista.descripcion': regex }, { numero: Number(parametro) } ] }});
-      pipelineTotal.push({$match: { $or: [ { 'repartidor.descripcion': regex }, { 'mayorista.descripcion': regex }, { numero: Number(parametro) } ] }});
+      pipeline.push({$match: { $or: [ { 'repartidor.apellido': regex }, { 'repartidor.nombre': regex }, { 'mayorista.descripcion': regex }, { numero: Number(parametro) } ] }});
+      pipelineTotal.push({$match: { $or: [ { 'repartidor.apellido': regex }, { 'repartidor.nombre': regex }, { 'mayorista.descripcion': regex }, { numero: Number(parametro) } ] }});
     }
+
+    // Ordenando datos
+    const ordenar: any = {};
+    if(columna){
+        ordenar[String(columna)] = Number(direccion);
+        pipeline.push({$sort: ordenar});
+    }    
 
     // Paginacion
     pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
@@ -194,13 +231,6 @@ async listarVentas(querys: any): Promise<any> {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
-    // Ordenando datos
-    const ordenar: any = {};
-    if(columna){
-        ordenar[String(columna)] = Number(direccion);
-        pipeline.push({$sort: ordenar});
-    }      
-
     const [ventas, ventasTotal] = await Promise.all([
       this.ventasModel.aggregate(pipeline),
       this.ventasModel.aggregate(pipelineTotal)    
@@ -209,16 +239,19 @@ async listarVentas(querys: any): Promise<any> {
     // Calculo de deuda
     let totalDeuda = 0;
     let totalIngresos = 0;
+    let totalMonto = 0;
     ventasTotal.map(venta => {
       if(venta.estado === 'Deuda' ) totalDeuda += venta.deuda_monto;  
       totalIngresos += venta.monto_recibido;
+      totalMonto += venta.precio_total;
     })
 
     return {
       ventas,
       totalItems: ventasTotal.length,
       totalDeuda,
-      totalIngresos
+      totalIngresos,
+      totalMonto
     };
 
   }  
@@ -319,7 +352,7 @@ async listarVentas(querys: any): Promise<any> {
       direccion: pedido.mayorista.direccion,
       numero_pedido: pedido.numero,
       total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pedido.precio_total),
-      repartidor: pedido.repartidor._id == '333333333333333333333333' ? 'Sin especificar' : pedido.repartidor.descripcion,
+      repartidor: pedido.repartidor.apellido + ' ' + pedido.repartidor.nombre,
       productos: productosPedido
     };
 
@@ -347,5 +380,6 @@ async listarVentas(querys: any): Promise<any> {
     await pdf.create(document, options);
 
   }
+
 
 }

@@ -4,6 +4,8 @@ export class VentasMayoristasUpdateDTO {
 
   readonly mayorista: string;
 
+  readonly repartidor: string;
+
   readonly estado: string;
   
   readonly deuda: boolean;

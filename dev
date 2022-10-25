@@ -1,0 +1,132 @@
+
+> server@1.1.1 start C:\Empresa\Proyectos\venezia\server
+> nest start
+
+[2022-10-24T15:16:58.614Z] [32minfo[39m 	[32mStarting Nest application...[39m
+[2022-10-24T15:16:58.665Z] [32minfo[39m 	[32mMongoModule dependencies initialized[39m
+[2022-10-24T15:16:58.665Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.665Z] [32minfo[39m 	[32mPassportModule dependencies initialized[39m
+[2022-10-24T15:16:58.665Z] [32minfo[39m 	[32mSocketModule dependencies initialized[39m
+[2022-10-24T15:16:58.666Z] [32minfo[39m 	[32mJwtModule dependencies initialized[39m
+[2022-10-24T15:16:58.666Z] [32minfo[39m 	[32mConfigHostModule dependencies initialized[39m
+[2022-10-24T15:16:58.667Z] [32minfo[39m 	[32mServeStaticModule dependencies initialized[39m
+[2022-10-24T15:16:58.668Z] [32minfo[39m 	[32mConfigModule dependencies initialized[39m
+[2022-10-24T15:16:58.668Z] [32minfo[39m 	[32mAfipModule dependencies initialized[39m
+[2022-10-24T15:16:58.680Z] [32minfo[39m 	[32mMongooseCoreModule dependencies initialized[39m
+[2022-10-24T15:16:58.691Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.691Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.692Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.692Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.692Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.692Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.692Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.692Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.692Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.693Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.693Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.693Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.693Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.693Z] [32minfo[39m 	[32mMongooseModule dependencies initialized[39m
+[2022-10-24T15:16:58.697Z] [32minfo[39m 	[32mAuthModule dependencies initialized[39m
+[2022-10-24T15:16:58.697Z] [32minfo[39m 	[32mAppModule dependencies initialized[39m
+[2022-10-24T15:16:58.697Z] [32minfo[39m 	[32mRepartidoresModule dependencies initialized[39m
+[2022-10-24T15:16:58.697Z] [32minfo[39m 	[32mProductosModule dependencies initialized[39m
+[2022-10-24T15:16:58.697Z] [32minfo[39m 	[32mVentasProductosModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mIngresosGastosModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mVentasMayoristasProductosModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mUsuariosModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mUnidadMedidaModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mPedidosyaModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mMayoristasModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mVentasModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mVentasMayoristasModule dependencies initialized[39m
+[2022-10-24T15:16:58.698Z] [32minfo[39m 	[32mInicializacionModule dependencies initialized[39m
+[2022-10-24T15:16:58.699Z] [32minfo[39m 	[32mCajasModule dependencies initialized[39m
+[2022-10-24T15:16:58.784Z] [32minfo[39m 	[32mSocketGateway subscribed to the "testing" message[39m
+[2022-10-24T15:16:58.786Z] [32minfo[39m 	[32mAppController {/}:[39m
+[2022-10-24T15:16:58.787Z] [32minfo[39m 	[32mMapped {/auth/login, POST} route[39m
+[2022-10-24T15:16:58.788Z] [32minfo[39m 	[32mMapped {/profile, GET} route[39m
+[2022-10-24T15:16:58.788Z] [32minfo[39m 	[32mUsuariosController {/usuarios}:[39m
+[2022-10-24T15:16:58.788Z] [32minfo[39m 	[32mMapped {/usuarios/:id, GET} route[39m
+[2022-10-24T15:16:58.789Z] [32minfo[39m 	[32mMapped {/usuarios, GET} route[39m
+[2022-10-24T15:16:58.789Z] [32minfo[39m 	[32mMapped {/usuarios, POST} route[39m
+[2022-10-24T15:16:58.789Z] [32minfo[39m 	[32mMapped {/usuarios/:id, PUT} route[39m
+[2022-10-24T15:16:58.790Z] [32minfo[39m 	[32mInicializacionController {/inicializacion}:[39m
+[2022-10-24T15:16:58.790Z] [32minfo[39m 	[32mMapped {/inicializacion/usuarios, GET} route[39m
+[2022-10-24T15:16:58.790Z] [32minfo[39m 	[32mMapped {/inicializacion/productos, POST} route[39m
+[2022-10-24T15:16:58.790Z] [32minfo[39m 	[32mUnidadMedidaController {/unidad-medida}:[39m
+[2022-10-24T15:16:58.791Z] [32minfo[39m 	[32mMapped {/unidad-medida/:id, GET} route[39m
+[2022-10-24T15:16:58.791Z] [32minfo[39m 	[32mMapped {/unidad-medida, GET} route[39m
+[2022-10-24T15:16:58.791Z] [32minfo[39m 	[32mMapped {/unidad-medida, POST} route[39m
+[2022-10-24T15:16:58.791Z] [32minfo[39m 	[32mMapped {/unidad-medida/:id, PUT} route[39m
+[2022-10-24T15:16:58.792Z] [32minfo[39m 	[32mProductosController {/productos}:[39m
+[2022-10-24T15:16:58.792Z] [32minfo[39m 	[32mMapped {/productos/:id, GET} route[39m
+[2022-10-24T15:16:58.792Z] [32minfo[39m 	[32mMapped {/productos/buscar/parametro, GET} route[39m
+[2022-10-24T15:16:58.792Z] [32minfo[39m 	[32mMapped {/productos, GET} route[39m
+[2022-10-24T15:16:58.793Z] [32minfo[39m 	[32mMapped {/productos, POST} route[39m
+[2022-10-24T15:16:58.793Z] [32minfo[39m 	[32mMapped {/productos/:id, PUT} route[39m
+[2022-10-24T15:16:58.793Z] [32minfo[39m 	[32mVentasController {/ventas}:[39m
+[2022-10-24T15:16:58.793Z] [32minfo[39m 	[32mMapped {/ventas/:id, GET} route[39m
+[2022-10-24T15:16:58.793Z] [32minfo[39m 	[32mMapped {/ventas, GET} route[39m
+[2022-10-24T15:16:58.794Z] [32minfo[39m 	[32mMapped {/ventas, POST} route[39m
+[2022-10-24T15:16:58.794Z] [32minfo[39m 	[32mMapped {/ventas/:id, PUT} route[39m
+[2022-10-24T15:16:58.794Z] [32minfo[39m 	[32mMapped {/ventas/actualizar/facturacion/:id, PUT} route[39m
+[2022-10-24T15:16:58.794Z] [32minfo[39m 	[32mMapped {/ventas/comprobante/:id, GET} route[39m
+[2022-10-24T15:16:58.794Z] [32minfo[39m 	[32mVentasProductosController {/ventas-productos}:[39m
+[2022-10-24T15:16:58.795Z] [32minfo[39m 	[32mMapped {/ventas-productos/:id, GET} route[39m
+[2022-10-24T15:16:58.795Z] [32minfo[39m 	[32mMapped {/ventas-productos, GET} route[39m
+[2022-10-24T15:16:58.795Z] [32minfo[39m 	[32mMapped {/ventas-productos, POST} route[39m
+[2022-10-24T15:16:58.795Z] [32minfo[39m 	[32mMapped {/ventas-productos/:id, PUT} route[39m
+[2022-10-24T15:16:58.796Z] [32minfo[39m 	[32mAfipController {/afip}:[39m
+[2022-10-24T15:16:58.796Z] [32minfo[39m 	[32mMapped {/afip/contribuyente/alcance4/:cuit, GET} route[39m
+[2022-10-24T15:16:58.796Z] [32minfo[39m 	[32mMapped {/afip/contribuyente/alcance5/:cuit, GET} route[39m
+[2022-10-24T15:16:58.796Z] [32minfo[39m 	[32mMapped {/afip/contribuyente/alcance10/:cuit, GET} route[39m
+[2022-10-24T15:16:58.797Z] [32minfo[39m 	[32mMapped {/afip/contribuyente/alcance13/:cuit, GET} route[39m
+[2022-10-24T15:16:58.797Z] [32minfo[39m 	[32mMapped {/afip/tipos/comprobantes, GET} route[39m
+[2022-10-24T15:16:58.797Z] [32minfo[39m 	[32mMapped {/afip/tipos/conceptos, GET} route[39m
+[2022-10-24T15:16:58.798Z] [32minfo[39m 	[32mMapped {/afip/tipos/documentos, GET} route[39m
+[2022-10-24T15:16:58.798Z] [32minfo[39m 	[32mMapped {/afip/info/ultimo-numero-comprobante, POST} route[39m
+[2022-10-24T15:16:58.798Z] [32minfo[39m 	[32mMapped {/afip/info/comprobante, POST} route[39m
+[2022-10-24T15:16:58.798Z] [32minfo[39m 	[32mMapped {/afip/factura-electronica, POST} route[39m
+[2022-10-24T15:16:58.799Z] [32minfo[39m 	[32mMapped {/afip/ajustar/fecha, POST} route[39m
+[2022-10-24T15:16:58.799Z] [32minfo[39m 	[32mCajasController {/cajas}:[39m
+[2022-10-24T15:16:58.799Z] [32minfo[39m 	[32mMapped {/cajas/:id, GET} route[39m
+[2022-10-24T15:16:58.799Z] [32minfo[39m 	[32mMapped {/cajas/calculos/iniciales, GET} route[39m
+[2022-10-24T15:16:58.800Z] [32minfo[39m 	[32mMapped {/cajas, GET} route[39m
+[2022-10-24T15:16:58.800Z] [32minfo[39m 	[32mMapped {/cajas, POST} route[39m
+[2022-10-24T15:16:58.800Z] [32minfo[39m 	[32mMapped {/cajas/:id, PUT} route[39m
+[2022-10-24T15:16:58.800Z] [32minfo[39m 	[32mMapped {/cajas/update/saldo-inicial, PUT} route[39m
+[2022-10-24T15:16:58.800Z] [32minfo[39m 	[32mIngresosGastosController {/ingresos-gastos}:[39m
+[2022-10-24T15:16:58.801Z] [32minfo[39m 	[32mMapped {/ingresos-gastos/:id, GET} route[39m
+[2022-10-24T15:16:58.801Z] [32minfo[39m 	[32mMapped {/ingresos-gastos, GET} route[39m
+[2022-10-24T15:16:58.801Z] [32minfo[39m 	[32mMapped {/ingresos-gastos, POST} route[39m
+[2022-10-24T15:16:58.801Z] [32minfo[39m 	[32mMapped {/ingresos-gastos/:id, PUT} route[39m
+[2022-10-24T15:16:58.802Z] [32minfo[39m 	[32mMapped {/ingresos-gastos/:id, DELETE} route[39m
+[2022-10-24T15:16:58.802Z] [32minfo[39m 	[32mPedidosyaController {/pedidosya}:[39m
+[2022-10-24T15:16:58.802Z] [32minfo[39m 	[32mMapped {/pedidosya/:id, GET} route[39m
+[2022-10-24T15:16:58.802Z] [32minfo[39m 	[32mMapped {/pedidosya, GET} route[39m
+[2022-10-24T15:16:58.802Z] [32minfo[39m 	[32mMapped {/pedidosya, POST} route[39m
+[2022-10-24T15:16:58.803Z] [32minfo[39m 	[32mMapped {/pedidosya/:id, PUT} route[39m
+[2022-10-24T15:16:58.803Z] [32minfo[39m 	[32mVentasMayoristasController {/ventas-mayoristas}:[39m
+[2022-10-24T15:16:58.803Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas/:id, GET} route[39m
+[2022-10-24T15:16:58.803Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas, GET} route[39m
+[2022-10-24T15:16:58.803Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas, POST} route[39m
+[2022-10-24T15:16:58.804Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas/:id, PUT} route[39m
+[2022-10-24T15:16:58.804Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas/detalles-pedido/:id, GET} route[39m
+[2022-10-24T15:16:58.804Z] [32minfo[39m 	[32mVentasMayoristasProductosController {/ventas-mayoristas-productos}:[39m
+[2022-10-24T15:16:58.804Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas-productos/:id, GET} route[39m
+[2022-10-24T15:16:58.804Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas-productos, GET} route[39m
+[2022-10-24T15:16:58.805Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas-productos, POST} route[39m
+[2022-10-24T15:16:58.805Z] [32minfo[39m 	[32mMapped {/ventas-mayoristas-productos/:id, PUT} route[39m
+[2022-10-24T15:16:58.805Z] [32minfo[39m 	[32mMayoristasController {/mayoristas}:[39m
+[2022-10-24T15:16:58.805Z] [32minfo[39m 	[32mMapped {/mayoristas/:id, GET} route[39m
+[2022-10-24T15:16:58.805Z] [32minfo[39m 	[32mMapped {/mayoristas, POST} route[39m
+[2022-10-24T15:16:58.808Z] [32minfo[39m 	[32mMapped {/mayoristas, GET} route[39m
+[2022-10-24T15:16:58.808Z] [32minfo[39m 	[32mMapped {/mayoristas/:id, PUT} route[39m
+[2022-10-24T15:16:58.808Z] [32minfo[39m 	[32mRepartidoresController {/repartidores}:[39m
+[2022-10-24T15:16:58.809Z] [32minfo[39m 	[32mMapped {/repartidores/:id, GET} route[39m
+[2022-10-24T15:16:58.809Z] [32minfo[39m 	[32mMapped {/repartidores, GET} route[39m
+[2022-10-24T15:16:58.809Z] [32minfo[39m 	[32mMapped {/repartidores, POST} route[39m
+[2022-10-24T15:16:58.809Z] [32minfo[39m 	[32mMapped {/repartidores/:id, PUT} route[39m
+[2022-10-24T15:16:58.814Z] [32minfo[39m 	[32mNest application successfully started[39m
+¿Desea terminar el trabajo por lotes (S/N)? 

@@ -3,7 +3,7 @@ import { IsNotEmpty } from "class-validator";
 export class VentasMayoristasProductosDTO {
    
   @IsNotEmpty()
-  readonly venta_mayorista: string;
+  readonly ventas_mayorista: string;
 
   @IsNotEmpty()
   readonly producto: string;

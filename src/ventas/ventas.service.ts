@@ -122,32 +122,32 @@ export class VentasService {
       // Filtro - Fecha desde
       if(fechaDesde && fechaDesde.trim() !== ''){
         pipeline.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
         pipelineTotal.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
         pipelinePedidosYa.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
         pipelineCalculos.push({$match: { 
-          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
+          createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
         }});
       }
-      
+
       // Filtro - Fecha hasta
       if(fechaHasta && fechaHasta.trim() !== ''){
         pipeline.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
         }});
         pipelineTotal.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
         }});
         pipelinePedidosYa.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
         }});
         pipelineCalculos.push({$match: { 
-          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1 })} 
+          createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
         }});
       }
 
@@ -319,27 +319,27 @@ export class VentasService {
 
       // Alerta por limite de facturacion DIARIO
 
-      const pipelineAlerta = [];
+      // const pipelineAlerta = [];
 
-      const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
-      const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
-      const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
+      // const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
+      // const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
+      // const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
 
-      pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
-      pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
-      pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
+      // pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
+      // pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
+      // pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
       
-      pipelineAlerta.push({$group:{
-        _id: null,
-        total_facturado: { $sum: "$precio_total" },
-      }})
+      // pipelineAlerta.push({$group:{
+      //   _id: null,
+      //   total_facturado: { $sum: "$precio_total" },
+      // }})
       // pipelineAlerta.push({ "$unset": ["_id"] })
 
-      const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
+      // const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
       
-      const total_facturado = alertaFacturacion[0].total_facturado;
+      // const total_facturado = alertaFacturacion[0].total_facturado;
 
-      if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
+      // if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
       
       // --> FACTURACION ELECTRONICA
 
@@ -425,27 +425,27 @@ export class VentasService {
   
     // Alerta por limite de facturacion DIARIO
 
-    const pipelineAlerta = [];
+    // const pipelineAlerta = [];
 
-    const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
-    const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
-    const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
+    // const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
+    // const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
+    // const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
 
-    pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
-    pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
-    pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
+    // pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
+    // pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
+    // pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
     
-    pipelineAlerta.push({$group:{
-      _id: null,
-      total_facturado: { $sum: "$precio_total" },
-    }})
+    // pipelineAlerta.push({$group:{
+    //   _id: null,
+    //   total_facturado: { $sum: "$precio_total" },
+    // }})
     // pipelineAlerta.push({ "$unset": ["_id"] })
 
-    const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
+    // const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
     
-    const total_facturado = alertaFacturacion[0].total_facturado;
+    // const total_facturado = alertaFacturacion[0].total_facturado;
 
-    if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
+    // if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
 
     // --> FACTURACION ELECTRONICA
 

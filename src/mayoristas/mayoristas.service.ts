@@ -25,7 +25,13 @@ export class MayoristasService {
     // Crear mayorista
     async crearMayorista(mayoristaDTO: MayoristasDTO): Promise<IMayoristas> {
 
-        const { email } = mayoristaDTO;
+        const { email, descripcion } = mayoristaDTO;
+
+        // Verificacion: descripcion repetida
+        if(descripcion){
+            const mayoristaDescripcion = await this.mayoristasModel.findOne({descripcion: descripcion.trim().toUpperCase()})
+            if(mayoristaDescripcion) throw new NotFoundException('El mayorista ya se encuentra cargada');
+        }
 
         // Verificamos que el mayorista no esta repetido
         let mayoristaDB = await this.getMayoristaPorEmail(email);
@@ -54,12 +60,18 @@ export class MayoristasService {
     // Actualizar mayorista
     async actualizarMayorista(id: string, mayoristaUpdateDTO: MayoristasUpdateDTO): Promise<IMayoristas> {
 
-        const { email } = mayoristaUpdateDTO;
+        const { email, descripcion } = mayoristaUpdateDTO;
 
         // Se verifica si el mayorista a actualizar existe
         let mayoristaDB = await this.getMayorista(id);
         if(!mayoristaDB) throw new NotFoundException('El mayorista no existe');
         
+        // Verificacion: descripcion repetida
+        if(descripcion){
+            const mayoristaDescripcion = await this.mayoristasModel.findOne({descripcion: descripcion.trim().toUpperCase()})
+            if(mayoristaDescripcion && mayoristaDescripcion._id.toString() !== id) throw new NotFoundException('El mayorista ya se encuentra cargada');
+        }
+
         // Verificamos que el email no este repetido
         if(email && mayoristaDB.email !== email){
             const mayoristaDBEmail = await this.getMayoristaPorEmail(email);

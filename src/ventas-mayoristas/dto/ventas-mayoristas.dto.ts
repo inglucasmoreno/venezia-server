@@ -8,6 +8,9 @@ export class VentasMayoristasDTO {
   readonly mayorista: string;
 
   @IsNotEmpty()
+  readonly repartidor: string;
+
+  @IsNotEmpty()
   readonly estado: string;
   
   readonly deuda: boolean;

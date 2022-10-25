@@ -1,6 +1,6 @@
 export class VentasMayoristasProductosUpdateDTO {
    
-  readonly venta_mayorista: string;
+  readonly ventas_mayorista: string;
 
   readonly producto: string;
 

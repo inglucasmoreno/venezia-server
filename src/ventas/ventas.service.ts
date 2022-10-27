@@ -640,4 +640,46 @@ export class VentasService {
 
   }
 
+
+  // Proximo numero de factura
+  async proximoNroFactura(tipoComprobante: string): Promise<any> {
+    
+    let tipoNroComprobante = 6;
+
+    if(tipoComprobante === 'A') tipoNroComprobante = 1;  // 1 -> A
+    if(tipoComprobante === 'B') tipoNroComprobante = 6;  // 6 -> B
+    if(tipoComprobante === 'C') tipoNroComprobante = 11; // 11 -> C
+
+    // Ultimo numero de comprobante
+    const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, tipoNroComprobante).catch( () => {
+      throw new NotFoundException('Problemas al obtener número de comprobante');
+    })
+
+    let nroComprobante = ultimoNumero + 1;
+
+    // Generacion de numero de factura
+    let nroFactura = '';
+
+    if(nroComprobante <= 9){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-0000000' + nroComprobante;
+    }else if(nroComprobante <= 99){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-000000' + nroComprobante;
+    }else if(nroComprobante <= 999){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-00000' + nroComprobante;
+    }else if(nroComprobante <= 9999){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-0000' + nroComprobante;
+    }else if(nroComprobante <= 99999){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-000' + nroComprobante;
+    }else if(nroComprobante <= 999999){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-00' + nroComprobante;
+    }else if(nroComprobante <= 9999999){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-0' + nroComprobante;
+    }else if(nroComprobante <= 99999999){
+      nroFactura =  '0000' + this.facturacion.ptoVta + '-' + nroComprobante;
+    }
+
+    return nroFactura;
+
+  }  
+
 }

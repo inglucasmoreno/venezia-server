@@ -89,4 +89,15 @@ export class VentasController {
         });
     }
 
+    // Proximo numero de factura
+    @UseGuards(JwtAuthGuard)
+    @Get('/ultimo/nro/factura/:tipo_factura')
+    async proximoNroFactura(@Res() res, @Param('tipo_factura') tipoFactura) {
+        const nro_factura = await this.ventasService.proximoNroFactura(tipoFactura);
+        res.status(HttpStatus.OK).json({
+            nro_factura,
+            message: 'Proximo numero de factura correctamente'
+        });
+    }
+
 }

@@ -80,5 +80,27 @@ export class VentasMayoristasProductosController {
         });
     }
 
+    // Generacion - Detalles de productos pendientes - PDF
+    @UseGuards(JwtAuthGuard)
+    @Get('/preparacion-pedidos/pdf')
+    async generarArmadoPedidosPDF(@Res() res) {
+        const productos = await this.productosService.generarArmadoPedidosPDF();
+        res.status(HttpStatus.OK).json({
+            productos,
+            message: 'PDF generado correctamente para preparacion'
+        });
+    }
+
+    // Generacion - Detalles de productos pendientes por repartidor (y Por mayorista) - PDF
+    @UseGuards(JwtAuthGuard)
+    @Get('/preparacion-pedidos/pdf/:repartidor')
+    async generarArmadoPedidosPorRepartidorPDF(@Res() res, @Param('repartidor') repartidorID) {
+        const productos = await this.productosService.generarArmadoPedidosPorRepartidorPDF(repartidorID);
+        res.status(HttpStatus.OK).json({
+            productos,
+            message: 'PDF generado correctamente para preparacion'
+        });
+    }
+
 }
 

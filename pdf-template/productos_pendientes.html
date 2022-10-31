@@ -37,19 +37,19 @@
     </table>
     
     <div>
-      <h1 style="font-size: 15px; margin-top: 15px;"> LISTADO DE PRODUCTOS PENDIENTES </h1>
+      <h1 style="font-size: 12px; margin-top: 15px;"> LISTADO DE PRODUCTOS PENDIENTES </h1>
     </div>
 
     <!-- Tabla de productos -->
     <div style="margin-top: 5px; font-size: 9px;">
       <table>
         <tr>
-          <th style="width: 250px; text-align: left;"> Productos </th>
+          <th style="width: 250px; text-align: left;"> Producto </th>
           <th style="width: 150px; text-align: right;"> Unidad de medida </th>
           <th style="width: 100px; text-align: right;"> Cantidad </th>
         </tr>
         {{#each productos}}
-        <tr>
+        <tr styles="border: 1px solid black;">
           <td style="text-align:left; padding-top: 5px;"> {{ descripcion }}</td>
           <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida }} </td>
           <td style="text-align:right; padding-top: 5px;"> {{ cantidad }} </td>

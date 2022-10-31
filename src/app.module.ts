@@ -23,6 +23,8 @@ import { VentasMayoristasModule } from './ventas-mayoristas/ventas-mayoristas.mo
 import { VentasMayoristasProductosModule } from './ventas-mayoristas-productos/ventas-mayoristas-productos.module';
 import { MayoristasModule } from './mayoristas/mayoristas.module';
 import { RepartidoresModule } from './repartidores/repartidores.module';
+import { MayoristasTiposGastosModule } from './mayoristas-tipos-gastos/mayoristas-tipos-gastos.module';
+import { MayoristasGastosModule } from './mayoristas-gastos/mayoristas-gastos.module';
 
 @Module({
   imports: [
@@ -50,7 +52,7 @@ import { RepartidoresModule } from './repartidores/repartidores.module';
     UsuariosModule, 
     AuthModule,
     InicializacionModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
-    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule, MayoristasModule, RepartidoresModule,          // Para trabajar con WebSocket
+    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule, MayoristasModule, RepartidoresModule, MayoristasTiposGastosModule, MayoristasGastosModule,          // Para trabajar con WebSocket
     
   ],
   

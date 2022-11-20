@@ -34,10 +34,11 @@ export class CajasController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async listarCajas(@Res() res, @Query() querys) {
-        const cajas = await this.cajasService.listarCajas(querys);
+        const { cajas, totalItems } = await this.cajasService.listarCajas(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de cajas correcto',
-            cajas
+            cajas,
+            totalItems
         });
     }
 
@@ -71,6 +72,17 @@ export class CajasController {
         res.status(HttpStatus.OK).json({
             message: 'Saldo inicial actualizado correctamente',
             saldoInicial
+        });
+    }
+
+    // Reportes de cajas
+    @UseGuards(JwtAuthGuard)
+    @Get('/reportes/acumulacion/estadisticas')
+    async reporteCajas(@Res() res, @Query() querys) {
+        const reportes = await this.cajasService.reporteCajas(querys);
+        res.status(HttpStatus.OK).json({
+            message: 'Reporte de cajas generado correctamente',
+            reportes
         });
     }
 }

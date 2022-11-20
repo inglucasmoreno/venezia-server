@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
 import { IIngresosGastos } from 'src/ingresos-gastos/interface/ingresos-gastos.schema';
 import { IVentas } from 'src/ventas/interface/ventas.interface';
@@ -12,22 +13,22 @@ import { ISaldoInicial } from './interface/saldo-inicial.interface';
 export class CajasService {
 
   constructor(
-      @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
-      @InjectModel('SaldoInicial') private readonly saldoInicialModel: Model<ISaldoInicial>,
-      @InjectModel('IngresosGastos') private readonly ingresosGastosModel: Model<IIngresosGastos>,
-      @InjectModel('Ventas') private readonly ventasModel: Model<IVentas>  
-    ){}
+    @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
+    @InjectModel('SaldoInicial') private readonly saldoInicialModel: Model<ISaldoInicial>,
+    @InjectModel('IngresosGastos') private readonly ingresosGastosModel: Model<IIngresosGastos>,
+    @InjectModel('Ventas') private readonly ventasModel: Model<IVentas>
+  ) { }
 
-    // Caja por ID
+  // Caja por ID
   async getCaja(id: string): Promise<ICajas> {
 
     const cajaDB = await this.cajasModel.findById(id);
-    if(!cajaDB) throw new NotFoundException('La caja no existe');
+    if (!cajaDB) throw new NotFoundException('La caja no existe');
 
     const pipeline = [];
 
     const idCaja = new Types.ObjectId(id);
-    pipeline.push({ $match:{ _id: idCaja} }) 
+    pipeline.push({ $match: { _id: idCaja } })
 
     // Informacion de usuario creador
     pipeline.push({
@@ -36,7 +37,8 @@ export class CajasService {
         localField: 'creatorUser',
         foreignField: '_id',
         as: 'creatorUser'
-      }}
+      }
+    }
     );
 
     pipeline.push({ $unwind: '$creatorUser' });
@@ -48,7 +50,8 @@ export class CajasService {
         localField: 'updatorUser',
         foreignField: '_id',
         as: 'updatorUser'
-      }}
+      }
+    }
     );
 
     pipeline.push({ $unwind: '$updatorUser' });
@@ -57,57 +60,138 @@ export class CajasService {
 
     return caja[0];
 
-  } 
+  }
 
   // Listar cajas
-  async listarCajas(querys: any): Promise<ICajas[]> {
+  async listarCajas(querys: any): Promise<any> {
 
-  const {columna, direccion} = querys;
+    const {
+      columna,
+      direccion,
+      desde,
+      registerpp,
+      fechaDesde,
+      fechaHasta,
+      parametro
+    } = querys;
 
-  const pipeline = [];
-  pipeline.push({$match:{}});
-  
-  // Informacion de usuario creador
-  pipeline.push({
-    $lookup: { // Lookup
-      from: 'usuarios',
-      localField: 'creatorUser',
-      foreignField: '_id',
-      as: 'creatorUser'
-    }}
-  );
+    const pipeline = [];
+    const pipelineTotal = [];
 
-  pipeline.push({ $unwind: '$creatorUser' });
+    pipeline.push({ $match: {} });
+    pipelineTotal.push({ $match: {} });
 
-  // Informacion de usuario actualizador
-  pipeline.push({
-    $lookup: { // Lookup
-      from: 'usuarios',
-      localField: 'updatorUser',
-      foreignField: '_id',
-      as: 'updatorUser'
-    }}
-  );
+    // Filtro - Fecha desde
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+    }
 
-  pipeline.push({ $unwind: '$updatorUser' });
+    // Filtro - Fecha hasta
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
 
-  // Ordenando datos
-  const ordenar: any = {};
-  if(columna){
-    ordenar[String(columna)] = Number(direccion);
-    pipeline.push({$sort: ordenar});
-  }      
+    // Informacion de usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'creatorUser',
+        foreignField: '_id',
+        as: 'creatorUser'
+      }
+    }
+    );
 
-  const cajas = await this.cajasModel.aggregate(pipeline);
+    pipeline.push({ $unwind: '$creatorUser' });
 
-  return cajas;
+    // Informacion de usuario creador - TOTAL
+    pipelineTotal.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'creatorUser',
+        foreignField: '_id',
+        as: 'creatorUser'
+      }
+    }
+    );
 
-  }  
+    pipelineTotal.push({ $unwind: '$creatorUser' });
+
+    // Informacion de usuario actualizador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'updatorUser',
+        foreignField: '_id',
+        as: 'updatorUser'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$updatorUser' });
+
+    // Filtro por parametros
+    if (parametro && parametro !== '') {
+
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for (var i = 0; i < porPartes.length; i++) {
+        if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal, 'i');
+      pipeline.push({ $match: { $or: [{ 'creatorUser.apellido': regex }, { 'creatorUser.nombre': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ 'creatorUser.apellido': regex }, { 'creatorUser.nombre': regex }] } });
+
+    }
+
+    // Ordenando datos
+    const ordenar: any = {};
+    if (columna) {
+      ordenar[String(columna)] = Number(direccion);
+      pipeline.push({ $sort: ordenar });
+    }
+
+    // Paginacion
+    pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
+
+
+    const [cajas, cajasTotal] = await Promise.all([
+      this.cajasModel.aggregate(pipeline),
+      this.cajasModel.aggregate(pipelineTotal),
+    ])
+
+    return {
+      cajas,
+      totalItems: cajasTotal.length
+    };
+
+  }
 
   // Calculos iniciales
   async calculosIniciales(): Promise<any> {
     const ventasActivas = await this.ventasModel.find({ activo: true });
-    
+
     // Variables iniciales
     let total_ventas = 0;
     let total_adicional_credito = 0;
@@ -138,18 +222,18 @@ export class CajasService {
       total_no_balanza += venta.total_no_balanza;
 
       // Monto facturado
-      if(venta.comprobante === 'Fiscal') total_facturado += venta.precio_total;
+      if (venta.comprobante === 'Fiscal') total_facturado += venta.precio_total;
 
       // Calculos sobre -> Formas de pago
       venta['forma_pago'].map(formaPago => {
-        if(formaPago.descripcion === 'Efectivo' || formaPago.descripcion === 'PedidosYa - Efectivo') total_efectivo += formaPago.valor;
-        if(formaPago.descripcion === 'Crédito') total_credito += formaPago.valor; 
-        if(formaPago.descripcion === 'Débito') total_debito += formaPago.valor; 
-        if(formaPago.descripcion === 'Mercado pago') total_mercadopago += formaPago.valor;  
-        if(formaPago.descripcion === 'PedidosYa') total_pedidosYa += formaPago.valor;  
-        if(formaPago.descripcion === 'Crédito' || formaPago.descripcion === 'Débito' || formaPago.descripcion === 'Mercado pago') total_postnet += formaPago.valor;      
+        if (formaPago.descripcion === 'Efectivo' || formaPago.descripcion === 'PedidosYa - Efectivo') total_efectivo += formaPago.valor;
+        if (formaPago.descripcion === 'Crédito') total_credito += formaPago.valor;
+        if (formaPago.descripcion === 'Débito') total_debito += formaPago.valor;
+        if (formaPago.descripcion === 'Mercado pago') total_mercadopago += formaPago.valor;
+        if (formaPago.descripcion === 'PedidosYa') total_pedidosYa += formaPago.valor;
+        if (formaPago.descripcion === 'Crédito' || formaPago.descripcion === 'Débito' || formaPago.descripcion === 'Mercado pago') total_postnet += formaPago.valor;
       })
-    
+
     })
 
     // Ingresos y Gastos
@@ -160,8 +244,8 @@ export class CajasService {
     let totalGastos = 0;
     let totalIngresos = 0;
 
-    ingresosGastos.map( elemento => {
-      if(elemento.tipo === 'gasto') {
+    ingresosGastos.map(elemento => {
+      if (elemento.tipo === 'gasto') {
         totalGastos += elemento.monto;
         gastos.push(elemento);
       }
@@ -195,7 +279,7 @@ export class CajasService {
       cantidad_ventas
     }
 
-  }  
+  }
 
   // Crear caja
   async crearCaja(cajasDTO: CajasDTO): Promise<ICajas> {
@@ -208,13 +292,13 @@ export class CajasService {
     // 3 - Eliminar Ingresos y Gastos temporales
     // 4 - Actualizacion de saldo de nueva caja
 
-    const [ respuestaCaja ] = await Promise.all([
+    const [respuestaCaja] = await Promise.all([
       nuevaCaja.save(),
-      this.ventasModel.updateMany({},{activo: false}),
+      this.ventasModel.updateMany({}, { activo: false }),
       this.ingresosGastosModel.deleteMany(),
-      this.saldoInicialModel.findByIdAndUpdate(idSaldoInicial, {monto: cajasDTO.saldo_proxima_caja})
+      this.saldoInicialModel.findByIdAndUpdate(idSaldoInicial, { monto: cajasDTO.saldo_proxima_caja })
     ])
-    
+
     // 1) - Crear nueva caja
     // const respuestaCaja = await nuevaCaja.save();
 
@@ -228,20 +312,75 @@ export class CajasService {
     // await this.saldoInicialModel.findByIdAndUpdate(idSaldoInicial, {monto: cajasDTO.saldo_proxima_caja});
 
     return respuestaCaja;
-  
+
   }
 
   // Actualizar caja
   async actualizarCaja(id: string, cajasUpdateDTO: CajasUpdateDTO): Promise<ICajas> {
-    const caja = await this.cajasModel.findByIdAndUpdate(id, cajasUpdateDTO, {new: true});
+    const caja = await this.cajasModel.findByIdAndUpdate(id, cajasUpdateDTO, { new: true });
     return caja;
   }
 
   // Actualizar saldo inicial de caja
   async actualizarSaldoInicial(data: any): Promise<ISaldoInicial> {
     const idSaldo = '222222222222222222222222';
-    const saldoInicial = await this.saldoInicialModel.findByIdAndUpdate(idSaldo, data, {new: true});
+    const saldoInicial = await this.saldoInicialModel.findByIdAndUpdate(idSaldo, data, { new: true });
     return saldoInicial;
+  }
+
+  // Reporte de cajas
+  async reporteCajas(data: any): Promise<any> {
+
+    const { fechaDesde, fechaHasta } = data;
+
+    const pipeline = [];
+
+    // Filtro - Fecha desde
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+
+    }
+
+    // Filtro - Fecha hasta
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
+
+    pipeline.push({ $match: {} });
+
+    pipeline.push({$group:{
+      _id: null,
+      cantidad_ventas: { $sum: "$cantidad_ventas" },
+      total_ventas: { $sum: "$total_ventas" },
+      total_facturado: { $sum: "$total_facturado" },
+      total_balanza: { $sum: "$total_balanza" },
+      total_no_balanza: { $sum: "$total_no_balanza" },
+      otros_ingresos: { $sum: "$otros_ingresos" },
+      otros_gastos: { $sum: "$otros_gastos" },
+      total_credito: { $sum: "$total_credito" },
+      total_mercadopago: { $sum: "$total_mercadopago" },
+      total_efectivo: { $sum: "$total_efectivo" },
+      total_debito: { $sum: "$total_debito" },
+      total_adicional_credito: { $sum: "$total_adicional_credito" },
+      total_pedidosYa: { $sum: "$total_credito" },
+      diferencia: { $sum: "$diferencia" },
+      tesoreria: { $sum: "$tesoreria" },
+      total_efectivo_en_caja: { $sum: "$total_efectivo_en_caja" },
+      total_efectivo_en_caja_real: { $sum: "$total_efectivo_en_caja_real" },
+    }})
+
+    const reportes = await this.cajasModel.aggregate(pipeline);
+
+    return reportes[0];
+
   }
 
 }

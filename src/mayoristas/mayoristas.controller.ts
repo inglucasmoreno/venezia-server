@@ -22,7 +22,7 @@ export class MayoristasController {
 
     // Crear mayorista
     @Post('/')
-    async crearMayorista(@Res() res, @Body() mayoristaDTO: MayoristasDTO ) {
+    async crearMayorista(@Res() res, @Body() mayoristaDTO: any ) {
 
         const { password } = mayoristaDTO;
 

@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
 import { MayoristasUpdateDTO } from './dto/mayoristas-update.dto';
 import { MayoristasDTO } from './dto/mayoristas.dto';
 import { IMayoristas } from './interface/mayoristas.interface';
 
 @Injectable()
 export class MayoristasService {
-  constructor(@InjectModel('Mayoristas') private readonly mayoristasModel: Model<IMayoristas>){}
+  constructor(
+    @InjectModel('Mayoristas') private readonly mayoristasModel: Model<IMayoristas>,
+    @InjectModel('CuentasCorrientes') private readonly cuentasCorrientesModel: Model<ICuentasCorrientesMayoristas>
+    ){}
     
     // Mayorista por ID
     async getMayorista(id: string): Promise<IMayoristas> {
@@ -23,14 +27,14 @@ export class MayoristasService {
     }  
 
     // Crear mayorista
-    async crearMayorista(mayoristaDTO: MayoristasDTO): Promise<IMayoristas> {
+    async crearMayorista(mayoristaDTO: any): Promise<IMayoristas> {
 
-        const { email, descripcion } = mayoristaDTO;
+        const { email, descripcion, creatorUser } = mayoristaDTO;
 
         // Verificacion: descripcion repetida
         if(descripcion){
             const mayoristaDescripcion = await this.mayoristasModel.findOne({descripcion: descripcion.trim().toUpperCase()})
-            if(mayoristaDescripcion) throw new NotFoundException('El mayorista ya se encuentra cargada');
+            if(mayoristaDescripcion) throw new NotFoundException('El mayorista ya se encuentra cargado');
         }
 
         // Verificamos que el mayorista no esta repetido
@@ -41,6 +45,17 @@ export class MayoristasService {
         const nuevoMayorista = new this.mayoristasModel(mayoristaDTO);
         const mayorista = await nuevoMayorista.save();
         
+        // Se crea su cuenta corriente
+        const data = {
+            mayorista: mayorista._id,
+            saldo: 0,
+            creatorUser,
+            updatorUser: creatorUser
+        }
+
+        const nuevaCuenta = new this.cuentasCorrientesModel(data);
+        await nuevaCuenta.save();
+
         return mayorista;
 
     }
@@ -69,7 +84,7 @@ export class MayoristasService {
         // Verificacion: descripcion repetida
         if(descripcion){
             const mayoristaDescripcion = await this.mayoristasModel.findOne({descripcion: descripcion.trim().toUpperCase()})
-            if(mayoristaDescripcion && mayoristaDescripcion._id.toString() !== id) throw new NotFoundException('El mayorista ya se encuentra cargada');
+            if(mayoristaDescripcion && mayoristaDescripcion._id.toString() !== id) throw new NotFoundException('El mayorista ya se encuentra cargado');
         }
 
         // Verificamos que el email no este repetido

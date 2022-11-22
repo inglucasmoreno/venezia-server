@@ -2,39 +2,39 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
-import { MayoristasGastosUpdateDTO } from './dto/mayoristas-gastos-update.dto';
-import { MayoristasGastosDTO } from './dto/mayoristas-gastos.dto';
-import { IMayoristasGastos } from './interface/mayoristas-gastos.interface';
+import { MayoristasIngresosUpdateDTO } from './dto/mayoristas-ingresos-update.dto';
+import { MayoristasIngresosDTO } from './dto/mayoristas-ingresos.dto';
+import { IMayoristasIngresos } from './interface/mayoristas-ingresos.interface';
 
 @Injectable()
-export class MayoristasGastosService {
+export class MayoristasIngresosService {
 
-  constructor(@InjectModel('Gastos') private readonly gastosModel: Model<IMayoristasGastos>) { }
+  constructor(@InjectModel('Ingresos') private readonly ingresosModel: Model<IMayoristasIngresos>) { }
 
-  // Gasto por ID
-  async getGasto(id: string): Promise<IMayoristasGastos> {
+  // Ingreso por ID
+  async getIngreso(id: string): Promise<IMayoristasIngresos> {
 
-    const gastoDB = await this.gastosModel.findById(id);
-    if (!gastoDB) throw new NotFoundException('El gasto no existe');
+    const ingresoDB = await this.ingresosModel.findById(id);
+    if (!ingresoDB) throw new NotFoundException('El ingreso no existe');
 
     const pipeline = [];
 
-    // Gasto por ID
-    const idGasto = new Types.ObjectId(id);
-    pipeline.push({ $match: { _id: idGasto } })
+    // Ingreso por ID
+    const idIngreso = new Types.ObjectId(id);
+    pipeline.push({ $match: { _id: idIngreso } })
 
     // Informacion de usuario creador
     pipeline.push({
       $lookup: { // Lookup
-        from: 'mayoristas_tipos_gastos',
-        localField: 'tipo_gasto',
+        from: 'mayoristas_tipos_ingresos',
+        localField: 'tipo_ingreso',
         foreignField: '_id',
-        as: 'tipo_gasto'
+        as: 'tipo_ingreso'
       }
     }
     );
 
-    pipeline.push({ $unwind: '$tipo_gasto' });
+    pipeline.push({ $unwind: '$tipo_ingreso' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -75,14 +75,14 @@ export class MayoristasGastosService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
-    const gasto = await this.gastosModel.aggregate(pipeline);
+    const ingreso = await this.ingresosModel.aggregate(pipeline);
 
-    return gasto[0];
+    return ingreso[0];
 
   }
 
-  // Listar gastos
-  async listarGastos(querys: any): Promise<any> {
+  // Listar ingresos
+  async listarIngresos(querys: any): Promise<any> {
 
     const { 
       columna, 
@@ -93,7 +93,7 @@ export class MayoristasGastosService {
       fechaHasta,
       activo,
       repartidor,
-      tipo_gasto
+      tipo_ingreso
     } = querys;
 
     const pipeline = [];
@@ -112,12 +112,12 @@ export class MayoristasGastosService {
       pipelineCalculo.push({ $match: { repartidor: idRepartidor } });
     }
 
-    // Filtro - Por tipo de gasto
-    if(tipo_gasto && tipo_gasto.trim() !== ''){
-      const idTipoGasto = new Types.ObjectId(tipo_gasto);
-      pipeline.push({ $match: { tipo_gasto: idTipoGasto } });
-      pipelineTotal.push({ $match: { tipo_gasto: idTipoGasto } });
-      pipelineCalculo.push({ $match: { tipo_gasto: idTipoGasto } });
+    // Filtro - Por tipo de ingreso
+    if(tipo_ingreso && tipo_ingreso.trim() !== ''){
+      const idTipoIngreso = new Types.ObjectId(tipo_ingreso);
+      pipeline.push({ $match: { tipo_ingreso: idTipoIngreso } });
+      pipelineTotal.push({ $match: { tipo_ingreso: idTipoIngreso } });
+      pipelineCalculo.push({ $match: { tipo_ingreso: idTipoIngreso } });
     }
 
     // Filtro - Activo / Inactivo
@@ -158,15 +158,15 @@ export class MayoristasGastosService {
     // Informacion de usuario creador
     pipeline.push({
       $lookup: { // Lookup
-        from: 'mayoristas_tipos_gastos',
-        localField: 'tipo_gasto',
+        from: 'mayoristas_tipos_ingresos',
+        localField: 'tipo_ingreso',
         foreignField: '_id',
-        as: 'tipo_gasto'
+        as: 'tipo_ingreso'
       }
     }
     );
 
-    pipeline.push({ $unwind: '$tipo_gasto' });
+    pipeline.push({ $unwind: '$tipo_ingreso' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -217,42 +217,42 @@ export class MayoristasGastosService {
     // Paginacion
     pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
-    // Calculo total en gastos
+    // Calculo total en ingresos
     pipelineCalculo.push({$group:{
       _id: null,
       montoTotal: { $sum: "$monto" },
     }})
 
-    const [gastos, totalGastos, calculos] = await Promise.all([
-      this.gastosModel.aggregate(pipeline),
-      this.gastosModel.aggregate(pipelineTotal),
-      this.gastosModel.aggregate(pipelineCalculo),
+    const [ingresos, totalIngresos, calculos] = await Promise.all([
+      this.ingresosModel.aggregate(pipeline),
+      this.ingresosModel.aggregate(pipelineTotal),
+      this.ingresosModel.aggregate(pipelineCalculo),
     ]) 
 
     return {
-      gastos,
-      totalItems: totalGastos.length,
+      ingresos,
+      totalItems: totalIngresos.length,
       montoTotal: calculos[0] ? calculos[0].montoTotal : 0
     };
 
   }
 
-  // Crear gasto
-  async crearGasto(gastosDTO: MayoristasGastosDTO): Promise<IMayoristasGastos> {
-    const nuevoGasto = new this.gastosModel(gastosDTO);
-    return await nuevoGasto.save();
+  // Crear ingreso
+  async crearIngreso(ingresosDTO: MayoristasIngresosDTO): Promise<IMayoristasIngresos> {
+    const nuevoIngreso = new this.ingresosModel(ingresosDTO);
+    return await nuevoIngreso.save();
   }
 
-  // Actualizar gasto
-  async actualizarGasto(id: string, gastosUpdateDTO: MayoristasGastosUpdateDTO): Promise<IMayoristasGastos> {
-    const gasto = await this.gastosModel.findByIdAndUpdate(id, gastosUpdateDTO, { new: true });
-    return gasto;
+  // Actualizar ingreso
+  async actualizarIngreso(id: string, ingresosUpdateDTO: MayoristasIngresosUpdateDTO): Promise<IMayoristasIngresos> {
+    const ingreso = await this.ingresosModel.findByIdAndUpdate(id, ingresosUpdateDTO, { new: true });
+    return ingreso;
   }
 
-  // Eliminar gasto
-  async eliminarGasto(id: string): Promise<IMayoristasGastos> {
-    const gasto = await this.gastosModel.findByIdAndDelete(id);
-    return gasto;
+  // Eliminar ingreso
+  async eliminarIngreso(id: string): Promise<IMayoristasIngresos> {
+    const ingreso = await this.ingresosModel.findByIdAndDelete(id);
+    return ingreso;
   }
 
 }

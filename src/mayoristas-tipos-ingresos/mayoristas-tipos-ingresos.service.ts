@@ -1,19 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { MayoristasTiposGastosUpdateDTO } from './dto/mayoristas-tipos-gastos-update.dto';
-import { MayoristasTiposGastosDTO } from './dto/mayoristas-tipos-gastos.dto';
-import { IMayoristasTiposGastos } from './interface/mayoristas-tipos-gastos.interface';
+import { MayoristasTiposIngresosUpdateDTO } from './dto/mayorista-tipos-ingresos-update.dto';
+import { MayoristasTiposIngresosDTO } from './dto/mayorista-tipos-ingresos.dto';
+import { IMayoristasTiposIngresos } from './interface/mayorista-tipos-ingresos.interface';
 
 @Injectable()
-export class MayoristasTiposGastosService {
+export class MayoristasTiposIngresosService {
 
-  constructor(@InjectModel('TiposGastos') private readonly tiposGastosModel: Model<IMayoristasTiposGastos>) { }
+
+
+  constructor(@InjectModel('TiposIngresos') private readonly tiposIngresosModel: Model<IMayoristasTiposIngresos>) { }
 
   // Tipo por ID
-  async getTipo(id: string): Promise<IMayoristasTiposGastos> {
+  async getTipo(id: string): Promise<IMayoristasTiposIngresos> {
 
-    const tipoDB = await this.tiposGastosModel.findById(id);
+    const tipoDB = await this.tiposIngresosModel.findById(id);
     if (!tipoDB) throw new NotFoundException('El tipo no existe');
 
     const pipeline = [];
@@ -48,14 +50,14 @@ export class MayoristasTiposGastosService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
-    const tipo = await this.tiposGastosModel.aggregate(pipeline);
+    const tipo = await this.tiposIngresosModel.aggregate(pipeline);
 
     return tipo[0];
 
   }
 
   // Listar tipos
-  async listarTipos(querys: any): Promise<IMayoristasTiposGastos[]> {
+  async listarTipos(querys: any): Promise<IMayoristasTiposIngresos[]> {
 
     const { columna, direccion } = querys;
 
@@ -95,36 +97,36 @@ export class MayoristasTiposGastosService {
       pipeline.push({ $sort: ordenar });
     }
 
-    const tipos = await this.tiposGastosModel.aggregate(pipeline);
+    const tipos = await this.tiposIngresosModel.aggregate(pipeline);
 
     return tipos;
 
   }
 
   // Crear tipo
-  async crearTipo(tiposDTO: MayoristasTiposGastosDTO): Promise<IMayoristasTiposGastos> {
+  async crearTipo(tiposDTO: MayoristasTiposIngresosDTO): Promise<IMayoristasTiposIngresos> {
 
     // Verificacion: descripcion repetida
-    const tipo = await this.tiposGastosModel.findOne({ descripcion: tiposDTO.descripcion.trim().toUpperCase() })
+    const tipo = await this.tiposIngresosModel.findOne({ descripcion: tiposDTO.descripcion.trim().toUpperCase() })
     if (tipo) throw new NotFoundException('El tipo ya se encuentra cargado');
 
-    const nuevoTipo = new this.tiposGastosModel(tiposDTO);
+    const nuevoTipo = new this.tiposIngresosModel(tiposDTO);
     return await nuevoTipo.save();
-  
+
   }
 
   // Actualizar tipo
-  async actualizarTipo(id: string, tiposUpdateDTO: MayoristasTiposGastosUpdateDTO): Promise<IMayoristasTiposGastos> {
+  async actualizarTipo(id: string, tiposUpdateDTO: MayoristasTiposIngresosUpdateDTO): Promise<IMayoristasTiposIngresos> {
 
     const { descripcion } = tiposUpdateDTO;
-
+    
     // Verificacion: descripcion repetida
     if (descripcion) {
-      const tipoDescripcion = await this.tiposGastosModel.findOne({ descripcion: descripcion.trim().toUpperCase() })
+      const tipoDescripcion = await this.tiposIngresosModel.findOne({ descripcion: descripcion.trim().toUpperCase() })
       if (tipoDescripcion && tipoDescripcion._id.toString() !== id) throw new NotFoundException('El tipo ya se encuentra cargado');
     }
 
-    const tipo = await this.tiposGastosModel.findByIdAndUpdate(id, tiposUpdateDTO, { new: true });
+    const tipo = await this.tiposIngresosModel.findByIdAndUpdate(id, tiposUpdateDTO, { new: true });
     return tipo;
 
   }

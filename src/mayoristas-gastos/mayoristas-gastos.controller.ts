@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { MayoristasGastosUpdateDTO } from './dto/mayoristas-gastos-update.dto';
 import { MayoristasGastosDTO } from './dto/mayoristas-gastos.dto';
@@ -24,7 +24,7 @@ export class MayoristasGastosController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async listarGastos(@Res() res, @Query() querys) {
-    const {gastos, totalItems, montoTotal} = await this.gastosService.listarGastos(querys);
+    const { gastos, totalItems, montoTotal } = await this.gastosService.listarGastos(querys);
     res.status(HttpStatus.OK).json({
       message: 'Listado de gastos correcto',
       gastos,
@@ -51,6 +51,17 @@ export class MayoristasGastosController {
     const gasto = await this.gastosService.actualizarGasto(gastoID, gastosUpdateDTO);
     res.status(HttpStatus.OK).json({
       message: 'Gasto actualizado correctamente',
+      gasto
+    });
+  }
+
+  // Eliminar gasto
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:id')
+  async eliminarGasto(@Res() res, @Param('id') gastoID) {
+    const gasto = await this.gastosService.eliminarGasto(gastoID);
+    res.status(HttpStatus.OK).json({
+      message: 'Gasto eliminado correctamente',
       gasto
     });
   }

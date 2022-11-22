@@ -193,8 +193,8 @@ async listarVentas(querys: any): Promise<any> {
     // Filtro por parametros
     if(parametro && parametro !== ''){
       const regex = new RegExp(parametro, 'i');
-      pipeline.push({$match: { $or: [ { 'repartidor.apellido': regex }, { 'repartidor.nombre': regex }, { 'mayorista.descripcion': regex }, { numero: Number(parametro) } ] }});
-      pipelineTotal.push({$match: { $or: [ { 'repartidor.apellido': regex }, { 'repartidor.nombre': regex }, { 'mayorista.descripcion': regex }, { numero: Number(parametro) } ] }});
+      pipeline.push({$match: { $or: [ { numero: Number(parametro) } ] }});
+      pipelineTotal.push({$match: { $or: [ { numero: Number(parametro) } ] }});
     }
 
     // Ordenando datos

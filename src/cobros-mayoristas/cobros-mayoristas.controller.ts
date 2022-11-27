@@ -24,10 +24,11 @@ export class CobrosMayoristasController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async listarCobros(@Res() res, @Query() querys) {
-      const cobros = await this.cobrosService.listarCobros(querys);
+      const { cobros, totalItems } = await this.cobrosService.listarCobros(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de cobros correcto',
-          cobros
+          cobros,
+          totalItems
       });
   }
 

@@ -96,10 +96,16 @@ export class CobrosPedidosService {
   // Listar relacion
   async listarRelaciones(querys: any): Promise<ICobrosPedidos[]> {
 
-    const { columna, direccion } = querys;
+    const { columna, direccion, cobro } = querys;
 
     const pipeline = [];
     pipeline.push({ $match: {} });
+
+    // Relacion por Cobro
+    if(cobro && cobro !== ''){
+      const idCobro = new Types.ObjectId(cobro);
+      pipeline.push({ $match: { cobro: idCobro } });
+    }
 
     // Informacion de mayorista
     pipeline.push({
@@ -165,6 +171,7 @@ export class CobrosPedidosService {
     );
 
     pipeline.push({ $unwind: '$updatorUser' });
+
     // Ordenando datos
     const ordenar: any = {};
     if (columna) {

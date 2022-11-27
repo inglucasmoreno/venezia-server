@@ -47,7 +47,7 @@ export class UsuariosService {
 
         const usuarios = await this.usuariosModel.find()
                                                  .sort([ordenar]);
-        return usuarios;
+        return usuarios.filter( usuario => String(usuario._id) !== '000000000000000000000000');
     }  
 
     // Crear usuario

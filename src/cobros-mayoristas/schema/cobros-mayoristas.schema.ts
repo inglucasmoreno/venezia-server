@@ -8,13 +8,34 @@ export const cobrosMayoristasSchema = new Schema({
     required: true
   },
 
+  tipo: {
+    type: String,
+    required: true
+  },
+
   mayorista: {
     type: Schema.Types.ObjectId,
     ref: 'mayoristas',
     required: true
   },
 
+  repartidor: {
+    type: Schema.Types.ObjectId,
+    ref: 'usuarios',
+    required: true
+  },
+
+  anticipo: {
+    type: Number,
+    required: true
+  },
+
   monto: {
+    type: Number,
+    required: true
+  },
+
+  monto_total: {
     type: Number,
     required: true
   },

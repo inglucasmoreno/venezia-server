@@ -22,6 +22,8 @@ export class CobrosPedidosDTO {
   
   @IsNumber()
   readonly monto_deuda: number;
+
+  readonly monto_cuenta_corriente: number;
   
   @IsString()
   readonly creatorUser: string;

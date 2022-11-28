@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
+import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
 import { MayoristasGastosUpdateDTO } from './dto/mayoristas-gastos-update.dto';
 import { MayoristasGastosDTO } from './dto/mayoristas-gastos.dto';
 import { IMayoristasGastos } from './interface/mayoristas-gastos.interface';
@@ -9,7 +10,10 @@ import { IMayoristasGastos } from './interface/mayoristas-gastos.interface';
 @Injectable()
 export class MayoristasGastosService {
 
-  constructor(@InjectModel('Gastos') private readonly gastosModel: Model<IMayoristasGastos>) { }
+  constructor(
+    @InjectModel('Gastos') private readonly gastosModel: Model<IMayoristasGastos>,
+    @InjectModel('Usuario') private readonly usuariosModel: Model<IUsuario>,
+  ) { }
 
   // Gasto por ID
   async getGasto(id: string): Promise<IMayoristasGastos> {
@@ -239,6 +243,30 @@ export class MayoristasGastosService {
 
   // Crear gasto
   async crearGasto(gastosDTO: MayoristasGastosDTO): Promise<IMayoristasGastos> {
+
+    const { repartidor } = gastosDTO;
+
+    if (repartidor.trim() === '000000000000000000000000') { // El cobro se realiza en la sucursal
+      const sucursal = await this.usuariosModel.findById('000000000000000000000000');
+      if (!sucursal) {
+        const dataSucursal = {
+          _id: '000000000000000000000000',
+          usuario: 'sucursal',
+          dni: '0000000000000000',
+          apellido: 'sucursal',
+          nombre: 'sucursal',
+          password: '00000000000000',
+          email: 'sucursal@gmail.com',
+          role: 'DELIVERY_ROLE',
+          permisos: [],
+          activo: false
+        }
+        const usuarioSucursal = new this.usuariosModel(dataSucursal);
+        await usuarioSucursal.save();
+      }
+      gastosDTO.repartidor = '000000000000000000000000';
+    }
+
     const nuevoGasto = new this.gastosModel(gastosDTO);
     return await nuevoGasto.save();
   }

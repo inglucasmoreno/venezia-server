@@ -8,7 +8,32 @@ export const cajasMayoristasSchema = new Schema({
         required: true,
     },
 
+    cantidad_ventas: {
+      type: Number,
+      required: true,
+    },
+
     total_ventas: {
+      type: Number,
+      required: true,
+    },
+
+    total_anticipos: {
+      type: Number,
+      required: true,
+    },
+
+    total_cuentas_corrientes: {
+      type: Number,
+      required: true,
+    },
+    
+    total_deuda: {
+      type: Number,
+      required: true,
+    },
+
+    monto_a_recibir: {
       type: Number,
       required: true,
     },
@@ -23,7 +48,37 @@ export const cajasMayoristasSchema = new Schema({
       required: true,
     },
 
-    total_deuda: {
+    ingresos: {
+      type: Array,
+      default: []
+    },
+
+    gastos: {
+      type: Array,
+      default: []
+    },
+
+    total_recibido: {
+      type: Number,
+      required: true,
+    },
+
+    total_recibido_real: {
+      type: Number,
+      required: true,
+    },
+
+    monto_cintia: {
+      type: Number,
+      required: true,
+    },
+
+    diferencia: {
+      type: Number,
+      required: true,
+    },
+
+    total_final: {
       type: Number,
       required: true,
     },

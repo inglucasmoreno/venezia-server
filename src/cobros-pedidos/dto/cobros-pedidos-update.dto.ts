@@ -14,6 +14,8 @@ export class CobrosPedidosUpdateDTO {
   readonly monto_cobrado: number;
   
   readonly monto_deuda: number;
+
+  readonly monto_cuenta_corriente: number;
   
   readonly creatorUser: string;
   

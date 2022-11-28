@@ -41,6 +41,11 @@ export const cobrosPedidosSchema = new Schema({
     required: true
   },
 
+  monto_cuenta_corriente: {
+    type: Number,
+    default: 0
+  },
+
   activo: {
     type: Boolean,
     required: true,

@@ -35,7 +35,7 @@ export class CajasMayoristasController {
   @UseGuards(JwtAuthGuard)
   @Get('/calculos/iniciales')
   async calculosIniciales(@Res() res, @Query() querys) {
-      const {datos, gastos, ingresos, total_gastos, total_ingresos, total_recibido} = await this.cajasMayoristasService.calculosIniciales(querys);
+      const {datos, gastos, ingresos, total_gastos, total_ingresos, total_recibido, cobros, total_cobros} = await this.cajasMayoristasService.calculosIniciales(querys);
       res.status(HttpStatus.OK).json({
           message: 'Datos obtenidos correctamente',
           datos,
@@ -43,7 +43,9 @@ export class CajasMayoristasController {
           ingresos,
           total_gastos,
           total_ingresos,
-          total_recibido
+          total_recibido,
+          cobros,
+          total_cobros
       });
   }
 
@@ -56,8 +58,8 @@ export class CajasMayoristasController {
           message: 'Caja creada correctamente',
           caja
       });
-  }
-    
+  }    
+
   // Actualizar caja
   @UseGuards(JwtAuthGuard)
   @Put('/:id')

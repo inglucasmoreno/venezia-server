@@ -30,6 +30,17 @@ export class CuentasCorrientesMayoristasController {
       });
   }
 
+// Cuenta corriente por mayorista
+@UseGuards(JwtAuthGuard)
+@Get('/parametro/mayorista/:mayorista')
+async getCuentaCorrientePorMayorista(@Res() res, @Param('mayorista') mayoristaID) {
+    const cuenta_corriente = await this.cuentasCorrientesService.getCuentaCorrientePorMayorista(mayoristaID);
+    res.status(HttpStatus.OK).json({
+        message: 'Cuenta corriente obtenida correctamente',
+        cuenta_corriente
+    });
+}
+
   // Listar cuentas corrientes
   @UseGuards(JwtAuthGuard)
   @Get('/')

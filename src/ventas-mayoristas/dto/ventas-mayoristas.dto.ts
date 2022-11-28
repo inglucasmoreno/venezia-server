@@ -16,8 +16,12 @@ export class VentasMayoristasDTO {
   readonly deuda: boolean;
 
   readonly monto_recibido: number;
-  
+
   readonly deuda_monto: number;
+
+  readonly monto_cuenta_corriente: number;
+
+  readonly monto_anticipo: number;
   
   @IsNotEmpty()
   readonly precio_total: number;

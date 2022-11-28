@@ -6,7 +6,7 @@ export class MayoristasGastosDTO {
   readonly tipo_gasto: string;
 
   @IsNotEmpty()
-  readonly repartidor: string;
+  repartidor: string;
 
   @IsNotEmpty()
   readonly monto: number;

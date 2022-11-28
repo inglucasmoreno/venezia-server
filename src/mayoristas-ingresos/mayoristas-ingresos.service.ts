@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
+import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
 import { MayoristasIngresosUpdateDTO } from './dto/mayoristas-ingresos-update.dto';
 import { MayoristasIngresosDTO } from './dto/mayoristas-ingresos.dto';
 import { IMayoristasIngresos } from './interface/mayoristas-ingresos.interface';
@@ -9,7 +10,10 @@ import { IMayoristasIngresos } from './interface/mayoristas-ingresos.interface';
 @Injectable()
 export class MayoristasIngresosService {
 
-  constructor(@InjectModel('Ingresos') private readonly ingresosModel: Model<IMayoristasIngresos>) { }
+  constructor(
+    @InjectModel('Ingresos') private readonly ingresosModel: Model<IMayoristasIngresos>,
+    @InjectModel('Usuario') private readonly usuariosModel: Model<IUsuario>,
+  ) { }
 
   // Ingreso por ID
   async getIngreso(id: string): Promise<IMayoristasIngresos> {
@@ -84,12 +88,12 @@ export class MayoristasIngresosService {
   // Listar ingresos
   async listarIngresos(querys: any): Promise<any> {
 
-    const { 
-      columna, 
+    const {
+      columna,
       direccion,
       desde,
-      registerpp, 
-      fechaDesde, 
+      registerpp,
+      fechaDesde,
       fechaHasta,
       activo,
       repartidor,
@@ -101,11 +105,11 @@ export class MayoristasIngresosService {
     const pipelineCalculo = [];
 
     pipeline.push({ $match: {} });
-    pipelineTotal.push({$match:{}});
-    pipelineCalculo.push({$match:{}});
+    pipelineTotal.push({ $match: {} });
+    pipelineCalculo.push({ $match: {} });
 
     // Filtro - Por repartidor
-    if(repartidor && repartidor.trim() !== ''){
+    if (repartidor && repartidor.trim() !== '') {
       const idRepartidor = new Types.ObjectId(repartidor);
       pipeline.push({ $match: { repartidor: idRepartidor } });
       pipelineTotal.push({ $match: { repartidor: idRepartidor } });
@@ -113,7 +117,7 @@ export class MayoristasIngresosService {
     }
 
     // Filtro - Por tipo de ingreso
-    if(tipo_ingreso && tipo_ingreso.trim() !== ''){
+    if (tipo_ingreso && tipo_ingreso.trim() !== '') {
       const idTipoIngreso = new Types.ObjectId(tipo_ingreso);
       pipeline.push({ $match: { tipo_ingreso: idTipoIngreso } });
       pipelineTotal.push({ $match: { tipo_ingreso: idTipoIngreso } });
@@ -122,37 +126,49 @@ export class MayoristasIngresosService {
 
     // Filtro - Activo / Inactivo
     let filtroActivo = {};
-    if(activo && activo !== '') {
+    if (activo && activo !== '') {
       filtroActivo = { activo: activo === 'true' ? true : false };
-      pipeline.push({$match: filtroActivo});
-      pipelineTotal.push({$match: filtroActivo});
-      pipelineCalculo.push({$match: filtroActivo});
+      pipeline.push({ $match: filtroActivo });
+      pipelineTotal.push({ $match: filtroActivo });
+      pipelineCalculo.push({ $match: filtroActivo });
     }
 
     // Filtro - Fecha desde
-    if(fechaDesde && fechaDesde.trim() !== ''){
-      pipeline.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
-      }});
-      pipelineTotal.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
-      }});
-      pipelineCalculo.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
-      }});
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+      pipelineCalculo.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
     }
-    
+
     // Filtro - Fecha hasta
-    if(fechaHasta && fechaHasta.trim() !== ''){
-      pipeline.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
-      }});
-      pipelineTotal.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
-      }});
-      pipelineCalculo.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
-      }});
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+      pipelineCalculo.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
     }
 
     // Informacion de usuario creador
@@ -215,19 +231,21 @@ export class MayoristasIngresosService {
     }
 
     // Paginacion
-    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+    pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
     // Calculo total en ingresos
-    pipelineCalculo.push({$group:{
-      _id: null,
-      montoTotal: { $sum: "$monto" },
-    }})
+    pipelineCalculo.push({
+      $group: {
+        _id: null,
+        montoTotal: { $sum: "$monto" },
+      }
+    })
 
     const [ingresos, totalIngresos, calculos] = await Promise.all([
       this.ingresosModel.aggregate(pipeline),
       this.ingresosModel.aggregate(pipelineTotal),
       this.ingresosModel.aggregate(pipelineCalculo),
-    ]) 
+    ])
 
     return {
       ingresos,
@@ -239,6 +257,30 @@ export class MayoristasIngresosService {
 
   // Crear ingreso
   async crearIngreso(ingresosDTO: MayoristasIngresosDTO): Promise<IMayoristasIngresos> {
+
+    const { repartidor } = ingresosDTO;
+
+    if (repartidor.trim() === '000000000000000000000000') { // El cobro se realiza en la sucursal
+      const sucursal = await this.usuariosModel.findById('000000000000000000000000');
+      if (!sucursal) {
+        const dataSucursal = {
+          _id: '000000000000000000000000',
+          usuario: 'sucursal',
+          dni: '0000000000000000',
+          apellido: 'sucursal',
+          nombre: 'sucursal',
+          password: '00000000000000',
+          email: 'sucursal@gmail.com',
+          role: 'DELIVERY_ROLE',
+          permisos: [],
+          activo: false
+        }
+        const usuarioSucursal = new this.usuariosModel(dataSucursal);
+        await usuarioSucursal.save();
+      }
+      ingresosDTO.repartidor = '000000000000000000000000';
+    }
+
     const nuevoIngreso = new this.ingresosModel(ingresosDTO);
     return await nuevoIngreso.save();
   }

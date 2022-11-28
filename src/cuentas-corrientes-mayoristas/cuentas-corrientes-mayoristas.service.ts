@@ -70,6 +70,61 @@ export class CuentasCorrientesMayoristasService {
     return cuentaCorriente[0];
 
   }
+  // Cuenta corriente por Mayorista
+  async getCuentaCorrientePorMayorista(mayorista: string): Promise<ICuentasCorrientesMayoristas> {
+   
+    const cuentaCorrienteDB = await this.cuentasCorrientesModel.findOne({ mayorista });
+    if (!cuentaCorrienteDB) throw new NotFoundException('La cuenta corriente no existe');
+
+    const pipeline = [];
+
+    const idMayorista = new Types.ObjectId(mayorista);
+    pipeline.push({ $match: { mayorista: idMayorista } });
+
+    // Informacion de mayorista
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'mayoristas',
+        localField: 'mayorista',
+        foreignField: '_id',
+        as: 'mayorista'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$mayorista' });
+
+    // Informacion de usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'creatorUser',
+        foreignField: '_id',
+        as: 'creatorUser'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$creatorUser' });
+
+    // Informacion de usuario actualizador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'updatorUser',
+        foreignField: '_id',
+        as: 'updatorUser'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$updatorUser' });
+
+    const cuentaCorriente = await this.cuentasCorrientesModel.aggregate(pipeline);
+
+    return cuentaCorriente[0];
+
+  }
 
   // Inicializar cuentas corrientes
   async inicializarCuentasCorrientes(querys: any): Promise<any> {
@@ -78,9 +133,9 @@ export class CuentasCorrientesMayoristasService {
 
     const mayoristas = await this.mayoristasModel.find();
 
-    mayoristas.map( async mayorista => {
-      const cuentaDB = await this.cuentasCorrientesModel.findOne({ mayorista: mayorista._id});
-      if(!cuentaDB){
+    mayoristas.map(async mayorista => {
+      const cuentaDB = await this.cuentasCorrientesModel.findOne({ mayorista: mayorista._id });
+      if (!cuentaDB) {
         const data = {
           mayorista: mayorista._id,
           saldo: 0,
@@ -93,7 +148,7 @@ export class CuentasCorrientesMayoristasService {
     })
 
     return 'Inicializacion correcta';
-  
+
   }
 
   // Listar mayoristas

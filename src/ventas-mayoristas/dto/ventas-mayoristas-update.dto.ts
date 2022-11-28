@@ -14,6 +14,10 @@ export class VentasMayoristasUpdateDTO {
   
   readonly deuda_monto: number;
 
+  readonly monto_cuenta_corriente: number;
+  
+  readonly monto_anticipo: number;
+
   readonly precio_total: number;
 
   readonly facturacion: any;

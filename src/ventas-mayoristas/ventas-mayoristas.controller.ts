@@ -6,7 +6,7 @@ import { VentasMayoristasService } from './ventas-mayoristas.service';
 @Controller('ventas-mayoristas')
 export class VentasMayoristasController {
 
-    constructor( private ventasService: VentasMayoristasService ){}
+    constructor(private ventasService: VentasMayoristasService) { }
 
     // Venta por ID
     @UseGuards(JwtAuthGuard)
@@ -37,24 +37,38 @@ export class VentasMayoristasController {
     // Crear ventas
     @UseGuards(JwtAuthGuard)
     @Post('/')
-    async crearVentas(@Res() res, @Body() data: any ) {
-        await this.ventasService.crearVenta(data);        
+    async crearVentas(@Res() res, @Body() data: any) {
+        await this.ventasService.crearVenta(data);
         res.status(HttpStatus.CREATED).json({
             message: 'Venta creada correctamente',
         });
     }
-        
+
     // Actualizar venta
     @UseGuards(JwtAuthGuard)
     @Put('/:id')
-    async actualizarVenta(@Res() res, @Body() ventaUpdateDTO: VentasMayoristasUpdateDTO, @Param('id') ventaID ) {
-                
-            const venta = await this.ventasService.actualizarVenta(ventaID, ventaUpdateDTO);
+    async actualizarVenta(@Res() res, @Body() ventaUpdateDTO: VentasMayoristasUpdateDTO, @Param('id') ventaID) {
 
-            res.status(HttpStatus.OK).json({
-                message: 'Venta actualizada correctamente',
-                venta
-            });
+        const venta = await this.ventasService.actualizarVenta(ventaID, ventaUpdateDTO);
+
+        res.status(HttpStatus.OK).json({
+            message: 'Venta actualizada correctamente',
+            venta
+        });
+
+    }
+
+    // Completar venta
+    @UseGuards(JwtAuthGuard)
+    @Put('/completar/venta/:id')
+    async completarVenta(@Res() res, @Body() data: any, @Param('id') ventaID) {
+
+        const venta = await this.ventasService.completarVenta(ventaID, data);
+
+        res.status(HttpStatus.OK).json({
+            message: 'Venta completada correctamente',
+            venta
+        });
 
     }
 

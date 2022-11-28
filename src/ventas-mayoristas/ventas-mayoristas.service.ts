@@ -6,215 +6,247 @@ import { IVentasMayoristas } from './interface/ventas-mayoristas.interface';
 import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
 import { add, format } from 'date-fns';
+import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
+import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayoristas.interface';
+import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
 
 @Injectable()
 export class VentasMayoristasService {
 
   constructor(
     @InjectModel('VentasMayoristas') private readonly ventasModel: Model<IVentasMayoristas>,
-    @InjectModel('VentasMayoristasProductos') private readonly productosModel: Model<IVentasMayoristasProductos>  
-  ){}
-  
+    @InjectModel('VentasMayoristasProductos') private readonly productosModel: Model<IVentasMayoristasProductos>,
+    @InjectModel('CuentasCorrientesMayoristas') private readonly cuentasCorrientesModel: Model<ICuentasCorrientesMayoristas>,
+    @InjectModel('CobrosMayoristas') private readonly cobrosMayoristasModel: Model<ICobrosMayoristas>,
+    @InjectModel('CobrosPedidosMayoristas') private readonly cobrosPedidosMayoristasModel: Model<ICobrosPedidos>,
+  ) { }
+
   // Venta por ID
   async getVenta(id: string): Promise<IVentasMayoristas> {
 
-      const ventaDB = await this.ventasModel.findById(id);
-      if(!ventaDB) throw new NotFoundException('El venta no existe');
+    const ventaDB = await this.ventasModel.findById(id);
+    if (!ventaDB) throw new NotFoundException('El venta no existe');
 
-      const pipeline = [];
+    const pipeline = [];
 
-      // Venta por ID
-      const idVenta = new Types.ObjectId(id);
-      pipeline.push({ $match:{ _id: idVenta } }) 
+    // Venta por ID
+    const idVenta = new Types.ObjectId(id);
+    pipeline.push({ $match: { _id: idVenta } })
 
-      // Informacion - Repartidor
-      pipeline.push({
-        $lookup: { // Lookup
-            from: 'usuarios',
-            localField: 'repartidor',
-            foreignField: '_id',
-            as: 'repartidor'
-        }}
-      );
-
-      pipeline.push({ $unwind: '$repartidor' });  
-
-      // Informacion - Mayorista
-      pipeline.push({
-        $lookup: { // Lookup
-            from: 'mayoristas',
-            localField: 'mayorista',
-            foreignField: '_id',
-            as: 'mayorista'
-        }}
-      );
-
-      pipeline.push({ $unwind: '$mayorista' });      
-
-      // Informacion - Usuario creador
-      pipeline.push({
-        $lookup: { // Lookup
-            from: 'mayoristas',
-            localField: 'creatorUser',
-            foreignField: '_id',
-            as: 'creatorUser'
-        }}
-      );
-
-      pipeline.push({ $unwind: '$creatorUser' });
-
-      // Informacion - Usuario actualizador
-      pipeline.push({
-        $lookup: { // Lookup
-            from: 'mayoristas',
-            localField: 'updatorUser',
-            foreignField: '_id',
-            as: 'updatorUser'
-        }}
-      );
-
-      pipeline.push({ $unwind: '$updatorUser' });
-
-      const venta = await this.ventasModel.aggregate(pipeline);
-      return venta[0];
-
-  } 
-
-// Listar ventas
-async listarVentas(querys: any): Promise<any> {
-    
-      const {
-        columna, 
-        direccion,
-        repartidor, 
-        mayorista,
-        desde,
-        registerpp,
-        estado,
-        parametro,
-        fechaDesde,
-        fechaHasta
-      } = querys;
-
-      const pipeline = [];
-      const pipelineTotal = [];
-
-      pipeline.push({$match:{}});
-      pipelineTotal.push({$match:{}});
-
-      // Repartido por ID
-      if(repartidor && repartidor !== ''){
-        const idRepartidor = new Types.ObjectId(repartidor);
-        pipeline.push({ $match:{ repartidor: idRepartidor } })
-        pipelineTotal.push({ $match:{ repartidor: idRepartidor } }) 
+    // Informacion - Repartidor
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'repartidor',
+        foreignField: '_id',
+        as: 'repartidor'
       }
+    }
+    );
 
-      // Mayorista por ID
-      if(mayorista && mayorista !== ''){
-        const idMayorista = new Types.ObjectId(mayorista);
-        pipeline.push({ $match:{ mayorista: idMayorista } })
-        pipelineTotal.push({ $match:{ mayorista: idMayorista } }) 
+    pipeline.push({ $unwind: '$repartidor' });
+
+    // Informacion - Mayorista
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'mayoristas',
+        localField: 'mayorista',
+        foreignField: '_id',
+        as: 'mayorista'
       }
+    }
+    );
 
-     // Activo / Inactivo
-     if(estado && estado !== '') {
-       pipeline.push({$match: { estado }});
-       pipelineTotal.push({$match: { estado }});
-     }
+    pipeline.push({ $unwind: '$mayorista' });
+
+    // Informacion - Usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'mayoristas',
+        localField: 'creatorUser',
+        foreignField: '_id',
+        as: 'creatorUser'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$creatorUser' });
+
+    // Informacion - Usuario actualizador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'mayoristas',
+        localField: 'updatorUser',
+        foreignField: '_id',
+        as: 'updatorUser'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$updatorUser' });
+
+    const venta = await this.ventasModel.aggregate(pipeline);
+    return venta[0];
+
+  }
+
+  // Listar ventas
+  async listarVentas(querys: any): Promise<any> {
+
+    const {
+      columna,
+      direccion,
+      repartidor,
+      mayorista,
+      desde,
+      registerpp,
+      estado,
+      parametro,
+      fechaDesde,
+      fechaHasta,
+      activo
+    } = querys;
+
+    const pipeline = [];
+    const pipelineTotal = [];
+
+    pipeline.push({ $match: {} });
+    pipelineTotal.push({ $match: {} });
+
+    // Repartido por ID
+    if (repartidor && repartidor !== '') {
+      const idRepartidor = new Types.ObjectId(repartidor);
+      pipeline.push({ $match: { repartidor: idRepartidor } })
+      pipelineTotal.push({ $match: { repartidor: idRepartidor } })
+    }
+
+    // Mayorista por ID
+    if (mayorista && mayorista !== '') {
+      const idMayorista = new Types.ObjectId(mayorista);
+      pipeline.push({ $match: { mayorista: idMayorista } })
+      pipelineTotal.push({ $match: { mayorista: idMayorista } })
+    }
+
+    // Filtro - Activo / Inactivo
+    let filtroActivo = {};
+    if (activo && activo !== '') {
+      filtroActivo = { activo: activo === 'true' ? true : false };
+      pipeline.push({ $match: filtroActivo });
+      pipelineTotal.push({ $match: filtroActivo });
+    }
+
+    // Filtro por estado
+    if (estado && estado !== '') {
+      pipeline.push({ $match: { estado } });
+      pipelineTotal.push({ $match: { estado } });
+    }
 
     // Filtro - Fecha desde
-    if(fechaDesde && fechaDesde.trim() !== ''){
-      pipeline.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
-      }});
-      pipelineTotal.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
-      }});
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
     }
-    
+
     // Filtro - Fecha hasta
-    if(fechaHasta && fechaHasta.trim() !== ''){
-      pipeline.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
-      }});
-      pipelineTotal.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
-      }});
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
     }
 
     // Informacion - Repartidor
     pipeline.push({
       $lookup: { // Lookup
-          from: 'usuarios',
-          localField: 'repartidor',
-          foreignField: '_id',
-          as: 'repartidor'
-      }}
+        from: 'usuarios',
+        localField: 'repartidor',
+        foreignField: '_id',
+        as: 'repartidor'
+      }
+    }
     );
 
-    pipeline.push({ $unwind: '$repartidor' });  
+    pipeline.push({ $unwind: '$repartidor' });
 
     // Informacion - Mayorista
     pipeline.push({
       $lookup: { // Lookup
-          from: 'mayoristas',
-          localField: 'mayorista',
-          foreignField: '_id',
-          as: 'mayorista'
-      }}
+        from: 'mayoristas',
+        localField: 'mayorista',
+        foreignField: '_id',
+        as: 'mayorista'
+      }
+    }
     );
 
-    pipeline.push({ $unwind: '$mayorista' });      
+    pipeline.push({ $unwind: '$mayorista' });
 
     // Informacion - Repartidor
     pipelineTotal.push({
       $lookup: { // Lookup
-          from: 'usuarios',
-          localField: 'repartidor',
-          foreignField: '_id',
-          as: 'repartidor'
-      }}
+        from: 'usuarios',
+        localField: 'repartidor',
+        foreignField: '_id',
+        as: 'repartidor'
+      }
+    }
     );
 
-    pipelineTotal.push({ $unwind: '$repartidor' });  
+    pipelineTotal.push({ $unwind: '$repartidor' });
 
     // Informacion - Mayorista
     pipelineTotal.push({
       $lookup: { // Lookup
-          from: 'mayoristas',
-          localField: 'mayorista',
-          foreignField: '_id',
-          as: 'mayorista'
-      }}
+        from: 'mayoristas',
+        localField: 'mayorista',
+        foreignField: '_id',
+        as: 'mayorista'
+      }
+    }
     );
 
-    pipelineTotal.push({ $unwind: '$mayorista' }); 
+    pipelineTotal.push({ $unwind: '$mayorista' });
 
     // Filtro por parametros
-    if(parametro && parametro !== ''){
+    if (parametro && parametro !== '') {
       const regex = new RegExp(parametro, 'i');
-      pipeline.push({$match: { $or: [ { numero: Number(parametro) } ] }});
-      pipelineTotal.push({$match: { $or: [ { numero: Number(parametro) } ] }});
+      pipeline.push({ $match: { $or: [{ numero: Number(parametro) }] } });
+      pipelineTotal.push({ $match: { $or: [{ numero: Number(parametro) }] } });
     }
 
     // Ordenando datos
     const ordenar: any = {};
-    if(columna){
-        ordenar[String(columna)] = Number(direccion);
-        pipeline.push({$sort: ordenar});
-    }    
+    if (columna) {
+      ordenar[String(columna)] = Number(direccion);
+      pipeline.push({ $sort: ordenar });
+    }
 
     // Paginacion
-    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+    pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
     // Informacion de usuario creador
     pipeline.push({
       $lookup: { // Lookup
-          from: 'mayoristas',
-          localField: 'creatorUser',
-          foreignField: '_id',
-          as: 'creatorUser'
-      }}
+        from: 'mayoristas',
+        localField: 'creatorUser',
+        foreignField: '_id',
+        as: 'creatorUser'
+      }
+    }
     );
 
     pipeline.push({ $unwind: '$creatorUser' });
@@ -226,22 +258,23 @@ async listarVentas(querys: any): Promise<any> {
         localField: 'updatorUser',
         foreignField: '_id',
         as: 'updatorUser'
-      }}
+      }
+    }
     );
 
     pipeline.push({ $unwind: '$updatorUser' });
 
     const [ventas, ventasTotal] = await Promise.all([
       this.ventasModel.aggregate(pipeline),
-      this.ventasModel.aggregate(pipelineTotal)    
+      this.ventasModel.aggregate(pipelineTotal)
     ]);
-    
+
     // Calculo de deuda
     let totalDeuda = 0;
     let totalIngresos = 0;
     let totalMonto = 0;
     ventasTotal.map(venta => {
-      if(venta.estado === 'Deuda' ) totalDeuda += venta.deuda_monto;  
+      if (venta.estado === 'Deuda') totalDeuda += venta.deuda_monto;
       totalIngresos += venta.monto_recibido;
       totalMonto += venta.precio_total;
     })
@@ -254,7 +287,7 @@ async listarVentas(querys: any): Promise<any> {
       totalMonto
     };
 
-  }  
+  }
 
   // Crear ventas - pedido
   async crearVenta(data: any): Promise<any> {
@@ -262,43 +295,118 @@ async listarVentas(querys: any): Promise<any> {
     const { pedido, productos } = data;
 
     // Numero de pedido
-    const ultimoPedido = await this.ventasModel.find().sort({createdAt: -1}).limit(1);
+    const ultimoPedido = await this.ventasModel.find().sort({ createdAt: -1 }).limit(1);
 
     let numero = 0;
 
-    if(ultimoPedido.length === 0) numero = 1;
+    if (ultimoPedido.length === 0) numero = 1;
     else numero = ultimoPedido[0].numero + 1;
-    
-    const dataPedido = {...pedido, numero};
+
+    const dataPedido = { ...pedido, numero };
 
     // Se crea el pedido
     const nuevaVenta = new this.ventasModel(dataPedido);
     const pedidoDB = await nuevaVenta.save();
-    
+
     // Carga de productos
     const productosTMP: any[] = productos;
-    for(const producto of productosTMP){ producto.ventas_mayorista = pedidoDB._id; }
+    for (const producto of productosTMP) { producto.ventas_mayorista = pedidoDB._id; }
 
     await this.productosModel.insertMany(productos);
 
     return 'Pedido generado correctamente';
-  
-  } 
+
+  }
 
   // Actualizar venta
   async actualizarVenta(id: string, ventaUpdateDTO: any): Promise<IVentasMayoristas> {
 
-      const { activo } = ventaUpdateDTO;
+    // Se actualiza la venta
+    const venta = await this.ventasModel.findByIdAndUpdate(id, ventaUpdateDTO, { new: true });
 
-      // Se finalizan los productos de la venta
-      if(!activo) {
-        await this.productosModel.updateMany({ventas_mayorista: id}, { activo: false } );
-      };
-      
-      // Se actualiza la venta
-      const venta = await this.ventasModel.findByIdAndUpdate(id, ventaUpdateDTO, {new: true});
-      
-      return venta;
+    return venta;
+
+  }
+
+  // Completar venta
+  async completarVenta(id: string, data: any): Promise<IVentasMayoristas> {
+
+    const {
+      deuda_monto,
+      monto_cuenta_corriente,
+      monto_anticipo,
+      estado,
+      monto_recibido,
+      usuario
+    } = data;
+
+    // Se finalizan los productos de la venta
+    await this.productosModel.updateMany({ ventas_mayorista: id }, { activo: false });
+
+    // Se actualiza la venta
+    const venta = await this.ventasModel.findByIdAndUpdate(id, data, { new: true });
+
+    // Impactos en cuenta corriente
+    if (deuda_monto > 0 || monto_anticipo > 0 || monto_cuenta_corriente > 0) {
+
+      const cuentaCorrienteDB = await this.cuentasCorrientesModel.findOne({ mayorista: venta.mayorista });
+
+      let nuevoSaldo = cuentaCorrienteDB.saldo;
+
+      if (deuda_monto > 0) nuevoSaldo -= deuda_monto; // Impacto negativo
+      if (monto_anticipo > 0) nuevoSaldo += monto_anticipo; // Impacto positivo
+      if (monto_cuenta_corriente > 0) nuevoSaldo -= monto_cuenta_corriente; // Impacto positivo
+
+      await this.cuentasCorrientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo })
+
+    }
+
+    // Se genera el cobro
+
+
+    const ultimoCobro = await this.cobrosMayoristasModel.find().sort({ createdAt: -1 }).limit(1);
+
+    let proximoNumeroCobro = 1;
+    if (ultimoCobro.length !== 0) proximoNumeroCobro = ultimoCobro[0].nro + 1;
+
+    const dataCobro = {
+      nro: proximoNumeroCobro,
+      tipo: 'Cobro',
+      mayorista: venta.mayorista,
+      repartidor: venta.repartidor,
+      anticipo: monto_anticipo,
+      monto: monto_recibido,
+      monto_total: venta.precio_total,
+      activo: false,
+      creatorUser: usuario,
+      updatorUser: usuario
+    }
+
+
+    const nuevoCobro = new this.cobrosMayoristasModel(dataCobro);
+    const cobroDB = await nuevoCobro.save();
+
+    // Generacion de relacion
+    const dataRelacion = {
+      mayorista: venta.mayorista,
+      cobro: cobroDB._id,
+      pedido: venta._id,
+      cancelado: estado === 'Deuda' ? false : true,
+      monto_total: venta.precio_total,
+      monto_cobrado: monto_recibido,
+      monto_deuda: venta.precio_total,
+      monto_cuenta_corriente: monto_cuenta_corriente,
+      activo: false,
+      creatorUser: usuario,
+      updatorUser: usuario
+    }
+
+    const nuevaRelacion = new this.cobrosPedidosMayoristasModel(dataRelacion);
+    await nuevaRelacion.save()
+
+
+
+    return venta;
 
   }
 
@@ -311,19 +419,20 @@ async listarVentas(querys: any): Promise<any> {
     // Productos del pedido
 
     const pipeline = [];
-    pipeline.push({$match:{}});
+    pipeline.push({ $match: {} });
 
     const idPedido = new Types.ObjectId(id);
-    pipeline.push({ $match:{ ventas_mayorista: idPedido} }) 
+    pipeline.push({ $match: { ventas_mayorista: idPedido } })
 
     // Informacion - Unidad de medida
     pipeline.push({
       $lookup: { // Lookup
-          from: 'unidad_medida',
-          localField: 'unidad_medida',
-          foreignField: '_id',
-          as: 'unidad_medida'
-      }}
+        from: 'unidad_medida',
+        localField: 'unidad_medida',
+        foreignField: '_id',
+        as: 'unidad_medida'
+      }
+    }
     );
 
     pipeline.push({ $unwind: '$unidad_medida' });
@@ -331,17 +440,17 @@ async listarVentas(querys: any): Promise<any> {
     // Ordenando datos
     const ordenar: any = {};
     ordenar['descripcion'] = 1;
-    pipeline.push({$sort: ordenar});
+    pipeline.push({ $sort: ordenar });
 
     const productos = await this.productosModel.aggregate(pipeline);
 
     let productosPedido: any[] = [];
-    
-    productos.map( producto => productosPedido.push({
+
+    productos.map(producto => productosPedido.push({
       descripcion: producto.descripcion,
       precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_unitario),
-      precio: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio), 
-      cantidad: producto.cantidad, 
+      precio: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio),
+      cantidad: producto.cantidad,
       unidad_medida: producto.unidad_medida.descripcion
     }));
 
@@ -364,10 +473,10 @@ async listarVentas(querys: any): Promise<any> {
       orientation: 'portrait',
       border: '10mm',
       footer: {
-            height: "0mm",
-            contents: {}
-      }  
-    } 
+        height: "0mm",
+        contents: {}
+      }
+    }
 
     // Configuraciones de documento
     var document = {

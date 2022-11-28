@@ -8,6 +8,7 @@ export interface ICobrosPedidos extends Document {
   readonly monto_total: number;
   readonly monto_cobrado: number;
   readonly monto_deuda: number;
+  readonly monto_cuenta_corriente: number;
   readonly creatorUser: string;
   readonly updatorUser: string;
   readonly activo: boolean;

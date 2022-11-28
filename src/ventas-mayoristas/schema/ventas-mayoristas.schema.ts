@@ -40,6 +40,16 @@ export const ventasMayoristasSchema = new Schema({
       default: 0
     },    
 
+    monto_cuenta_corriente: {
+      type: Number,
+      default: 0
+    },    
+
+    monto_anticipo: {
+      type: Number,
+      default: 0
+    },    
+
     precio_total: {
       type: Number,
       required: true,

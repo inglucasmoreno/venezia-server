@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
 import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayoristas.interface';
 import { IMayoristasGastos } from 'src/mayoristas-gastos/interface/mayoristas-gastos.interface';
@@ -65,12 +66,51 @@ export class CajasMayoristasService {
   }
 
   // Listar cajas
-  async listarCajas(querys: any): Promise<ICajasMayoristas[]> {
+  async listarCajas(querys: any): Promise<any> {
 
-    const { columna, direccion } = querys;
+    const {
+      columna,
+      direccion,
+      desde,
+      registerpp,
+      fechaDesde,
+      fechaHasta,
+      parametro
+    } = querys;
 
     const pipeline = [];
+    const pipelineTotal = [];
+
     pipeline.push({ $match: {} });
+    pipelineTotal.push({ $match: {} });
+
+    // Filtro - Fecha desde
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+    }
+
+    // Filtro - Fecha hasta
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
 
     // Informacion de usuario creador
     pipeline.push({
@@ -98,6 +138,23 @@ export class CajasMayoristasService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
+    // Filtro por parametros
+    if (parametro && parametro !== '') {
+
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for (var i = 0; i < porPartes.length; i++) {
+        if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal, 'i');
+      pipeline.push({ $match: { $or: [{ 'creatorUser.apellido': regex }, { 'creatorUser.nombre': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ 'creatorUser.apellido': regex }, { 'creatorUser.nombre': regex }] } });
+
+    }
+
     // Ordenando datos
     const ordenar: any = {};
     if (columna) {
@@ -105,9 +162,18 @@ export class CajasMayoristasService {
       pipeline.push({ $sort: ordenar });
     }
 
-    const cajas = await this.cajasMayoristasModel.aggregate(pipeline);
+    // Paginacion
+    pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
-    return cajas;
+    const [cajas, cajasTotal] = await Promise.all([
+      this.cajasMayoristasModel.aggregate(pipeline),
+      this.cajasMayoristasModel.aggregate(pipelineTotal),
+    ])
+
+    return {
+      cajas,
+      totalItems: cajasTotal.length
+    };
 
   }
 
@@ -348,6 +414,57 @@ export class CajasMayoristasService {
   async actualizarCaja(id: string, cajasMayoristasUpdateDTO: CajasMayoristasUpdateDTO): Promise<ICajasMayoristas> {
     const caja = await this.cajasMayoristasModel.findByIdAndUpdate(id, cajasMayoristasUpdateDTO, { new: true });
     return caja;
+  }
+
+  // Reporte de cajas
+  async reporteCajas(data: any): Promise<any> {
+
+    const { fechaDesde, fechaHasta } = data;
+
+    const pipeline = [];
+
+    // Filtro - Fecha desde
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_caja: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+
+    }
+
+    // Filtro - Fecha hasta
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_caja: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
+
+    pipeline.push({ $match: {} });
+
+    pipeline.push({$group:{
+      _id: null,
+      cantidad_ventas: { $sum: "$cantidad_ventas" },
+      total_ventas: { $sum: "$total_ventas" },
+      total_anticipos: { $sum: "$total_anticipos" },
+      total_cuentas_corrientes: { $sum: "$total_cuentas_corrientes" },
+      total_deuda: { $sum: "$total_deuda" },
+      monto_a_recibir: { $sum: "$monto_a_recibir" },
+      total_otros_ingresos: { $sum: "$total_otros_ingresos" },
+      total_otros_gastos: { $sum: "$total_otros_gastos" },
+      total_recibido: { $sum: "$total_recibido" },
+      total_recibido_real: { $sum: "$total_recibido_real" },
+      monto_cintia: { $sum: "$monto_cintia" },
+      diferencia: { $sum: "$diferencia" },
+      total_final: { $sum: "$total_final" },
+    }})
+
+    const reportes = await this.cajasMayoristasModel.aggregate(pipeline);
+
+    return reportes[0];
+
   }
 
 

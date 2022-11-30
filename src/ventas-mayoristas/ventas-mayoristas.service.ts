@@ -9,6 +9,7 @@ import { add, format } from 'date-fns';
 import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
 import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayoristas.interface';
 import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
+import { pipeline } from 'stream';
 
 @Injectable()
 export class VentasMayoristasService {
@@ -496,6 +497,69 @@ export class VentasMayoristasService {
     await pdf.create(document, options);
 
   }
+
+  // Detalles de deuda - Mayoristas
+  async detallesDeudasPDF(): Promise<any> {
+
+    const pipelineDeudas = [];
+    const pipelineTotales = [];
+
+    pipelineDeudas.push({ $match: { deuda: true } });
+    pipelineTotales.push({ $match: { deuda: true } });
+
+    // Informacion - Unidad de medida
+    pipelineTotales.push({
+      $lookup: { // Lookup
+        from: 'mayoristas',
+        localField: 'mayorista',
+        foreignField: '_id',
+        as: 'mayorista'
+      }
+    }
+    );
+
+    pipelineTotales.push({ $unwind: '$mayorista' });
+
+    // Informacion - Unidad de medida
+    pipelineDeudas.push({
+      $lookup: { // Lookup
+        from: 'mayoristas',
+        localField: 'mayorista',
+        foreignField: '_id',
+        as: 'mayorista'
+      }
+    }
+    );
+
+    pipelineDeudas.push({ $unwind: '$mayorista' });
+
+    pipelineTotales.push({$group:{
+      _id: '$mayorista.descripcion',
+      deuda_monto: { $sum: "$deuda_monto" },
+    }})
+
+    const [deudasTotales, deudas] = await Promise.all([
+      this.ventasModel.aggregate(pipelineTotales),
+      this.ventasModel.aggregate(pipelineDeudas),
+    ]);
+
+    let deudasPDF: any[] = []; 
+
+    deudas.map( deuda => {
+      deudasPDF.push({
+        fecha: deuda.createdAt,
+        mayorista: deuda.mayorista.descripcion,
+        saldo: deuda.deuda_monto
+      })
+    })
+
+    console.log(deudasTotales);
+    console.log(deudasPDF);
+
+    return 'Reporte generado correctamente';
+
+  }
+
 
 
 }

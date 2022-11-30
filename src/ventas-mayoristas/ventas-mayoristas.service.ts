@@ -504,8 +504,8 @@ export class VentasMayoristasService {
     const pipelineDeudas = [];
     const pipelineTotales = [];
 
-    pipelineDeudas.push({ $match: { deuda: true } });
-    pipelineTotales.push({ $match: { deuda: true } });
+    pipelineDeudas.push({ $match: { estado: 'Deuda' } });
+    pipelineTotales.push({ $match: { estado: 'Deuda' } });
 
     // Informacion - Unidad de medida
     pipelineTotales.push({
@@ -533,6 +533,12 @@ export class VentasMayoristasService {
 
     pipelineDeudas.push({ $unwind: '$mayorista' });
 
+    // Ordenando datos
+    const ordenar: any = {};
+    ordenar['mayorista.descripcion'] = 1;
+    pipelineDeudas.push({ $sort: ordenar });
+    pipelineTotales.push({ $sort: ordenar });
+
     pipelineTotales.push({$group:{
       _id: '$mayorista.descripcion',
       deuda_monto: { $sum: "$deuda_monto" },
@@ -543,18 +549,55 @@ export class VentasMayoristasService {
       this.ventasModel.aggregate(pipelineDeudas),
     ]);
 
+    let deudasTotalesPDF: any[] = [];
     let deudasPDF: any[] = []; 
 
-    deudas.map( deuda => {
-      deudasPDF.push({
-        fecha: deuda.createdAt,
-        mayorista: deuda.mayorista.descripcion,
-        saldo: deuda.deuda_monto
+    deudasTotales.map( total => {
+      deudasTotalesPDF.push({
+        mayorista: total._id,
+        deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total.deuda_monto), 
       })
     })
 
-    console.log(deudasTotales);
-    console.log(deudasPDF);
+    deudas.map( deuda => {
+      deudasPDF.push({
+        fecha: format(deuda.createdAt,'dd/MM/yyyy'),
+        nro: deuda.numero,
+        total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deuda.precio_total),
+        mayorista: deuda.mayorista.descripcion,
+        deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deuda.deuda_monto), 
+      })
+    })
+
+    let html: any;
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/deudas_mayoristas.html', 'utf-8');
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+        height: "0mm",
+        contents: {}
+      }
+    }
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data: {
+        fecha: format(new Date(), 'dd/MM/yyyy'), 
+        deudasTotalesPDF,
+        deudasPDF
+      },
+      options: {},
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/deudas_mayoristas.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
+
 
     return 'Reporte generado correctamente';
 

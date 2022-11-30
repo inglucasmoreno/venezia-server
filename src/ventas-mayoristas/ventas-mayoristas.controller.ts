@@ -84,7 +84,7 @@ export class VentasMayoristasController {
 
     // Generacion - Detalles de deudas - PDF
     @UseGuards(JwtAuthGuard)
-    @Get('/detalles-deudas/1/2/3')
+    @Get('/detalles-deudas/pdf')
     async detallesDeudasPDF(@Res() res) {
         await this.ventasService.detallesDeudasPDF();
         res.status(HttpStatus.OK).json({

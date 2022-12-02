@@ -3,6 +3,11 @@ import { Schema } from 'mongoose';
 
 export const ventasMayoristasSchema = new Schema({
    
+    fecha_pedido: {
+      type: Date,
+      default: new Date()
+    },
+
     numero: {
       type: Number,
       required: true,

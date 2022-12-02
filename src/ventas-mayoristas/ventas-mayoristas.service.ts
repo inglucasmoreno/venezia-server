@@ -146,12 +146,12 @@ export class VentasMayoristasService {
     if (fechaDesde && fechaDesde.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
     }
@@ -160,12 +160,12 @@ export class VentasMayoristasService {
     if (fechaHasta && fechaHasta.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
     }
@@ -322,12 +322,15 @@ export class VentasMayoristasService {
   // Actualizar venta
   async actualizarVenta(id: string, ventaUpdateDTO: any): Promise<IVentasMayoristas> {
 
-    const { activo } = ventaUpdateDTO;
+    const { activo, estado } = ventaUpdateDTO;
 
     // Se finalizan los productos de la venta
     if(!activo) {
       await this.productosModel.updateMany({ventas_mayorista: id}, { activo: false } );
     };
+
+    // Se envia el producto - Actualizacion de fecha de pedido
+    if(estado && estado === 'Enviado') ventaUpdateDTO.fecha_pedido = new Date();
 
     // Se actualiza la venta
     const venta = await this.ventasModel.findByIdAndUpdate(id, ventaUpdateDTO, { new: true });
@@ -340,6 +343,7 @@ export class VentasMayoristasService {
   async completarVenta(id: string, data: any): Promise<IVentasMayoristas> {
 
     const {
+      fecha_pedido,
       deuda_monto,
       monto_cuenta_corriente,
       monto_anticipo,
@@ -347,6 +351,9 @@ export class VentasMayoristasService {
       monto_recibido,
       usuario
     } = data;
+
+    // Adaptando fecha de pedido
+    data.fecha_pedido = add(new Date(fecha_pedido), { hours: 3 });
 
     // Se finalizan los productos de la venta
     await this.productosModel.updateMany({ ventas_mayorista: id }, { activo: false });
@@ -370,7 +377,6 @@ export class VentasMayoristasService {
     }
 
     // Se genera el cobro
-
 
     const ultimoCobro = await this.cobrosMayoristasModel.find().sort({ createdAt: -1 }).limit(1);
 
@@ -561,7 +567,7 @@ export class VentasMayoristasService {
 
     deudas.map( deuda => {
       deudasPDF.push({
-        fecha: format(deuda.createdAt,'dd/MM/yyyy'),
+        fecha: deuda.fecha_pedido ? format(deuda.fecha_pedido,'dd/MM/yyyy') : format(deuda.createdAt,'dd/MM/yyyy'),
         nro: deuda.numero,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deuda.precio_total),
         mayorista: deuda.mayorista.descripcion,

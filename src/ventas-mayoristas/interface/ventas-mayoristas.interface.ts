@@ -1,6 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface IVentasMayoristas extends Document {
+    readonly fecha_pedido: string;
     readonly numero: number;
     readonly mayorista: string;
     readonly repartidor: string;

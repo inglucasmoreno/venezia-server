@@ -1,7 +1,9 @@
 import { IsNotEmpty } from "class-validator";
 
 export class VentasMayoristasDTO {
-    
+  
+  readonly fecha_pedido: string;
+
   readonly numero: number;
 
   @IsNotEmpty()

@@ -9,7 +9,6 @@ import { add, format } from 'date-fns';
 import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
 import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayoristas.interface';
 import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
-import { pipeline } from 'stream';
 
 @Injectable()
 export class VentasMayoristasService {
@@ -325,12 +324,12 @@ export class VentasMayoristasService {
     const { activo, estado } = ventaUpdateDTO;
 
     // Se finalizan los productos de la venta
-    if(!activo) {
-      await this.productosModel.updateMany({ventas_mayorista: id}, { activo: false } );
+    if (!activo) {
+      await this.productosModel.updateMany({ ventas_mayorista: id }, { activo: false });
     };
 
     // Se envia el producto - Actualizacion de fecha de pedido
-    if(estado && estado === 'Enviado') ventaUpdateDTO.fecha_pedido = new Date();
+    if (estado && estado === 'Enviado') ventaUpdateDTO.fecha_pedido = new Date();
 
     // Se actualiza la venta
     const venta = await this.ventasModel.findByIdAndUpdate(id, ventaUpdateDTO, { new: true });
@@ -545,10 +544,12 @@ export class VentasMayoristasService {
     pipelineDeudas.push({ $sort: ordenar });
     pipelineTotales.push({ $sort: ordenar });
 
-    pipelineTotales.push({$group:{
-      _id: '$mayorista.descripcion',
-      deuda_monto: { $sum: "$deuda_monto" },
-    }})
+    pipelineTotales.push({
+      $group: {
+        _id: '$mayorista.descripcion',
+        deuda_monto: { $sum: "$deuda_monto" },
+      }
+    })
 
     const [deudasTotales, deudas] = await Promise.all([
       this.ventasModel.aggregate(pipelineTotales),
@@ -556,22 +557,22 @@ export class VentasMayoristasService {
     ]);
 
     let deudasTotalesPDF: any[] = [];
-    let deudasPDF: any[] = []; 
+    let deudasPDF: any[] = [];
 
-    deudasTotales.map( total => {
+    deudasTotales.map(total => {
       deudasTotalesPDF.push({
         mayorista: total._id,
-        deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total.deuda_monto), 
+        deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total.deuda_monto),
       })
     })
 
-    deudas.map( deuda => {
+    deudas.map(deuda => {
       deudasPDF.push({
-        fecha: deuda.fecha_pedido ? format(deuda.fecha_pedido,'dd/MM/yyyy') : format(deuda.createdAt,'dd/MM/yyyy'),
+        fecha: deuda.fecha_pedido ? format(deuda.fecha_pedido, 'dd/MM/yyyy') : format(deuda.createdAt, 'dd/MM/yyyy'),
         nro: deuda.numero,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deuda.precio_total),
         mayorista: deuda.mayorista.descripcion,
-        deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deuda.deuda_monto), 
+        deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deuda.deuda_monto),
       })
     })
 
@@ -592,7 +593,7 @@ export class VentasMayoristasService {
     var document = {
       html: html,
       data: {
-        fecha: format(new Date(), 'dd/MM/yyyy'), 
+        fecha: format(new Date(), 'dd/MM/yyyy'),
         deudasTotalesPDF,
         deudasPDF
       },
@@ -609,6 +610,62 @@ export class VentasMayoristasService {
 
   }
 
+  // Reporte -> Repartidores
+  async reporteRepartidores(data: any): Promise<any> {
 
+    const {
+      fechaDesde,
+      fechaHasta
+    } = data;
+
+    const pipeline = [];
+    const pipelineTotal = [];
+
+    // Informacion - Repartidor
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'repartidor',
+        foreignField: '_id',
+        as: 'repartidor'
+      }
+    }
+    );
+
+    // Filtro - Fecha desde
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+    }
+
+    // Filtro - Fecha hasta
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
+
+    pipeline.push({ $unwind: '$repartidor' });
+
+
+    const ventas = await this.ventasModel.aggregate(pipeline);
+    return ventas;
+
+  }
 
 }

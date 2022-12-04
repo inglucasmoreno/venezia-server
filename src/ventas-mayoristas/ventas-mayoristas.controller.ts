@@ -92,6 +92,16 @@ export class VentasMayoristasController {
         });
     }
 
+    // Reporte -> Repartidores
+    @UseGuards(JwtAuthGuard)
+    @Get('/')
+    async reporteRepartidores(@Res() res, @Query() querys) {     
+        const ventas = await this.ventasService.reporteRepartidores(querys);
+        res.status(HttpStatus.OK).json({
+            message: 'Listado de ventas correcto',
+            ventas
+        });
+    }
 
 }
 

@@ -303,7 +303,11 @@ export class VentasMayoristasService {
     if (ultimoPedido.length === 0) numero = 1;
     else numero = ultimoPedido[0].numero + 1;
 
-    const dataPedido = { ...pedido, numero };
+    const dataPedido = { 
+      ...pedido,
+      fecha_pedido: new Date(), 
+      numero 
+    };
 
     // Se crea el pedido
     const nuevaVenta = new this.ventasModel(dataPedido);

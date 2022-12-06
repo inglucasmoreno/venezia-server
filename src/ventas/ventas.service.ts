@@ -640,7 +640,6 @@ export class VentasService {
 
   }
 
-
   // Proximo numero de factura
   async proximoNroFactura(tipoComprobante: string): Promise<any> {
     

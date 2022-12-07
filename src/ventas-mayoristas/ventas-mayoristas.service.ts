@@ -325,7 +325,11 @@ export class VentasMayoristasService {
   // Actualizar venta
   async actualizarVenta(id: string, ventaUpdateDTO: any): Promise<IVentasMayoristas> {
 
-    const { activo, estado } = ventaUpdateDTO;
+    const { activo, estado, fecha_pedido } = ventaUpdateDTO;
+
+    if(fecha_pedido){
+      ventaUpdateDTO.fecha_pedido = add(new Date(fecha_pedido), { hours: 3 });
+    }
 
     // Se finalizan los productos de la venta
     if (!activo) {

@@ -640,6 +640,8 @@ export class VentasMayoristasService {
     }
     );
 
+    pipeline.push({ $unwind: '$repartidor' });
+
     // Filtro - Fecha desde
     if (fechaDesde && fechaDesde.trim() !== '') {
       pipeline.push({
@@ -668,11 +670,20 @@ export class VentasMayoristasService {
       });
     }
 
-    pipeline.push({ $unwind: '$repartidor' });
+    pipeline.push({
+      $group: {
+        _id: '$repartidor',
+        total_recibido: { $sum: "$monto_recibido" },
+        total_ventas: { $sum: "$precio_total" },
+        total_deudas: { $sum: "$deuda_monto" },
+      }
+    })
 
-
-    const ventas = await this.ventasModel.aggregate(pipeline);
-    return ventas;
+    const reportes = await this.ventasModel.aggregate(pipeline);
+    
+    console.log(reportes);
+    
+    return reportes;
 
   }
 

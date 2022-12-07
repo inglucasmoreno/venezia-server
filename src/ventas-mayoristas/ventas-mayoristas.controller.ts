@@ -94,12 +94,14 @@ export class VentasMayoristasController {
 
     // Reporte -> Repartidores
     @UseGuards(JwtAuthGuard)
-    @Get('/')
-    async reporteRepartidores(@Res() res, @Query() querys) {     
-        const ventas = await this.ventasService.reporteRepartidores(querys);
+    @Get('/reportes/repartidores/web')
+    async reporteRepartidores(@Res() res, @Query() querys) {
+        console.log('llega');     
+        console.log(querys);
+        const reporte = await this.ventasService.reporteRepartidores(querys);
         res.status(HttpStatus.OK).json({
-            message: 'Listado de ventas correcto',
-            ventas
+            message: 'Reporte generado correctamente',
+            reporte
         });
     }
 

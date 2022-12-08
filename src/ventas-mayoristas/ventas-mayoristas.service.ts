@@ -622,10 +622,19 @@ export class VentasMayoristasService {
 
     const {
       fechaDesde,
-      fechaHasta
+      fechaHasta,
+      repartidor
     } = data;
 
     const pipeline = [];
+
+    pipeline.push({$match:{ $or:[{estado: 'Completado'}, {estado: 'Deuda'}] }});
+
+    // Repartidor
+    if(repartidor && repartidor.trim() !== ''){
+      const idRepartidor = new Types.ObjectId(repartidor);
+      pipeline.push({ $match: { repartidor: idRepartidor } });
+    }
 
     // Informacion - Repartidor
     pipeline.push({
@@ -666,7 +675,7 @@ export class VentasMayoristasService {
         total_ventas: { $sum: "$precio_total" },
         total_deudas: { $sum: "$deuda_monto" },
         total_anticipos: { $sum: "$monto_anticipo" },
-        monto_cuenta_corriente: { $sum: "$monto_cuenta_corriente" },
+        total_cuenta_corriente: { $sum: "$monto_cuenta_corriente" },
       }
     })
 

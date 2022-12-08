@@ -302,10 +302,10 @@ export class VentasMayoristasService {
     if (ultimoPedido.length === 0) numero = 1;
     else numero = ultimoPedido[0].numero + 1;
 
-    const dataPedido = { 
+    const dataPedido = {
       ...pedido,
-      fecha_pedido: new Date(), 
-      numero 
+      fecha_pedido: new Date(),
+      numero
     };
 
     // Se crea el pedido
@@ -327,7 +327,7 @@ export class VentasMayoristasService {
 
     const { activo, estado, fecha_pedido } = ventaUpdateDTO;
 
-    if(fecha_pedido){
+    if (fecha_pedido) {
       ventaUpdateDTO.fecha_pedido = add(new Date(fecha_pedido), { hours: 3 });
     }
 
@@ -391,6 +391,7 @@ export class VentasMayoristasService {
     if (ultimoCobro.length !== 0) proximoNumeroCobro = ultimoCobro[0].nro + 1;
 
     const dataCobro = {
+      fecha_cobro: add(new Date(fecha_pedido), { hours: 3 }),
       nro: proximoNumeroCobro,
       tipo: 'Cobro',
       mayorista: venta.mayorista,
@@ -398,11 +399,11 @@ export class VentasMayoristasService {
       anticipo: monto_anticipo,
       monto: monto_recibido,
       monto_total: venta.precio_total,
+      ingreso: false,
       activo: false,
       creatorUser: usuario,
       updatorUser: usuario
     }
-
 
     const nuevoCobro = new this.cobrosMayoristasModel(dataCobro);
     const cobroDB = await nuevoCobro.save();
@@ -424,8 +425,6 @@ export class VentasMayoristasService {
 
     const nuevaRelacion = new this.cobrosPedidosMayoristasModel(dataRelacion);
     await nuevaRelacion.save()
-
-
 
     return venta;
 
@@ -627,7 +626,6 @@ export class VentasMayoristasService {
     } = data;
 
     const pipeline = [];
-    const pipelineTotal = [];
 
     // Informacion - Repartidor
     pipeline.push({
@@ -649,11 +647,6 @@ export class VentasMayoristasService {
           fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
-      pipelineTotal.push({
-        $match: {
-          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
-        }
-      });
     }
 
     // Filtro - Fecha hasta
@@ -663,26 +656,22 @@ export class VentasMayoristasService {
           fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
-      pipelineTotal.push({
-        $match: {
-          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
-        }
-      });
     }
 
     pipeline.push({
       $group: {
         _id: '$repartidor',
+        cantidad_ventas: { $sum: 1 },
         total_recibido: { $sum: "$monto_recibido" },
         total_ventas: { $sum: "$precio_total" },
         total_deudas: { $sum: "$deuda_monto" },
+        total_anticipos: { $sum: "$monto_anticipo" },
+        monto_cuenta_corriente: { $sum: "$monto_cuenta_corriente" },
       }
     })
 
     const reportes = await this.ventasModel.aggregate(pipeline);
-    
-    console.log(reportes);
-    
+
     return reportes;
 
   }

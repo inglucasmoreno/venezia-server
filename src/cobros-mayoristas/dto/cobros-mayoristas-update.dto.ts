@@ -1,6 +1,8 @@
 
 export class CobrosMayoristasUpdateDTO {
   
+  fecha_cobro: string;
+
   readonly nro: number;
 
   readonly tipo: string;
@@ -21,6 +23,8 @@ export class CobrosMayoristasUpdateDTO {
   
   readonly updatorUser: string;
   
+  readonly ingreso: boolean;
+
   readonly activo: boolean;
 
 }

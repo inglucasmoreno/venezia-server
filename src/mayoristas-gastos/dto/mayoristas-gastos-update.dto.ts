@@ -1,6 +1,8 @@
 
 export class MayoristasGastosUpdateDTO {
   
+  readonly fecha_gasto: string;
+
   readonly tipo_gasto: string;
 
   readonly repartidor: string;

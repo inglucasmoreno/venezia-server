@@ -88,12 +88,12 @@ export class CajasMayoristasService {
     if (fechaDesde && fechaDesde.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_caja: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_caja: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
     }
@@ -102,12 +102,12 @@ export class CajasMayoristasService {
     if (fechaHasta && fechaHasta.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_caja: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_caja: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
     }
@@ -218,6 +218,8 @@ export class CajasMayoristasService {
       }
     }
     );
+
+    pipelineCobros.push({ $unwind: '$mayorista' });
 
     // Informacion de repartidor
     pipelineCobros.push({
@@ -391,6 +393,8 @@ export class CajasMayoristasService {
   // Crear caja
   async crearCaja(cajasMayoristasDTO: CajasMayoristasDTO): Promise<ICajasMayoristas> {
 
+    const { fecha_caja } = cajasMayoristasDTO;
+
     const nuevaCaja = new this.cajasMayoristasModel(cajasMayoristasDTO);
     
     const [caja] = await Promise.all([
@@ -401,8 +405,8 @@ export class CajasMayoristasService {
       // this.ventasMayoristasModel.updateMany({ estado:'Completado', activo: true }, { activo: false }),
       // this.ventasMayoristasModel.updateMany({ estado:'Deuda', activo: true }, { activo: false }),
       // this.ventasMayoristasModel.updateMany({ estado:'Cancelado', activo: true }, { activo: false }),
-      this.ingresosMayoristasModel.updateMany({activo: true}, { activo: false }),
-      this.gastosMayoristasModel.updateMany({activo: true}, { activo: false }),
+      this.ingresosMayoristasModel.updateMany({ activo: true }, { activo: false, fecha_ingreso: fecha_caja }, ),
+      this.gastosMayoristasModel.updateMany({ activo: true }, { activo: false, fecha_gasto: fecha_caja }),
       this.cobrosModel.updateMany({ activo: true}, { activo: false }),
     ])
     

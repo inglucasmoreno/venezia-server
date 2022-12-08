@@ -3,6 +3,11 @@ import { Schema } from 'mongoose';
 
 export const mayoristasGastosSchema = new Schema({
 
+  fecha_gasto: {
+    type: Date,
+    default: new Date()
+  },
+
   tipo_gasto: {
     type: Schema.Types.ObjectId,
     ref: 'tipos_gastos',

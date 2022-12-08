@@ -137,17 +137,17 @@ export class MayoristasIngresosService {
     if (fechaDesde && fechaDesde.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
       pipelineCalculo.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
     }
@@ -156,17 +156,17 @@ export class MayoristasIngresosService {
     if (fechaHasta && fechaHasta.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
       pipelineCalculo.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
     }

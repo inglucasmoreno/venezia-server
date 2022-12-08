@@ -2,6 +2,8 @@ import { IsNumber, IsString } from "class-validator";
 
 export class CobrosMayoristasDTO {
   
+  fecha_cobro: string;
+
   readonly nro: number;
 
   @IsString()
@@ -30,6 +32,8 @@ export class CobrosMayoristasDTO {
   @IsString()
   readonly updatorUser: string;
   
+  readonly ingreso: boolean;
+
   readonly activo: boolean;
 
 }

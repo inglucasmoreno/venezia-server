@@ -3,6 +3,11 @@ import { Schema } from 'mongoose';
 
 export const cobrosMayoristasSchema = new Schema({
 
+  fecha_cobro: {
+    type: Date,
+    required: new Date()
+  },
+
   nro: {
     type: Number,
     required: true
@@ -38,6 +43,11 @@ export const cobrosMayoristasSchema = new Schema({
   monto_total: {
     type: Number,
     required: true
+  },
+
+  ingreso: {
+    type: Boolean,
+    default: false
   },
 
   activo: {

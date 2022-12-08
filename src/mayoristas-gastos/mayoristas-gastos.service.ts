@@ -136,26 +136,26 @@ export class MayoristasGastosService {
     // Filtro - Fecha desde
     if(fechaDesde && fechaDesde.trim() !== ''){
       pipeline.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
       }});
       pipelineTotal.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
       }});
       pipelineCalculo.push({$match: { 
-        createdAt: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
       }});
     }
     
     // Filtro - Fecha hasta
     if(fechaHasta && fechaHasta.trim() !== ''){
       pipeline.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
       }});
       pipelineTotal.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
       }});
       pipelineCalculo.push({$match: { 
-        createdAt: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
       }});
     }
 

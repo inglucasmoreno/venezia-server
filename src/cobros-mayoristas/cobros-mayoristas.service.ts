@@ -1,13 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { add } from 'date-fns';
-import { AnyKeys, Model, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
 import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
 import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
 import { IVentasMayoristas } from 'src/ventas-mayoristas/interface/ventas-mayoristas.interface';
 import { CobrosMayoristasUpdateDTO } from './dto/cobros-mayoristas-update.dto';
-import { CobrosMayoristasDTO } from './dto/cobros-mayoristas.dto';
 import { ICobrosMayoristas } from './interface/cobros-mayoristas.interface';
 
 @Injectable()
@@ -151,12 +150,12 @@ export class CobrosMayoristasService {
     if (fechaDesde && fechaDesde.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_cobro: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_cobro: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
         }
       });
     }
@@ -165,12 +164,12 @@ export class CobrosMayoristasService {
     if (fechaHasta && fechaHasta.trim() !== '') {
       pipeline.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_cobro: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_cobro: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
         }
       });
     }
@@ -252,11 +251,12 @@ export class CobrosMayoristasService {
   }
 
   // Crear cobro
-  async crearCobro(cobrosDTO: CobrosMayoristasDTO): Promise<ICobrosMayoristas> {
+  async crearCobro(cobrosDTO: any): Promise<ICobrosMayoristas> {
 
-    const { repartidor, pedidos, mayorista, monto } = cobrosDTO;
+    const { repartidor, pedidos, mayorista, monto, fecha_cobro } = cobrosDTO;
 
-    console.log(cobrosDTO);
+    // Adaptando fecha de cobro
+    cobrosDTO.fecha_cobro = add(new Date(fecha_cobro), {hours: 3});
 
     // 1 - Calcular el proximo numero de pedido
 
@@ -288,7 +288,11 @@ export class CobrosMayoristasService {
       cobrosDTO.repartidor = '000000000000000000000000';
     }
 
-    const data = { ...cobrosDTO, nro: proximoNumeroCobro };
+    const data = { 
+      ...cobrosDTO, 
+      nro: proximoNumeroCobro,
+      ingreso: true
+    };
 
     // 3 - Generar cobro
 

@@ -262,7 +262,7 @@ export class VentasMayoristasService {
     }
     );
 
-    pipeline.push({ $unwind: '$updatorUser' });
+    // pipeline.push({ $unwind: '$updatorUser' });
 
     const [ventas, ventasTotal] = await Promise.all([
       this.ventasModel.aggregate(pipeline),
@@ -683,6 +683,20 @@ export class VentasMayoristasService {
 
     return reportes;
 
+  }
+
+  // Envio masivo de pedidos
+  async envioMasivo(repartidor: string): Promise<any> {
+  
+    const fecha_pedido = new Date(); // Se actualiza la fecha a la de hoy
+
+    if(repartidor === 'todos'){
+      await this.ventasModel.updateMany({ estado: 'Pendiente', activo: true }, { estado: 'Enviado', fecha_pedido });
+    }else{
+      await this.ventasModel.updateMany({ estado: 'Pendiente', activo: true , repartidor }, { estado: 'Enviado', fecha_pedido });
+    }
+    return 'Pedidos enviados';
+  
   }
 
 }

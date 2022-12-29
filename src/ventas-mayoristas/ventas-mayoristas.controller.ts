@@ -19,6 +19,16 @@ export class VentasMayoristasController {
         });
     }
 
+    // Enviar todos los pedidos
+    @UseGuards(JwtAuthGuard)
+    @Get('/envio/masivo/:repartidor')
+    async envioMasivo(@Res() res, @Param('repartidor') repartidor) {
+        await this.ventasService.envioMasivo(repartidor);
+        res.status(HttpStatus.OK).json({
+            message: 'Pedidos enviados correctamente',
+        });
+    }
+
     // Listar ventas
     @UseGuards(JwtAuthGuard)
     @Get('/')

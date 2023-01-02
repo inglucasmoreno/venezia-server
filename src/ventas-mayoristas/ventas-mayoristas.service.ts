@@ -967,7 +967,7 @@ export class VentasMayoristasService {
         if(producto.pedido === pedido.pedido){
           variable += 1;
           pedido[`descripcion${variable}`] = producto.descripcion;
-          pedido[`unidad${variable}`] = producto.unidad_medida;
+          pedido[`unidad_medida${variable}`] = producto.unidad_medida;
           pedido[`cantidad${variable}`] = producto.cantidad;
           pedido[`precio${variable}`] = producto.precio;
           pedido[`precio_unitario${variable}`] = producto.precio_unitario;

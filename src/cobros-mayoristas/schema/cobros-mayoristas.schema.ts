@@ -8,6 +8,11 @@ export const cobrosMayoristasSchema = new Schema({
     required: new Date()
   },
 
+  caja: {
+    type: String,
+    default: ''
+  },
+  
   nro: {
     type: Number,
     required: true

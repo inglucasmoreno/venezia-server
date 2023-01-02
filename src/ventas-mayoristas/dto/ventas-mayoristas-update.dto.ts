@@ -4,6 +4,8 @@ export class VentasMayoristasUpdateDTO {
 
   readonly numero: number;
 
+  readonly caja: string;
+
   readonly mayorista: string;
 
   readonly repartidor: string;

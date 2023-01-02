@@ -6,6 +6,8 @@ export class VentasMayoristasDTO {
 
   readonly numero: number;
 
+  readonly caja: string;
+
   @IsNotEmpty()
   readonly mayorista: string;
 

@@ -370,9 +370,7 @@ export class CajasMayoristasService {
     const total_gastosAD = total_gastos[0] ? total_gastos[0].total : 0;
     const total_ingresosAD = total_ingresos[0] ? total_ingresos[0].total : 0;
 
-    const total_recibidoAD = datosAD.total_recibido + 
-                             datosAD.total_anticipos - 
-                             datosAD.total_cuentas_corrientes - 
+    const total_recibidoAD = datosAD.total_recibido - 
                              total_gastosAD + 
                              total_ingresosAD + 
                              totalCobrosTMP;
@@ -396,18 +394,18 @@ export class CajasMayoristasService {
     const { fecha_caja } = cajasMayoristasDTO;
 
     const nuevaCaja = new this.cajasMayoristasModel(cajasMayoristasDTO);
-    
-    const [caja] = await Promise.all([
-      nuevaCaja.save(),
+    const caja = await nuevaCaja.save();
+
+    const [] = await Promise.all([
       this.ventasMayoristasModel.updateMany({
         $or:[{ estado:'Completado', activo: true }, { estado:'Deuda', activo: true }, { estado:'Cancelado', activo: true }]
-      }, { activo: false }),
+      }, { activo: false, caja: caja._id }),
       // this.ventasMayoristasModel.updateMany({ estado:'Completado', activo: true }, { activo: false }),
       // this.ventasMayoristasModel.updateMany({ estado:'Deuda', activo: true }, { activo: false }),
       // this.ventasMayoristasModel.updateMany({ estado:'Cancelado', activo: true }, { activo: false }),
-      this.ingresosMayoristasModel.updateMany({ activo: true }, { activo: false, fecha_ingreso: fecha_caja }, ),
-      this.gastosMayoristasModel.updateMany({ activo: true }, { activo: false, fecha_gasto: fecha_caja }),
-      this.cobrosModel.updateMany({ activo: true}, { activo: false }),
+      this.ingresosMayoristasModel.updateMany({ activo: true }, { activo: false, fecha_ingreso: fecha_caja, caja: caja._id }, ),
+      this.gastosMayoristasModel.updateMany({ activo: true }, { activo: false, fecha_gasto: fecha_caja, caja: caja._id }),
+      this.cobrosModel.updateMany({ activo: true}, { activo: false, caja: caja._id }),
     ])
     
     return caja;

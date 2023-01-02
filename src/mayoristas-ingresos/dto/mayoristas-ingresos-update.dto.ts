@@ -3,6 +3,8 @@ export class MayoristasIngresosUpdateDTO {
   
   readonly fecha_ingreso: string;
 
+  readonly caja: string;
+
   readonly tipo_ingreso: string;
 
   readonly repartidor: string;

@@ -2,6 +2,7 @@ import { Document } from 'mongoose';
 
 export interface ICobrosMayoristas extends Document {
   fecha_cobro: string;
+  readonly caja: string;
   readonly nro: number;
   readonly tipo: string;
   readonly mayorista: string;

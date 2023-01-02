@@ -9,6 +9,10 @@ import { add, format } from 'date-fns';
 import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
 import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayoristas.interface';
 import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
+import { IMayoristasGastos } from 'src/mayoristas-gastos/interface/mayoristas-gastos.interface';
+import { IMayoristasIngresos } from 'src/mayoristas-ingresos/interface/mayoristas-ingresos.interface';
+import { pipe } from 'rxjs';
+import { pipeline } from 'stream';
 
 @Injectable()
 export class VentasMayoristasService {
@@ -19,6 +23,8 @@ export class VentasMayoristasService {
     @InjectModel('CuentasCorrientesMayoristas') private readonly cuentasCorrientesModel: Model<ICuentasCorrientesMayoristas>,
     @InjectModel('CobrosMayoristas') private readonly cobrosMayoristasModel: Model<ICobrosMayoristas>,
     @InjectModel('CobrosPedidosMayoristas') private readonly cobrosPedidosMayoristasModel: Model<ICobrosPedidos>,
+    @InjectModel('MayoristasGastos') private readonly gastosModel: Model<IMayoristasGastos>,
+    @InjectModel('MayoristasIngresos') private readonly ingresosModel: Model<IMayoristasIngresos>,
   ) { }
 
   // Venta por ID
@@ -325,7 +331,7 @@ export class VentasMayoristasService {
   // Actualizar venta
   async actualizarVenta(id: string, ventaUpdateDTO: any): Promise<IVentasMayoristas> {
 
-    const { activo, estado, fecha_pedido } = ventaUpdateDTO;
+    const { activo, fecha_pedido } = ventaUpdateDTO;
 
     if (fecha_pedido) {
       ventaUpdateDTO.fecha_pedido = add(new Date(fecha_pedido), { hours: 3 });
@@ -335,9 +341,6 @@ export class VentasMayoristasService {
     if (!activo) {
       await this.productosModel.updateMany({ ventas_mayorista: id }, { activo: false });
     };
-
-    // Se envia el producto - Actualizacion de fecha de pedido
-    if (estado && estado === 'Enviado') ventaUpdateDTO.fecha_pedido = new Date();
 
     // Se actualiza la venta
     const venta = await this.ventasModel.findByIdAndUpdate(id, ventaUpdateDTO, { new: true });
@@ -628,10 +631,10 @@ export class VentasMayoristasService {
 
     const pipeline = [];
 
-    pipeline.push({$match:{ $or:[{estado: 'Completado'}, {estado: 'Deuda'}] }});
+    pipeline.push({ $match: { $or: [{ estado: 'Completado' }, { estado: 'Deuda' }] } });
 
     // Repartidor
-    if(repartidor && repartidor.trim() !== ''){
+    if (repartidor && repartidor.trim() !== '') {
       const idRepartidor = new Types.ObjectId(repartidor);
       pipeline.push({ $match: { repartidor: idRepartidor } });
     }
@@ -686,17 +689,324 @@ export class VentasMayoristasService {
   }
 
   // Envio masivo de pedidos
-  async envioMasivo(repartidor: string): Promise<any> {
-  
-    const fecha_pedido = new Date(); // Se actualiza la fecha a la de hoy
+  async envioMasivo(repartidor: string, data: any): Promise<any> {
 
-    if(repartidor === 'todos'){
-      await this.ventasModel.updateMany({ estado: 'Pendiente', activo: true }, { estado: 'Enviado', fecha_pedido });
-    }else{
-      await this.ventasModel.updateMany({ estado: 'Pendiente', activo: true , repartidor }, { estado: 'Enviado', fecha_pedido });
+    const { fecha_pedidos } = data;
+
+    const adj_fecha_pedido = add(new Date(fecha_pedidos), { hours: 3 });
+
+    // Actualizacion de pedidos
+    if (repartidor === 'todos') {
+
+      await this.ventasModel.updateMany({ estado: 'Pendiente', activo: true }, { estado: 'Enviado', fecha_pedido: adj_fecha_pedido });
+      await this.productosModel.updateMany({ activo: true }, { activo: false });
+
+    } else {
+
+      // Actualizacion de pedidos
+      await this.ventasModel.updateMany({ estado: 'Pendiente', activo: true, repartidor }, { estado: 'Enviado', fecha_pedido: adj_fecha_pedido });
+
+      // Actualizacion de productos
+      const pipeline = [];
+      pipeline.push({ $match: { activo: true } });
+
+      // Informacion - Repartidor
+      pipeline.push({
+        $lookup: { // Lookup
+          from: 'ventas_mayoristas',
+          localField: 'ventas_mayorista',
+          foreignField: '_id',
+          as: 'ventas_mayorista'
+        }
+      }
+      );
+
+      pipeline.push({ $unwind: '$ventas_mayorista' });
+
+      const idRepartidor = new Types.ObjectId(repartidor);
+      pipeline.push({ $match: { 'ventas_mayorista.repartidor': idRepartidor } })
+
+      const productosDB = await this.productosModel.aggregate(pipeline);
+
+      productosDB.map(async producto => {
+        await this.productosModel.findByIdAndUpdate(producto._id, { activo: false });
+      });
+
     }
+
+
+
     return 'Pedidos enviados';
-  
+
   }
+
+  // Completar pedidos de forma masiva
+  async completarMasivo(data: any): Promise<any> {
+
+    const { pedidos, fecha_pedidos, usuario, ingresos, gastos } = data;
+
+    const ajs_fecha_pedidos = add(new Date(fecha_pedidos), { hours: 3 });
+
+    // Ultimo cobro
+    const ultimoCobro = await this.cobrosMayoristasModel.find().sort({ createdAt: -1 }).limit(1);
+    let proximoNumeroCobro = 1;
+    if (ultimoCobro.length !== 0) proximoNumeroCobro = ultimoCobro[0].nro + 1;
+
+    // Se recorren los pedidos
+    pedidos.map(async pedido => {
+
+      // Baja de productos
+      await this.productosModel.updateMany({ ventas_mayorista: pedido._id }, { activo: false });
+
+      // Actualizacion de venta
+      const dataVenta = {
+        fecha_pedido: ajs_fecha_pedidos,
+        deuda: pedido.deuda,
+        estado: pedido.estado,
+        deuda_monto: pedido.deuda_monto,
+        monto_recibido: pedido.monto_cobrado,
+        monto_anticipo: pedido.monto_anticipo,
+      }
+
+      await this.ventasModel.findByIdAndUpdate(pedido._id, dataVenta);
+
+      // Generacion de cobro
+      const dataCobro = {
+        nro: proximoNumeroCobro,
+        fecha_cobro: ajs_fecha_pedidos,
+        tipo: 'Cobro',
+        mayorista: pedido.mayoristaID,
+        repartidor: pedido.repartidorID,
+        anticipo: pedido.monto_anticipo,
+        monto_total: pedido.precio_total,
+        monto: pedido.monto_cobrado,
+        ingreso: false,
+        activo: false,
+        creatorUser: usuario,
+        updatorUser: usuario
+      }
+
+      const nuevoCobro = new this.cobrosMayoristasModel(dataCobro);
+      const cobroDB = await nuevoCobro.save();
+
+      // Generacion relacion cobro - pedido
+      const dataRelacionCobroPedido = {
+        cobro: cobroDB._id,
+        pedido: pedido._id,
+        mayorista: pedido.mayoristaID,
+        cancelado: !pedido.deuda,
+        monto_total: pedido.precio_total,
+        monto_cobrado: pedido.monto_cobrado,
+        monto_deuda: pedido.deuda_monto,
+        monto_cuenta_corriente: 0,
+        creatorUser: usuario,
+        updatorUser: usuario
+      }
+
+      const nuevaRelacion = new this.cobrosPedidosMayoristasModel(dataRelacionCobroPedido);
+      await nuevaRelacion.save();
+
+      proximoNumeroCobro += 1;
+
+      // Impacto en cuenta corriente
+
+      const cuentaCorrienteDB = await this.cuentasCorrientesModel.findOne({ mayorista: pedido.mayoristaID });
+      const nuevoSaldo = cuentaCorrienteDB.saldo + pedido.diferencia;
+      await this.cuentasCorrientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
+
+    });
+
+    // Impacto de gastos e ingresos
+
+    gastos.map(async gasto => {
+      gasto.fecha_gasto = ajs_fecha_pedidos;
+      const nuevoGasto = new this.gastosModel(gasto);
+      await nuevoGasto.save();
+    })
+
+    ingresos.map(async ingreso => {
+      ingreso.fecha_ingreso = ajs_fecha_pedidos;
+      const nuevoIngreso = new this.ingresosModel(ingreso);
+      await nuevoIngreso.save();
+    })
+
+    // const fecha_pedido = new Date(); // Se actualiza la fecha a la de hoy
+
+    // let pedidosEnviados: any[];
+
+    // if (repartidor === 'todos') {
+    //   pedidosEnviados = await this.ventasModel.find({ activo: true, estado: 'Enviado' });
+    // } else {
+    //   pedidosEnviados = await this.ventasModel.find({ activo: true, estado: 'Enviado', repartidor });
+    // }
+
+    // pedidosEnviados.map( async pedido => {
+
+    // Se finalizan los productos de la venta
+    //   await this.productosModel.updateMany({ ventas_mayorista: pedido._id }, { activo: false });
+
+    //   const dataPedido = {
+    //     estado: 'Completado',
+    //     deuda: false,
+    //     monto_recibido: pedido.precio_total,
+    //     deuda_monto: 0,
+    //     monto_cuenta_corriente: 0, // REVISAR
+    //     monto_anticipo: 0
+    //   }
+
+    //   // Actualizacion de estado de pedido
+    //   await this.ventasModel.findByIdAndUpdate(pedido._id, dataPedido);
+
+
+    // });
+
+    return 'Pedidos enviados';
+
+  }
+
+  async talonariosMasivosPDF(): Promise<any> {
+
+    // DATOS DE PEDIDOS
+
+    const pipeline = [];
+    pipeline.push({ $match: { estado: 'Pendiente' } });
+
+    // Informacion - Mayorista
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'mayoristas',
+        localField: 'mayorista',
+        foreignField: '_id',
+        as: 'mayorista'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$mayorista' });
+
+
+    // Informacion - Repartidor
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'repartidor',
+        foreignField: '_id',
+        as: 'repartidor'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$repartidor' });
+
+    // Ordenando datos
+    const ordenar: any = {};
+    ordenar['repartidor.apellido'] = 1;
+    pipeline.push({ $sort: ordenar });
+
+    var pedidosPDF: any = [];
+
+    const pedidos = await this.ventasModel.aggregate(pipeline);
+
+    // Generando datos para generacion PDF
+    pedidos.map(async pedido => {
+
+      pedidosPDF.push({
+        pedido: String(pedido._id),
+        fecha: format(new Date(), 'dd/MM/yyyy'),
+        mayorista: pedido.mayorista.descripcion,
+        telefono: pedido.mayorista.telefono,
+        direccion: pedido.mayorista.direccion,
+        numero_pedido: pedido.numero,
+        total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pedido.precio_total),
+        repartidor: pedido.repartidor.apellido + ' ' + pedido.repartidor.nombre,
+      })
+
+    })
+
+
+    // DATOS DE PRODUCTOS
+
+    const pipelineProductos = [];
+    pipelineProductos.push({ $match: { activo: true } });
+
+    // Informacion - Unidad de medida
+    pipelineProductos.push({
+      $lookup: { // Lookup
+        from: 'unidad_medida',
+        localField: 'unidad_medida',
+        foreignField: '_id',
+        as: 'unidad_medida'
+      }
+    }
+    );
+
+    pipelineProductos.push({ $unwind: '$unidad_medida' });
+
+    let productosPDF = [];
+
+    const productos = await this.productosModel.aggregate(pipelineProductos);
+
+    productos.map( producto => {
+      productosPDF.push({
+        pedido: String(producto.ventas_mayorista),
+        descripcion: producto.descripcion,
+        unidad_medida: producto.unidad_medida.descripcion,
+        precio: producto.precio,
+        precio_unitario: producto.precio_unitario,
+        cantidad: producto.cantidad
+      })
+    })
+
+    // UNIFICANDO INFORMACION
+
+    pedidosPDF.map( pedido => {
+
+      let variable = 0;
+
+      productosPDF.map( producto => {
+        if(producto.pedido === pedido.pedido){
+          variable += 1;
+          pedido[`descripcion${variable}`] = producto.descripcion;
+          pedido[`unidad${variable}`] = producto.unidad_medida;
+          pedido[`cantidad${variable}`] = producto.cantidad;
+          pedido[`precio${variable}`] = producto.precio;
+          pedido[`precio_unitario${variable}`] = producto.precio_unitario;
+        }
+      })
+
+    })
+
+    let html: any;
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/talonarios_masivos.html', 'utf-8');
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+        height: "0mm",
+        contents: {}
+      }
+    }
+
+    const data = {
+      fecha: format(new Date(), 'dd/MM/yyyy'),
+      pedidos: pedidosPDF
+    }
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data,
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/talonarios_masivos.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
+    return 'Todo correcto';
+
+  }
+
 
 }

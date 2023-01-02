@@ -19,16 +19,6 @@ export class VentasMayoristasController {
         });
     }
 
-    // Enviar todos los pedidos
-    @UseGuards(JwtAuthGuard)
-    @Get('/envio/masivo/:repartidor')
-    async envioMasivo(@Res() res, @Param('repartidor') repartidor) {
-        await this.ventasService.envioMasivo(repartidor);
-        res.status(HttpStatus.OK).json({
-            message: 'Pedidos enviados correctamente',
-        });
-    }
-
     // Listar ventas
     @UseGuards(JwtAuthGuard)
     @Get('/')
@@ -51,6 +41,26 @@ export class VentasMayoristasController {
         await this.ventasService.crearVenta(data);
         res.status(HttpStatus.CREATED).json({
             message: 'Venta creada correctamente',
+        });
+    }
+
+    // Enviar pedidos de forma masivo
+    @UseGuards(JwtAuthGuard)
+    @Post('/envio/masivo/:repartidor')
+    async envioMasivo(@Res() res, @Param('repartidor') repartidor, @Body() data: any) {
+        await this.ventasService.envioMasivo(repartidor, data);
+        res.status(HttpStatus.OK).json({
+            message: 'Pedidos enviados correctamente',
+        });
+    }
+
+    // Completar pedidos de forma masiva
+    @UseGuards(JwtAuthGuard)
+    @Post('/completar/masivo')
+    async completarMasivo(@Res() res, @Body() data: any) {
+        await this.ventasService.completarMasivo(data);
+        res.status(HttpStatus.OK).json({
+            message: 'Pedidos completados correctamente',
         });
     }
 
@@ -101,6 +111,16 @@ export class VentasMayoristasController {
             message: 'Detalles generados correctamente en PDF'
         });
     }
+
+    // Generacion - Talonarios masivos - PDF
+    @UseGuards(JwtAuthGuard)
+    @Get('/talonarios-masivos/pdf')
+    async talonariosMasivosPDF(@Res() res) {
+        await this.ventasService.talonariosMasivosPDF();
+        res.status(HttpStatus.OK).json({
+            message: 'Talonarios generados correctamente en PDF'
+        });
+    }    
 
     // Reporte -> Repartidores
     @UseGuards(JwtAuthGuard)

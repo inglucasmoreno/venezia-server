@@ -8,6 +8,11 @@ export const mayoristasIngresosSchema = new Schema({
     default: new Date()
   },
 
+  caja: {
+    type: String,
+    default: ''
+  },
+  
   tipo_ingreso: {
     type: Schema.Types.ObjectId,
     ref: 'tipos_ingresos',

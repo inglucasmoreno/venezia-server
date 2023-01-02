@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+
+<link rel="stylesheet" href="template.css">
+
+<style>
+  /* CSS de PDF */
+
+  * {
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+</style>
+
+<head>
+  <mate charest="utf-8" />
+  <title> Detalles de envio </title>
+</head>
+
+<body style="font-family: Arial, Helvetica, sans-serif;">
+
+  {{#each pedidos}}
+
+  <table>
+    <tr>
+      <td>
+        <p style="margin-top: 12px; font-size: 20px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo
+          del valle 202 </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516
+        </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Fecha de pedido: </span> {{
+          fecha }} </p>
+      </td>
+      <td>
+        <img style="width: 130px; margin-left: 100px;" src="http://localhost:3000/pdf/logo.png">
+      </td>
+    </tr>
+  </table>
+
+  <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
+
+  <div style="font-size: 9px; margin-top: 5px;">
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Nombre/Razón social: </span> {{ mayorista }} </p>
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio </span> {{ direccion }} </p>
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> {{ telefono }} </p>
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Repartidor: </span>
+      {{ repartidor }}
+    </p>
+  </div>
+
+
+  <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
+
+  <!-- Tabla de productos -->
+  <div style="margin-top: 5px; font-size: 9px;">
+    <table>
+      <tr>
+        <th style="width: 250px; text-align: left;"> Descripción </th>
+        <th style="width: 100px; text-align: right;"> Cantidad </th>
+        <th style="width: 150px; text-align: right;"> Unidad de medida </th>
+        <th style="width: 100px; text-align: right;"> Precio Unit. </th>
+        <th style="width: 100px; text-align: right;"> Total </th>
+      </tr>
+
+      <!-- PRODUCTO 1 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion1 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad1 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida1 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario1 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio1 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 2 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion2 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad2 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida2 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario2 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio2 }} </td>
+      </tr>
+
+
+      <!-- PRODUCTO 3 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion3 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad3 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida3 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario3 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio3 }} </td>
+      </tr>
+
+
+      <!-- PRODUCTO 4 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion4 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad4 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida4 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario4 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio4 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 5 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion5 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad5 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida5 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario5 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio5 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 6 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion6 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio6 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 7 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion7 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio7 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 8 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion8 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad8 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida8 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario8 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio8 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 9 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion9 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad9 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida9 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario9 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio9 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 10 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion10 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad10 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida10 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario10 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio10 }} </td>
+      </tr>
+
+
+    </table>
+    <div style="width: 100%; border: 1px solid black; margin-top: 10px;"></div>
+    <p style="margin-top: 10px; font-size: 10px; text-align: right"> <span style="font-weight: bold;"> Total: </span>
+      ${{ total }} </p>
+  </div>
+
+  <p style="margin-top: 10px; margin-bottom: 10px;">
+    --------------------------------------------------------------------------------------------- </p>
+
+  <table>
+    <tr>
+      <td>
+        <p style="margin-top: 12px; font-size: 20px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo
+          del valle 202 </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516
+        </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Fecha de pedido: </span> {{
+          fecha }} </p>
+      </td>
+      <td>
+        <img style="width: 130px; margin-left: 100px;" src="http://localhost:3000/pdf/logo.png">
+      </td>
+    </tr>
+  </table>
+
+  <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
+
+  <div style="font-size: 9px; margin-top: 5px;">
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Nombre/Razón social: </span> {{ mayorista }} </p>
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio </span> {{ direccion }} </p>
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> {{ telefono }} </p>
+    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Repartidor: </span>
+      {{ repartidor }}
+    </p>
+  </div>
+
+
+  <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
+
+  <!-- Tabla de productos -->
+  <div style="margin-top: 5px; font-size: 9px;">
+    <table>
+      <tr>
+        <th style="width: 250px; text-align: left;"> Descripción </th>
+        <th style="width: 100px; text-align: right;"> Cantidad </th>
+        <th style="width: 150px; text-align: right;"> Unidad de medida </th>
+        <th style="width: 100px; text-align: right;"> Precio Unit. </th>
+        <th style="width: 100px; text-align: right;"> Total </th>
+      </tr>
+
+      <!-- PRODUCTO 1 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion1 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad1 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida1 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario1 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio1 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 2 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion2 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad2 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida2 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario2 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio2 }} </td>
+      </tr>
+
+
+      <!-- PRODUCTO 3 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion3 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad3 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida3 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario3 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio3 }} </td>
+      </tr>
+
+
+      <!-- PRODUCTO 4 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion4 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad4 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida4 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario4 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio4 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 5 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion5 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad5 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida5 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario5 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio5 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 6 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion6 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio6 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 7 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion7 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio7 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 8 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion8 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad8 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida8 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario8 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio8 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 9 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion9 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad9 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida9 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario9 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio9 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 10 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion10 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad10 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida10 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario10 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio10 }} </td>
+      </tr>
+
+
+    </table>
+    <div style="width: 100%; border: 1px solid black; margin-top: 10px;"></div>
+    <p style="margin-top: 10px; font-size: 10px; text-align: right"> <span style="font-weight: bold;"> Total: </span>
+      ${{ total }} </p>
+  </div>
+
+  {{/each}}
+
+</body>
+
+</html>

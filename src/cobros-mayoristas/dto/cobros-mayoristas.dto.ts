@@ -4,6 +4,8 @@ export class CobrosMayoristasDTO {
   
   fecha_cobro: string;
 
+  readonly caja: string;
+
   readonly nro: number;
 
   @IsString()

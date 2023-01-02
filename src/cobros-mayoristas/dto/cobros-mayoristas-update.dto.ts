@@ -3,6 +3,8 @@ export class CobrosMayoristasUpdateDTO {
   
   fecha_cobro: string;
 
+  readonly caja: string;
+
   readonly nro: number;
 
   readonly tipo: string;

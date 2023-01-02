@@ -4,6 +4,8 @@ export class MayoristasGastosDTO {
   
   readonly fecha_gasto: string;
 
+  readonly caja: string;
+
   @IsNotEmpty()
   readonly tipo_gasto: string;
 

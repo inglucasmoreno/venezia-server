@@ -13,6 +13,11 @@ export const ventasMayoristasSchema = new Schema({
       required: true,
     }, 
 
+    caja: {
+      type: String,
+      default: ''
+    },
+
     mayorista: {
       type: Schema.Types.ObjectId,
       ref: 'mayoristas',

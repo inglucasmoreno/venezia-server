@@ -83,6 +83,18 @@ export class CajasController {
         res.status(HttpStatus.OK).json({
             message: 'Reporte de cajas generado correctamente',
             reportes
-        });
+        })
     }
+
+    // Reportes de cajas - PDF
+    @UseGuards(JwtAuthGuard)
+    @Post('/reportes/acumulacion/estadisticas/pdf')
+    async reporteCajasPDF(@Res() res, @Body() data: any) {
+        await this.cajasService.reporteCajasPDF(data);
+        res.status(HttpStatus.OK).json({
+            message: 'Reporte de cajas en PDF generado correctamente'
+        });
+    }  
+
 }
+

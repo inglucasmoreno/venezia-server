@@ -8,6 +8,8 @@ import { CajasUpdateDTO } from './dto/cajas-update';
 import { CajasDTO } from './dto/cajas.dto';
 import { ICajas } from './interface/cajas.interface';
 import { ISaldoInicial } from './interface/saldo-inicial.interface';
+import * as fs from 'fs';
+import * as pdf from 'pdf-creator-node';
 
 @Injectable()
 export class CajasService {
@@ -174,7 +176,6 @@ export class CajasService {
 
     // Paginacion
     pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
-
 
     const [cajas, cajasTotal] = await Promise.all([
       this.cajasModel.aggregate(pipeline),
@@ -356,31 +357,67 @@ export class CajasService {
 
     pipeline.push({ $match: {} });
 
-    pipeline.push({$group:{
-      _id: null,
-      cantidad_ventas: { $sum: "$cantidad_ventas" },
-      total_ventas: { $sum: "$total_ventas" },
-      total_facturado: { $sum: "$total_facturado" },
-      total_balanza: { $sum: "$total_balanza" },
-      total_no_balanza: { $sum: "$total_no_balanza" },
-      otros_ingresos: { $sum: "$otros_ingresos" },
-      otros_gastos: { $sum: "$otros_gastos" },
-      total_credito: { $sum: "$total_credito" },
-      total_mercadopago: { $sum: "$total_mercadopago" },
-      total_efectivo: { $sum: "$total_efectivo" },
-      total_debito: { $sum: "$total_debito" },
-      total_adicional_credito: { $sum: "$total_adicional_credito" },
-      total_pedidosYa: { $sum: "$total_credito" },
-      diferencia: { $sum: "$diferencia" },
-      tesoreria: { $sum: "$tesoreria" },
-      total_efectivo_en_caja: { $sum: "$total_efectivo_en_caja" },
-      total_efectivo_en_caja_real: { $sum: "$total_efectivo_en_caja_real" },
-    }})
+    pipeline.push({
+      $group: {
+        _id: null,
+        cantidad_ventas: { $sum: "$cantidad_ventas" },
+        total_ventas: { $sum: "$total_ventas" },
+        total_facturado: { $sum: "$total_facturado" },
+        total_balanza: { $sum: "$total_balanza" },
+        total_no_balanza: { $sum: "$total_no_balanza" },
+        otros_ingresos: { $sum: "$otros_ingresos" },
+        otros_gastos: { $sum: "$otros_gastos" },
+        total_credito: { $sum: "$total_credito" },
+        total_mercadopago: { $sum: "$total_mercadopago" },
+        total_efectivo: { $sum: "$total_efectivo" },
+        total_debito: { $sum: "$total_debito" },
+        total_adicional_credito: { $sum: "$total_adicional_credito" },
+        total_pedidosYa: { $sum: "$total_credito" },
+        diferencia: { $sum: "$diferencia" },
+        tesoreria: { $sum: "$tesoreria" },
+        total_efectivo_en_caja: { $sum: "$total_efectivo_en_caja" },
+        total_efectivo_en_caja_real: { $sum: "$total_efectivo_en_caja_real" },
+      }
+    })
 
     const reportes = await this.cajasModel.aggregate(pipeline);
 
     return reportes[0];
 
+  }
+
+  // Reporte de cajas - PDF
+  async reporteCajasPDF(data: any): Promise<any> {
+
+    console.log(data);
+    let html: any;
+
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/reporte_cajas.html', 'utf-8');
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+        height: "10mm",
+        contents: {}
+      }
+    }
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data: {
+        
+      },
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/reporte_cajas.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
+    return 'Reporte generado correctamente';
+    
   }
 
 }

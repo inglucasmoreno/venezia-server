@@ -191,6 +191,7 @@ export class CajasService {
 
   // Calculos iniciales
   async calculosIniciales(): Promise<any> {
+
     const ventasActivas = await this.ventasModel.find({ activo: true });
 
     // Variables iniciales
@@ -389,7 +390,10 @@ export class CajasService {
   // Reporte de cajas - PDF
   async reporteCajasPDF(data: any): Promise<any> {
 
+    const { fechaDesde, fechaHasta, reportes } = data;
+
     console.log(data);
+
     let html: any;
 
     html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/reporte_cajas.html', 'utf-8');
@@ -408,7 +412,21 @@ export class CajasService {
     var document = {
       html: html,
       data: {
-        
+        fechaDesde: fechaDesde === '' ? 'Inicio del sistema' : fechaDesde,
+        fechaHasta: fechaHasta === '' ? 'El día de hoy' : fechaHasta,
+        cantidad_ventas: reportes.cantidad_ventas,
+        total_balanza: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_balanza),
+        total_no_balanza: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_no_balanza),
+        total_adicional_credito: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_adicional_credito),
+        total_ventas: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_ventas),
+        otros_ingresos: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.otros_ingresos),
+        otros_gastos: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.otros_gastos),
+        total_pedidosYa: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_pedidosYa),
+        total_efectivo_en_caja: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_efectivo_en_caja),
+        total_efectivo_en_caja_real: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_efectivo_en_caja_real),
+        tesoreria: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.tesoreria),
+        diferencia: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.diferencia),
+        total_facturado: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_facturado),
       },
       path: (process.env.PUBLIC_DIR || './public') + '/pdf/reporte_cajas.pdf'
     }

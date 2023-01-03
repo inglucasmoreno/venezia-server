@@ -1,52 +1,128 @@
 <!DOCTYPE html>
 <html>
 
-  <link rel="stylesheet" href="template.css">
+<link rel="stylesheet" href="template.css">
 
-  <style>
+<style>
+  /* CSS de PDF */
 
-      /* CSS de PDF */
+  * {
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+</style>
 
-      * {
-          box-sizing: border-box;
-          margin: 0px;
-          padding: 0px;
-          font-family: Arial, Helvetica, sans-serif;
-      }
+<head>
+  <mate charest="utf-8" />
+  <title> Reporte de caja </title>
+</head>
 
-  </style>
+<body style="font-family: Arial, Helvetica, sans-serif;">
+  <table>
+    <tr>
+      <td>
+        <p style="margin-top: 12px; font-size: 20px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo
+          del valle 202 </p>
+        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516
+        </p>
+      </td>
+      <td>
+        <img style="width: 130px; margin-left: 100px;" src="http://localhost:3000/pdf/logo.png">
+      </td>
+    </tr>
+  </table>
 
-  <head>
-      <mate charest="utf-8" />
-      <title> Reporte de caja </title>
-  </head>
+  <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
 
-  <body style="font-family: Arial, Helvetica, sans-serif;">
-    <table>
-      <tr>
-        <td>
-          <p style="margin-top: 12px; font-size: 20px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
-          <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo del valle 202 </p>
-          <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516 </p>
-          <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Fecha de reporte: </span> {{ fecha }} </p>
-        </td>
-        <td>
-          <img style="width: 130px; margin-left: 100px;" src="http://localhost:3000/pdf/logo.png">            
-        </td>
-      </tr>
-    </table>
+  <div style="font-size: 9px; margin-top: 10px;">
 
-    <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
+    <p style="margin-top: 20px;">
 
-    <div style="font-size: 9px; margin-top: 5px;">
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Cantidad de ventas: </span>  </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio </span> </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> </p>
-      <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Repartidor: </span> </p>
+      <span style="border: 1px solid black; padding: 5px;">
+        <span style="font-weight: bold;"> Fecha desde: </span> <span> {{ fechaDesde }} </span>
+      </span>
+
+      <span style="border: 1px solid black; padding: 5px; margin-left: 10px;">
+        <span style="font-weight: bold;"> Fecha hasta: </span> <span> {{ fechaHasta }} </span>
+      </span>
+
+    </p>
+
+
+    <p style="margin-top: 20px; background-color: #F9F5F5; width: 200px; padding: 5px; border: 1px solid gray;"> <span
+        style="font-weight: bold;"> Cantidad de ventas: </span> {{ cantidad_ventas }} </p>
+
+    <p style="margin-top: 10px; background-color: #CFE2FF; color:#14499B; width: 200px; padding: 5px; border: 1px solid #14499B;"> <span
+        style="font-weight: bold;"> Total facturado: </span> ${{ total_facturado }} </p>
+
+    <!-- Reportes -->
+
+    <div style="margin-top: 10px; font-size: 9px;">
+      <table style="border-collapse: collapse; border: 1px solid black">
+        <tr style="border-bottom: 1px solid black;">
+          <th style="width: 250px; text-align: left; padding: 5px;"> Descripción </th>
+          <th style="width: 150px; text-align: right; padding: 5px;"> Monto </th>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px;"> <span style="color: green"> (+) </span> Total balanza </td>
+          <td style="text-align:right; padding: 5px;"> ${{ total_balanza }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px;"> <span style="color: green"> (+) </span> Total no balanza </td>
+          <td style="text-align:right; padding: 5px;"> ${{ total_no_balanza }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px;"> <span style="color: green"> (+) </span> Total adicional por
+            crédito </td>
+          <td style="text-align:right; padding: 5px;"> ${{ total_adicional_credito }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black; background-color: #F9F5F5;">
+          <td style="text-align:left; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> </span> Total en
+            ventas </td>
+          <td style="text-align:right; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> ${{
+            total_ventas }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px;"> <span style="color: green"> (+) </span> Otros ingresos </td>
+          <td style="text-align:right; padding: 5px;"> ${{ otros_ingresos }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px;"> <span style="color: red"> (-) </span> Otros gastos </td>
+          <td style="text-align:right; padding: 5px; color: red"> -${{ otros_gastos }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px;"> <span style="color: red"> (-) </span> PedidosYa - Online </td>
+          <td style="text-align:right; padding: 5px; color: red"> -${{ total_pedidosYa }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> Total efectivo en
+            caja (Sistema) </td>
+          <td style="text-align:right; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> ${{
+            total_efectivo_en_caja }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> Total efectivo en
+            caja (Real) </td>
+          <td style="text-align:right; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> ${{
+            total_efectivo_en_caja_real }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> Tesoreria </td>
+          <td style="text-align:right; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> ${{
+            tesoreria }} </td>
+        </tr>
+        <tr style="border-bottom: 1px solid black;">
+          <td style="text-align:left; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> Diferencia </td>
+          <td style="text-align:right; padding: 5px; background-color: #F9F5F5; font-weight: bold;"> ${{
+            diferencia }} </td>
+        </tr>
+      </table>
     </div>
+  </div>
 
-    <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
-    
-  </body>
+</body>
 
 </html>

@@ -392,8 +392,6 @@ export class CajasService {
 
     const { fechaDesde, fechaHasta, reportes } = data;
 
-    console.log(data);
-
     let html: any;
 
     html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/reporte_cajas.html', 'utf-8');
@@ -416,6 +414,9 @@ export class CajasService {
         fechaHasta: fechaHasta === '' ? 'El día de hoy' : fechaHasta,
         cantidad_ventas: reportes.cantidad_ventas,
         total_balanza: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_balanza),
+        total_debito: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_debito),
+        total_credito: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_credito),
+        total_mercadopago: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_mercadopago),
         total_no_balanza: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_no_balanza),
         total_adicional_credito: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_adicional_credito),
         total_ventas: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_ventas),
@@ -427,6 +428,7 @@ export class CajasService {
         tesoreria: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.tesoreria),
         diferencia: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.diferencia),
         total_facturado: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_facturado),
+        total_postnet: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(reportes.total_debito + reportes.total_credito + reportes.total_mercadopago),
       },
       path: (process.env.PUBLIC_DIR || './public') + '/pdf/reporte_cajas.pdf'
     }

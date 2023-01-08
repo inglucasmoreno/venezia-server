@@ -8,6 +8,12 @@ export const ventasMayoristasSchema = new Schema({
       default: new Date()
     },
 
+    paquete: {
+      type: Schema.Types.ObjectId,
+      ref: 'paquetes',
+      required: true,
+    },
+
     numero: {
       type: Number,
       required: true,

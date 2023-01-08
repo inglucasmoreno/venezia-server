@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { VentasMayoristasUpdateDTO } from './dto/ventas-mayoristas-update.dto';
 import { VentasMayoristasService } from './ventas-mayoristas.service';
@@ -132,6 +132,21 @@ export class VentasMayoristasController {
             reportes
         });
     }
+
+    // Eliminar venta
+    @UseGuards(JwtAuthGuard)
+    @Delete('/eliminar/venta/:id')
+    async eliminarVenta(@Res() res, @Param('id') ventaID) {
+
+        const venta = await this.ventasService.eliminarVenta(ventaID);
+
+        res.status(HttpStatus.OK).json({
+            message: 'Venta eliminada correctamente',
+            venta
+        });
+
+    }
+
 
 }
 

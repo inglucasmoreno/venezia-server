@@ -11,8 +11,6 @@ import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayori
 import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
 import { IMayoristasGastos } from 'src/mayoristas-gastos/interface/mayoristas-gastos.interface';
 import { IMayoristasIngresos } from 'src/mayoristas-ingresos/interface/mayoristas-ingresos.interface';
-import { pipe } from 'rxjs';
-import { pipeline } from 'stream';
 
 @Injectable()
 export class VentasMayoristasService {
@@ -102,6 +100,7 @@ export class VentasMayoristasService {
     const {
       columna,
       direccion,
+      paquete,
       repartidor,
       mayorista,
       desde,
@@ -119,14 +118,21 @@ export class VentasMayoristasService {
     pipeline.push({ $match: {} });
     pipelineTotal.push({ $match: {} });
 
-    // Repartido por ID
+    //  Por paquete
+    if (paquete && paquete !== '') {
+      const idPaquete = new Types.ObjectId(paquete);
+      pipeline.push({ $match: { paquete: idPaquete } })
+      pipelineTotal.push({ $match: { paquete: idPaquete } })
+    }
+
+    // Por repartidor
     if (repartidor && repartidor !== '') {
       const idRepartidor = new Types.ObjectId(repartidor);
       pipeline.push({ $match: { repartidor: idRepartidor } })
       pipelineTotal.push({ $match: { repartidor: idRepartidor } })
     }
 
-    // Mayorista por ID
+    // Por mayorista
     if (mayorista && mayorista !== '') {
       const idMayorista = new Types.ObjectId(mayorista);
       pipeline.push({ $match: { mayorista: idMayorista } })
@@ -200,6 +206,19 @@ export class VentasMayoristasService {
     );
 
     pipeline.push({ $unwind: '$mayorista' });
+
+    // Informacion - Paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
 
     // Informacion - Repartidor
     pipelineTotal.push({
@@ -300,6 +319,16 @@ export class VentasMayoristasService {
 
     const { pedido, productos } = data;
 
+    const idMayorista = new Types.ObjectId(pedido.mayorista);
+    const idPaquete = new Types.ObjectId(pedido.paquete);
+
+    // Se verifica si ya hay un pedido creado para este mayorista en el paquete actual    
+    const pipeline = [];
+    pipeline.push({ $match: { $and: [ {paquete: idPaquete}, {mayorista: idMayorista} ] } });
+    const pedidoRepetido = await this.ventasModel.aggregate(pipeline);
+
+    if(pedidoRepetido.length > 0) throw new NotFoundException('El mayorista ya tiene un pedido en este paquete');
+    
     // Numero de pedido
     const ultimoPedido = await this.ventasModel.find().sort({ createdAt: -1 }).limit(1);
 
@@ -946,7 +975,7 @@ export class VentasMayoristasService {
 
     const productos = await this.productosModel.aggregate(pipelineProductos);
 
-    productos.map( producto => {
+    productos.map(producto => {
       productosPDF.push({
         pedido: String(producto.ventas_mayorista),
         descripcion: producto.descripcion,
@@ -959,12 +988,12 @@ export class VentasMayoristasService {
 
     // UNIFICANDO INFORMACION
 
-    pedidosPDF.map( pedido => {
+    pedidosPDF.map(pedido => {
 
       let variable = 0;
 
-      productosPDF.map( producto => {
-        if(producto.pedido === pedido.pedido){
+      productosPDF.map(producto => {
+        if (producto.pedido === pedido.pedido) {
           variable += 1;
           pedido[`descripcion${variable}`] = producto.descripcion;
           pedido[`unidad_medida${variable}`] = producto.unidad_medida;
@@ -1006,6 +1035,19 @@ export class VentasMayoristasService {
 
     return 'Todo correcto';
 
+  }
+
+  // Eliminar venta
+  async eliminarVenta(id: string): Promise<any> {
+
+    // Se eliminan los productos del pedido
+    await this.productosModel.deleteMany({ venta_mayorista: id });
+
+    // Se elimina el pedido
+    const venta = await this.ventasModel.findByIdAndDelete(id);
+  
+    return venta;
+  
   }
 
 

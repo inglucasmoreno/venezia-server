@@ -1,15 +1,18 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class PaquetesDTO {
 
-    @IsNotEmpty()
-    readonly fecha_paquetes: string;
+    @IsString()
+    readonly fecha_paquete: string;
     
-    @IsNumber()
     readonly numero: number;
  
-    @IsNumber()
+    @IsString()
+    readonly repartidor: string;
+
     readonly cantidad_pedidos: number;
+
+    readonly precio_total: number;
     
     readonly estado: string;
 

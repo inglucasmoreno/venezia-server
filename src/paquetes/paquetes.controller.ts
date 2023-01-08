@@ -42,6 +42,17 @@ export class PaquetesController {
         });
     }
 
+    // Completar paquete
+    @UseGuards(JwtAuthGuard)
+    @Post('/completar')
+    async completarPaquete(@Res() res, @Body() data: any) {
+        const paquete = await this.paquetesService.completarPaquete(data);
+        res.status(HttpStatus.CREATED).json({
+            message: 'Paquete completado correctamente',
+            paquete
+        });
+    }
+
     // Actualizar paquete
     @UseGuards(JwtAuthGuard)
     @Put('/:id')

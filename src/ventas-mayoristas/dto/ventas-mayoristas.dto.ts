@@ -4,6 +4,9 @@ export class VentasMayoristasDTO {
   
   readonly fecha_pedido: string;
 
+  @IsNotEmpty()
+  readonly paquete: string;
+
   readonly numero: number;
 
   readonly caja: string;

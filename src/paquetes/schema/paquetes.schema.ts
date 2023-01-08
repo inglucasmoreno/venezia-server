@@ -3,25 +3,36 @@ import { Schema } from 'mongoose';
 
 export const paquetesSchema = new Schema({
    
-    fecha_paquetes: {
+    fecha_paquete: {
         type: Date,
         required: true,
     },
 
     numero: {
         type: Number,
+        unique: true,
         required: true,
+    },
+
+    repartidor: {
+        type: Schema.Types.ObjectId,
+        ref: 'usuario',
+        required: true
     },
 
     cantidad_pedidos: {
         type: Number,
-        unique: true,
+        default: 0,
+    },
+
+    precio_total: {
+        type: Number,
         default: 0,
     },
 
     estado: {
         type: String,
-        default: 'Pendiente'
+        default: 'Creando'
     },
 
     creatorUser: {

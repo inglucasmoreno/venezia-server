@@ -2,6 +2,8 @@ export class VentasMayoristasUpdateDTO {
     
   readonly fecha_pedido: string;
 
+  readonly paquete: string;
+
   readonly numero: number;
 
   readonly caja: string;

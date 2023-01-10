@@ -60,12 +60,119 @@ export class PaquetesService {
     }
 
     // Listar paquetes
-    async listarPaquetes(querys: any): Promise<IPaquetes[]> {
+    async listarPaquetes(querys: any): Promise<any> {
 
-        const { columna, direccion } = querys;
+        const {
+            columna,
+            direccion,
+            repartidor,
+            desde,
+            registerpp,
+            estado,
+            parametro,
+            fechaDesde,
+            fechaHasta,
+            activo
+        } = querys;
+
 
         const pipeline = [];
+        const pipelineTotal = [];
+
         pipeline.push({ $match: {} });
+        pipelineTotal.push({ $match: {} });
+
+        // Por repartidor
+        if (repartidor && repartidor !== '') {
+            const idRepartidor = new Types.ObjectId(repartidor);
+            pipeline.push({ $match: { repartidor: idRepartidor } })
+            pipelineTotal.push({ $match: { repartidor: idRepartidor } })
+        }
+
+        // Filtro - Activo / Inactivo
+        let filtroActivo = {};
+        if (activo && activo !== '') {
+            filtroActivo = { activo: activo === 'true' ? true : false };
+            pipeline.push({ $match: filtroActivo });
+            pipelineTotal.push({ $match: filtroActivo });
+        }
+
+        // Filtro por estado
+        if (estado && estado !== '') {
+            pipeline.push({ $match: { estado } });
+            pipelineTotal.push({ $match: { estado } });
+        }
+
+        // Filtro - Fecha desde
+        if (fechaDesde && fechaDesde.trim() !== '') {
+            pipeline.push({
+                $match: {
+                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+                }
+            });
+            pipelineTotal.push({
+                $match: {
+                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+                }
+            });
+        }
+
+        // Filtro - Fecha hasta
+        if (fechaHasta && fechaHasta.trim() !== '') {
+            pipeline.push({
+                $match: {
+                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+                }
+            });
+            pipelineTotal.push({
+                $match: {
+                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+                }
+            });
+        }
+
+        // Informacion - Repartidor
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'repartidor',
+                foreignField: '_id',
+                as: 'repartidor'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$repartidor' });
+
+        // Informacion - Repartidor
+        pipelineTotal.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'repartidor',
+                foreignField: '_id',
+                as: 'repartidor'
+            }
+        }
+        );
+
+        pipelineTotal.push({ $unwind: '$repartidor' });
+
+        // Filtro por parametros
+        if (parametro && parametro !== '') {
+            const regex = new RegExp(parametro, 'i');
+            pipeline.push({ $match: { $or: [{ numero: Number(parametro) }] } });
+            pipelineTotal.push({ $match: { $or: [{ numero: Number(parametro) }] } });
+        }
+
+        // Ordenando datos
+        const ordenar: any = {};
+        if (columna) {
+            ordenar[String(columna)] = Number(direccion);
+            pipeline.push({ $sort: ordenar });
+        }
+
+        // Paginacion
+        pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
         // Informacion de usuario creador
         pipeline.push({
@@ -93,16 +200,15 @@ export class PaquetesService {
 
         pipeline.push({ $unwind: '$updatorUser' });
 
-        // Ordenando datos
-        const ordenar: any = {};
-        if (columna) {
-            ordenar[String(columna)] = Number(direccion);
-            pipeline.push({ $sort: ordenar });
-        }
+        const [paquetes, paquetesTotal] = await Promise.all([
+            this.paquetesModel.aggregate(pipeline),
+            this.paquetesModel.aggregate(pipelineTotal)
+          ]);
 
-        const paquetes = await this.paquetesModel.aggregate(pipeline);
-
-        return paquetes;
+        return {
+            paquetes,
+            paquetesTotal
+        };
 
     }
 
@@ -113,15 +219,15 @@ export class PaquetesService {
 
         // Numero de paquete
         const ultimoPaquete: any = await this.paquetesModel.find()
-                                                      .sort({ createdAt: -1 })
-                                                      .limit(1)
+            .sort({ createdAt: -1 })
+            .limit(1)
         // Proximo numero de paquete
         let proximoNumeroPaquete = 0;
-        if(ultimoPaquete[0]) proximoNumeroPaquete = ultimoPaquete[0].numero;
+        if (ultimoPaquete[0]) proximoNumeroPaquete = ultimoPaquete[0].numero;
         proximoNumeroPaquete += 1;
 
         // Adaptacion de fecha de paquete
-        const fechaAdp = add(new Date(fecha_paquete),{ hours: 3 });
+        const fechaAdp = add(new Date(fecha_paquete), { hours: 3 });
 
         const data = {
             fecha_paquete: fechaAdp,
@@ -130,8 +236,6 @@ export class PaquetesService {
             creatorUser,
             updatorUser
         }
-
-        console.log(data);
 
         // Creacion de paquete
         const paquete = new this.paquetesModel(data);
@@ -142,16 +246,23 @@ export class PaquetesService {
     // Completar paquete
     async completarPaquete(data: any): Promise<IPaquetes> {
 
-        const { paquete, fecha, precio_total } = data; 
+        const { paquete, fecha, precio_total, cantidad_pedidos } = data;
 
         // Adaptando fecha
         const fechaAdp: any = add(new Date(fecha), { hours: 3 });
 
         // Cierre de pedidos
-        await this.ventasMayoristasModel.updateMany({ paquete }, { fecha_pedido: fechaAdp, estado: 'Pendiente' });
+        await this.ventasMayoristasModel.updateMany({ paquete }, { 
+            fecha_pedido: fechaAdp, 
+            estado: 'Pendiente' 
+        });
 
         // Cierre de paquete
-        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(paquete, { fecha_paquete: fechaAdp, estado: 'Pendiente', precio_total });
+        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(paquete, { 
+            fecha_paquete: fechaAdp, 
+            cantidad_pedidos,
+            estado: 'Pendiente', 
+            precio_total });
 
         return paqueteDB;
     }

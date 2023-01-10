@@ -24,10 +24,11 @@ export class PaquetesController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async listarPaquetes(@Res() res, @Query() querys) {
-        const paquetes = await this.paquetesService.listarPaquetes(querys);
+        const {paquetes, paquetesTotal} = await this.paquetesService.listarPaquetes(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de paquetes correcto',
-            paquetes
+            paquetes,
+            paquetesTotal
         });
     }
 

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
+import { IVentasMayoristasProductos } from 'src/ventas-mayoristas-productos/interface/ventas-mayoristas-productos.interface';
 import { IVentasMayoristas } from 'src/ventas-mayoristas/interface/ventas-mayoristas.interface';
 import { PaquetesUpdateDTO } from './dto/paquetes-update.dto';
 import { PaquetesDTO } from './dto/paquetes.dto';
@@ -13,6 +14,7 @@ export class PaquetesService {
     constructor(
         @InjectModel('Paquetes') private readonly paquetesModel: Model<IPaquetes>,
         @InjectModel('VentasMayoristas') private readonly ventasMayoristasModel: Model<IVentasMayoristas>,
+        @InjectModel('VentasMayoristasProductos') private readonly ventasMayoristasProductosModel: Model<IVentasMayoristasProductos>,
     ) { }
 
     // Paquete por ID
@@ -26,6 +28,19 @@ export class PaquetesService {
         // Paquete por ID
         const idPaquete = new Types.ObjectId(id);
         pipeline.push({ $match: { _id: idPaquete } })
+
+        // Informacion de repartidor
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'repartidor',
+                foreignField: '_id',
+                as: 'repartidor'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$repartidor' });
 
         // Informacion de usuario creador
         pipeline.push({
@@ -74,7 +89,6 @@ export class PaquetesService {
             fechaHasta,
             activo
         } = querys;
-
 
         const pipeline = [];
         const pipelineTotal = [];
@@ -203,12 +217,73 @@ export class PaquetesService {
         const [paquetes, paquetesTotal] = await Promise.all([
             this.paquetesModel.aggregate(pipeline),
             this.paquetesModel.aggregate(pipelineTotal)
-          ]);
+        ]);
 
         return {
             paquetes,
-            paquetesTotal
+            totalItems: paquetesTotal.length
         };
+
+    }
+
+    // Enviar paquete
+    async enviarPaquete(id: string, querys: any): Promise<any> {
+
+        const { fecha } = querys;
+
+        if (fecha !== '') {
+
+            const adj_fecha: any = add(new Date(fecha), { hours: 3 });
+
+            // Se actualiza el estado del paquete
+            const paqueteDB = await this.paquetesModel.findByIdAndUpdate(id, { fecha_paquete: adj_fecha, estado: 'Enviado' }, { new: true });
+
+            // Se actualiza el estado de los pedidos
+            const pedidosDB = await this.ventasMayoristasModel.find({ paquete: paqueteDB._id });
+            await this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_pedido: adj_fecha, estado: 'Enviado' });
+
+            // Se actualizan los productos
+            pedidosDB.map(async pedido => {
+                await this.ventasMayoristasProductosModel.updateMany({ ventas_mayorista: pedido._id }, { activo: false });
+            })
+
+        }else{
+
+            const adj_fecha: any = add(new Date(fecha), { hours: 3 });
+
+            // Se actualiza el estado del paquete
+            const paqueteDB = await this.paquetesModel.findByIdAndUpdate(id, { estado: 'Enviado' }, { new: true });
+
+            // Se actualiza el estado de los pedidos
+            const pedidosDB = await this.ventasMayoristasModel.find({ paquete: paqueteDB._id });
+            await this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { estado: 'Enviado' });
+
+            // Se actualizan los productos
+            pedidosDB.map(async pedido => {
+                await this.ventasMayoristasProductosModel.updateMany({ ventas_mayorista: pedido._id }, { activo: false });
+            })
+
+        }
+
+        return 'Paquete enviado correctamente';
+
+    }
+    // Envio masivo de paquetes
+    async envioMasivoPaquetes(querys: any): Promise<any> {
+
+        const { fecha } = querys;
+
+        const adj_fecha: any = add(new Date(fecha), { hours: 3 });
+
+        console.log(adj_fecha);
+
+        await Promise.all([
+            this.paquetesModel.updateMany({ estado: 'Pendiente' }, { fecha_paquete: adj_fecha, estado: 'Enviado' }),
+            this.ventasMayoristasModel.updateMany({ estado: 'Pendiente' }, { fecha_pedido: adj_fecha, estado: 'Enviado' }),
+            this.ventasMayoristasProductosModel.updateMany({ activo: true }, { activo: false }),
+        ])
+
+        return 'Paquete enviado correctamente';
 
     }
 
@@ -252,25 +327,58 @@ export class PaquetesService {
         const fechaAdp: any = add(new Date(fecha), { hours: 3 });
 
         // Cierre de pedidos
-        await this.ventasMayoristasModel.updateMany({ paquete }, { 
-            fecha_pedido: fechaAdp, 
-            estado: 'Pendiente' 
+        await this.ventasMayoristasModel.updateMany({ paquete }, {
+            fecha_pedido: fechaAdp,
+            estado: 'Pendiente'
         });
 
         // Cierre de paquete
-        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(paquete, { 
-            fecha_paquete: fechaAdp, 
+        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(paquete, {
+            fecha_paquete: fechaAdp,
             cantidad_pedidos,
-            estado: 'Pendiente', 
-            precio_total });
+            estado: 'Pendiente',
+            precio_total
+        });
 
         return paqueteDB;
     }
 
     // Actualizar paquete
     async actualizarPaquete(id: string, paquetesUpdateDTO: PaquetesUpdateDTO): Promise<IPaquetes> {
-        const paquete = await this.paquetesModel.findByIdAndUpdate(id, paquetesUpdateDTO, { new: true });
-        return paquete;
+        
+        const { fecha_paquete } = paquetesUpdateDTO;
+        
+        const adj_fecha = add(new Date(fecha_paquete), { hours: 3 });
+        
+        // Actualizacion de paquete
+        paquetesUpdateDTO.fecha_paquete = adj_fecha;
+        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(id, paquetesUpdateDTO, { new: true });
+        
+        // Actualizacion de fecha en pedidos
+        if(fecha_paquete && fecha_paquete !== '') await this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_pedido: adj_fecha });    
+        
+        return paqueteDB;
+    
+    }
+
+    // Eliminar paquete
+    async eliminarPaquete(id: string): Promise<IPaquetes> {
+
+        // Se elimina el paquete
+        const paqueteDB = await this.paquetesModel.findByIdAndDelete(id);
+
+        // Se obtienen los pedidos del paquete
+        const pedidosDB: any = await this.ventasMayoristasModel.find({ paquete: id });
+
+        // Se eliminan los pedido
+        await this.ventasMayoristasModel.deleteMany({ paquete: paqueteDB._id }, { new: true });
+
+        // Se eliminan los productos de los pedidos
+        pedidosDB.map(async pedido => {
+            await this.ventasMayoristasProductosModel.deleteMany({ ventas_mayorista: pedido._id });
+        })
+
+        return paqueteDB;
     }
 
 

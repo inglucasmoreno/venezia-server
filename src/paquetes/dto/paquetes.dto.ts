@@ -3,7 +3,7 @@ import { IsString } from 'class-validator';
 export class PaquetesDTO {
 
     @IsString()
-    readonly fecha_paquete: string;
+    fecha_paquete: string;
     
     readonly numero: number;
  

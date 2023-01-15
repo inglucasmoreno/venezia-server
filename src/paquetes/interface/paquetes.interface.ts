@@ -1,7 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface IPaquetes extends Document {
-    readonly fecha_paquete: string;
+    fecha_paquete: string;
     readonly numero: number;
     readonly repartidor: string;
     readonly cantidad_pedidos: number;

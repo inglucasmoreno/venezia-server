@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { PaquetesUpdateDTO } from './dto/paquetes-update.dto';
 import { PaquetesDTO } from './dto/paquetes.dto';
@@ -24,11 +24,31 @@ export class PaquetesController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async listarPaquetes(@Res() res, @Query() querys) {
-        const {paquetes, paquetesTotal} = await this.paquetesService.listarPaquetes(querys);
+        const { paquetes, totalItems } = await this.paquetesService.listarPaquetes(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de paquetes correcto',
             paquetes,
-            paquetesTotal
+            totalItems
+        });
+    }
+
+    // Enviar paquete
+    @UseGuards(JwtAuthGuard)
+    @Get('/enviar/:paquete')
+    async enviarPaquete(@Res() res, @Param('paquete') paqueteID, @Query() querys) {
+        await this.paquetesService.enviarPaquete(paqueteID, querys);
+        res.status(HttpStatus.OK).json({
+            message: 'Paquete enviado correctamente',
+        });
+    }
+
+    // Envio masivo de paquetes
+    @UseGuards(JwtAuthGuard)
+    @Get('/enviar/masivo/total')
+    async envioMasivoPaquetes(@Res() res, @Query() querys) {
+        await this.paquetesService.envioMasivoPaquetes(querys);
+        res.status(HttpStatus.OK).json({
+            message: 'Paquetes enviados correctamente',
         });
     }
 
@@ -62,6 +82,17 @@ export class PaquetesController {
         res.status(HttpStatus.OK).json({
             message: 'Paquete actualizado correctamente',
             paquete
+        });
+    }
+
+    // Eliminar paquete
+    @UseGuards(JwtAuthGuard)
+    @Delete('/:id')
+    async eliminarVenta(@Res() res, @Param('id') paqueteID) {
+        const venta = await this.paquetesService.eliminarPaquete(paqueteID);
+        res.status(HttpStatus.OK).json({
+            message: 'Paquete eliminado correctamente',
+            venta
         });
     }
 

@@ -1,7 +1,7 @@
 
 export class PaquetesUpdateDTO {
 
-    readonly fecha_paquete: string;
+    fecha_paquete: any;
     
     readonly numero: number;
  

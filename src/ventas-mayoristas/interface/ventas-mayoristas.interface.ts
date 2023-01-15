@@ -4,7 +4,7 @@ export interface IVentasMayoristas extends Document {
     readonly fecha_pedido: any;
     readonly paquete: string;
     readonly numero: number;
-    readonly caja: string;
+    readonly productos: any[];
     readonly mayorista: string;
     readonly repartidor: string;
     readonly estado: string;

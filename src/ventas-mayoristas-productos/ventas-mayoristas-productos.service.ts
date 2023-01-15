@@ -7,11 +7,15 @@ import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
 import { format } from 'date-fns';
 import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
+import { IVentasMayoristas } from 'src/ventas-mayoristas/interface/ventas-mayoristas.interface';
+import { IPaquetes } from 'src/paquetes/interface/paquetes.interface';
 
 @Injectable()
 export class VentasMayoristasProductosService {
 
   constructor(
+    @InjectModel('Paquetes') private readonly paquetesModel: Model<IPaquetes>,
+    @InjectModel('VentasMayoristas') private readonly ventasModel: Model<IVentasMayoristas>,
     @InjectModel('VentasMayoristasProductos') private readonly productosModel: Model<IVentasMayoristasProductos>,
     @InjectModel('Usuarios') private readonly usuariosModel: Model<IUsuario>,
   ) { }
@@ -205,21 +209,107 @@ export class VentasMayoristasProductosService {
 
   // Crear productos
   async crearProducto(productoDTO: VentasMayoristasProductosDTO): Promise<IVentasMayoristasProductos> {
+
+    const { ventas_mayorista } = productoDTO;
+
+    // Se crea el nuevo producto
     const producto = new this.productosModel(productoDTO);
     const nuevoProducto = await producto.save();
-    return await this.getProducto(String(nuevoProducto._id));
+
+    // Se obtiene pedido
+    const pedidoDB = await this.ventasModel.findById(ventas_mayorista);
+    pedidoDB.productos.push(nuevoProducto);
+    
+    let precioTotalPedidoTMP = 0;
+
+    // Se actualizar el pedido
+    pedidoDB.productos.map( elemento => {
+      precioTotalPedidoTMP += elemento.precio;
+    });
+
+    await this.ventasModel.findByIdAndUpdate(ventas_mayorista, { precio_total: precioTotalPedidoTMP, productos: pedidoDB.productos });
+    
+    // Actualizacion de precio de paquete
+    const pedidosDB = await this.ventasModel.find({ paquete: String(pedidoDB.paquete) });
+    let precioPaqueteTMP = 0;
+    pedidosDB.map( pedido => {
+      precioPaqueteTMP += pedido.precio_total;
+    })
+
+    await this.paquetesModel.findByIdAndUpdate(String(pedidoDB.paquete), { precio_total: precioPaqueteTMP })
+
+    // return await this.getProducto(String(nuevoProducto._id));
+    return nuevoProducto;
+  
   }
 
   // Actualizar productos
   async actualizarProducto(id: string, productoUpdateDTO: any): Promise<IVentasMayoristasProductos> {
+    
+    const { cantidad, precio } = productoUpdateDTO;
+
+    // Actualizacion de producto en BD
     const producto = await this.productosModel.findByIdAndUpdate(id, productoUpdateDTO, { new: true });
+
+    // Actualizacion de producto en pedido y precio de pedido
+    const pedidoDB = await this.ventasModel.findById(producto.ventas_mayorista);
+
+    let precioPedidoTMP = 0;
+    pedidoDB.productos.map( elemento => {
+      if(String(elemento._id) === String(producto._id)){
+        elemento.cantidad = cantidad;
+        elemento.precio = precio;
+        precioPedidoTMP += precio;    
+      }else{
+        precioPedidoTMP += elemento.precio;
+      }
+    })
+
+    await this.ventasModel.findByIdAndUpdate(producto.ventas_mayorista, {precio_total: precioPedidoTMP, productos: pedidoDB.productos} );
+
+    // Actualizacion de precio de paquete
+    const pedidosDB = await this.ventasModel.find({ paquete: String(pedidoDB.paquete) });
+    let precioPaqueteTMP = 0;
+    pedidosDB.map( pedido => {
+      precioPaqueteTMP += pedido.precio_total;
+    })
+
+    await this.paquetesModel.findByIdAndUpdate(String(pedidoDB.paquete), { precio_total: precioPaqueteTMP })
+
     return producto;
+    
   }
 
   // Actualizar productos
   async eliminarProducto(id: string): Promise<IVentasMayoristasProductos> {
+    
+    // Eliminando producto de BD
     const producto = await this.productosModel.findByIdAndDelete(id, { new: true });
+
+    // Eliminando producto de pedido
+    const pedidoDB: any = await this.ventasModel.findById(producto.ventas_mayorista);
+
+    // Actualizacion de producto en pedido y precio de pedido
+    pedidoDB.productos = pedidoDB.productos.filter( elemento => String(elemento._id) !== String(producto._id) );
+
+    let precioPedidoTMP = 0;
+    pedidoDB.productos.map( elemento => {
+      precioPedidoTMP += elemento.precio;
+    })
+
+    await this.ventasModel.findByIdAndUpdate(producto.ventas_mayorista, {precio_total: precioPedidoTMP, productos: pedidoDB.productos} );
+
+    // Actualizacion de precio de paquete
+    const pedidosDB = await this.ventasModel.find({ paquete: String(pedidoDB.paquete) });
+    let precioPaqueteTMP = 0;
+    pedidosDB.map( pedido => {
+      precioPaqueteTMP += pedido.precio_total;
+    })
+
+    await this.paquetesModel.findByIdAndUpdate(String(pedidoDB.paquete), { precio_total: precioPaqueteTMP });
+
     return producto;
+  
   }
 
   // Generar PDF - Productos para elaboracion

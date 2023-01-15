@@ -43,6 +43,11 @@ export const ventasMayoristasProductosSchema = new Schema({
         trim: true
     },
 
+    unidad_medida_descripcion: {
+        type: String,
+        required: true
+    },
+
     cantidad: {
         type: Number,
         required: true

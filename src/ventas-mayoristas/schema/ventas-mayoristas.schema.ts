@@ -19,9 +19,9 @@ export const ventasMayoristasSchema = new Schema({
       required: true,
     }, 
 
-    caja: {
-      type: String,
-      default: ''
+    productos: {
+      type: Array,
+      required: true
     },
 
     mayorista: {

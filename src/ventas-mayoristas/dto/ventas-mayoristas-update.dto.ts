@@ -6,7 +6,7 @@ export class VentasMayoristasUpdateDTO {
 
   readonly numero: number;
 
-  readonly caja: string;
+  readonly productos: any[];
 
   readonly mayorista: string;
 

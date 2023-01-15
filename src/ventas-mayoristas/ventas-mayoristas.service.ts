@@ -11,11 +11,13 @@ import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayori
 import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
 import { IMayoristasGastos } from 'src/mayoristas-gastos/interface/mayoristas-gastos.interface';
 import { IMayoristasIngresos } from 'src/mayoristas-ingresos/interface/mayoristas-ingresos.interface';
+import { IPaquetes } from 'src/paquetes/interface/paquetes.interface';
 
 @Injectable()
 export class VentasMayoristasService {
 
   constructor(
+    @InjectModel('Paquetes') private readonly paquetesModel: Model<IPaquetes>,
     @InjectModel('VentasMayoristas') private readonly ventasModel: Model<IVentasMayoristas>,
     @InjectModel('VentasMayoristasProductos') private readonly productosModel: Model<IVentasMayoristasProductos>,
     @InjectModel('CuentasCorrientesMayoristas') private readonly cuentasCorrientesModel: Model<ICuentasCorrientesMayoristas>,
@@ -324,11 +326,11 @@ export class VentasMayoristasService {
 
     // Se verifica si ya hay un pedido creado para este mayorista en el paquete actual    
     const pipeline = [];
-    pipeline.push({ $match: { $and: [ {paquete: idPaquete}, {mayorista: idMayorista} ] } });
+    pipeline.push({ $match: { $and: [{ paquete: idPaquete }, { mayorista: idMayorista }] } });
     const pedidoRepetido = await this.ventasModel.aggregate(pipeline);
 
-    if(pedidoRepetido.length > 0) throw new NotFoundException('El mayorista ya tiene un pedido en este paquete');
-    
+    if (pedidoRepetido.length > 0) throw new NotFoundException('El mayorista ya tiene un pedido en este paquete');
+
     // Numero de pedido
     const ultimoPedido = await this.ventasModel.find().sort({ createdAt: -1 }).limit(1);
 
@@ -337,8 +339,25 @@ export class VentasMayoristasService {
     if (ultimoPedido.length === 0) numero = 1;
     else numero = ultimoPedido[0].numero + 1;
 
+    // Adaptacion de productos
+    let productosPedido = [];
+
+    // productos.map( producto => {
+    //   productosPedido.push({
+    //     _id: producto.producto._id,
+    //     descripcion: producto.descripcion,
+    //     unidad_medida: producto.unidad_medida,
+    //     unidad_medida_descripcion: producto.unidad_medida_descripcion,
+    //     cantidad: producto.cantidad,
+    //     precio_unitario: producto.precio_unitario,
+    //     precio: producto.precio
+    //   })  
+    // });
+
+    // Datos del pedido
     const dataPedido = {
       ...pedido,
+      productos: [],
       fecha_pedido: new Date(),
       numero
     };
@@ -349,11 +368,40 @@ export class VentasMayoristasService {
 
     // Carga de productos
     const productosTMP: any[] = productos;
+
     for (const producto of productosTMP) { producto.ventas_mayorista = pedidoDB._id; }
 
-    await this.productosModel.insertMany(productos);
+    productos.map((producto: any) => {
+      producto.venta_mayoristas = pedidoDB._id;
+      productosPedido.push({
+        _id: producto.producto._id,
+        descripcion: producto.descripcion,
+        unidad_medida: producto.unidad_medida,
+        unidad_medida_descripcion: producto.unidad_medida_descripcion,
+        cantidad: producto.cantidad,
+        precio_unitario: producto.precio_unitario,
+        precio: producto.precio
+      });
+    })
 
-    return 'Pedido generado correctamente';
+    const productosDB: any[] = await this.productosModel.insertMany(productos);
+
+    const nuevoPedidoDB = await this.ventasModel.findByIdAndUpdate(pedidoDB._id, { productos: productosDB });
+
+    // Se actualizar el paquete
+    const pedidosDB = await this.ventasModel.find({ paquete: String(pedidoDB.paquete) });
+    
+    let precioPaqueteTMP = 0;
+    let cantidadPedidosTMP = 0;
+
+    pedidosDB.map( pedido => {
+      cantidadPedidosTMP += 1;
+      precioPaqueteTMP += pedido.precio_total;
+    })
+
+    await this.paquetesModel.findByIdAndUpdate(String(pedidoDB.paquete), { precio_total: precioPaqueteTMP, cantidad_pedidos: cantidadPedidosTMP });
+
+    return nuevoPedidoDB;
 
   }
 
@@ -1041,13 +1089,25 @@ export class VentasMayoristasService {
   async eliminarVenta(id: string): Promise<any> {
 
     // Se eliminan los productos del pedido
-    await this.productosModel.deleteMany({ venta_mayorista: id });
+    await this.productosModel.deleteMany({ ventas_mayorista: id });
 
     // Se elimina el pedido
-    const venta = await this.ventasModel.findByIdAndDelete(id);
-  
-    return venta;
-  
+    const ventaDB = await this.ventasModel.findByIdAndDelete(id);
+
+    // Actualizacion de precio de paquete
+    const pedidosDB = await this.ventasModel.find({ paquete: String(ventaDB.paquete) });
+    let precioPaqueteTMP = 0;
+    pedidosDB.map(pedido => {
+      precioPaqueteTMP += pedido.precio_total;
+    })
+
+    const paqueteDB = await this.paquetesModel.findByIdAndUpdate(String(ventaDB.paquete), { precio_total: precioPaqueteTMP });
+
+    // Actualizacion de cantidad de paquetes
+    await this.paquetesModel.findByIdAndUpdate(String(ventaDB.paquete), { cantidad_pedidos: paqueteDB.cantidad_pedidos - 1 });
+
+    return ventaDB;
+
   }
 
 

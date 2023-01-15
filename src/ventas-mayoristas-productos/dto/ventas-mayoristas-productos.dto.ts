@@ -23,6 +23,9 @@ export class VentasMayoristasProductosDTO {
   readonly unidad_medida: string;
 
   @IsNotEmpty()
+  readonly unidad_medida_descripcion: string;
+
+  @IsNotEmpty()
   readonly cantidad: number;
 
   readonly activo: boolean;

@@ -9,7 +9,7 @@ export class VentasMayoristasDTO {
 
   readonly numero: number;
 
-  readonly caja: string;
+  readonly productos: any[];
 
   @IsNotEmpty()
   readonly mayorista: string;

@@ -14,6 +14,8 @@ export class VentasMayoristasProductosUpdateDTO {
 
   readonly unidad_medida: string;
 
+  readonly unidad_medida_descripcion: string;
+
   readonly cantidad: number;
 
   readonly activo: boolean;

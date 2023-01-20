@@ -8,11 +8,12 @@ export const mayoristasGastosSchema = new Schema({
     default: new Date()
   },
   
-  caja: {
-    type: String,
-    default: ''
+  paquete: {
+    type: Schema.Types.ObjectId,
+    ref: 'paquetes',
+    required: true
   },
-  
+
   tipo_gasto: {
     type: Schema.Types.ObjectId,
     ref: 'tipos_gastos',

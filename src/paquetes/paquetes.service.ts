@@ -2,6 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
+import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
+import { IMayoristasGastos } from 'src/mayoristas-gastos/interface/mayoristas-gastos.interface';
+import { IMayoristasIngresos } from 'src/mayoristas-ingresos/interface/mayoristas-ingresos.interface';
 import { IVentasMayoristasProductos } from 'src/ventas-mayoristas-productos/interface/ventas-mayoristas-productos.interface';
 import { IVentasMayoristas } from 'src/ventas-mayoristas/interface/ventas-mayoristas.interface';
 import { PaquetesUpdateDTO } from './dto/paquetes-update.dto';
@@ -15,10 +18,13 @@ export class PaquetesService {
         @InjectModel('Paquetes') private readonly paquetesModel: Model<IPaquetes>,
         @InjectModel('VentasMayoristas') private readonly ventasMayoristasModel: Model<IVentasMayoristas>,
         @InjectModel('VentasMayoristasProductos') private readonly ventasMayoristasProductosModel: Model<IVentasMayoristasProductos>,
+        @InjectModel('MayoristasGastos') private readonly mayoristasGastosModel: Model<IMayoristasGastos>,
+        @InjectModel('MayoristasIngresos') private readonly mayoristasIngresosModel: Model<IMayoristasIngresos>,
+        @InjectModel('CuentasCorrientesMayoristas') private readonly cuentasCorrientesMayoristasModel: Model<ICuentasCorrientesMayoristas>,
     ) { }
 
     // Paquete por ID
-    async getPaquete(id: string): Promise<IPaquetes> {
+    async getPaquete(id: string): Promise<any> {
 
         const paqueteDB = await this.paquetesModel.findById(id);
         if (!paqueteDB) throw new NotFoundException('El paquete no existe');
@@ -68,9 +74,49 @@ export class PaquetesService {
 
         pipeline.push({ $unwind: '$updatorUser' });
 
-        const paquete = await this.paquetesModel.aggregate(pipeline);
+        const pipelineGastos = [];
+        const pipelineIngresos = [];
 
-        return paquete[0];
+        pipelineGastos.push({ $match: { paquete: idPaquete } });
+        pipelineIngresos.push({ $match: { paquete: idPaquete } });
+
+        // Informacion de tipo de gasto
+        pipelineGastos.push({
+            $lookup: { // Lookup
+                from: 'mayoristas_tipos_gastos',
+                localField: 'tipo_gasto',
+                foreignField: '_id',
+                as: 'tipo_gasto'
+            }
+        }
+        );
+
+        pipelineGastos.push({ $unwind: '$tipo_gasto' });
+
+        // Informacion de tipo de ingreso
+        pipelineIngresos.push({
+            $lookup: { // Lookup
+                from: 'mayoristas_tipos_ingresos',
+                localField: 'tipo_ingreso',
+                foreignField: '_id',
+                as: 'tipo_ingreso'
+            }
+        }
+        );
+
+        pipelineIngresos.push({ $unwind: '$tipo_ingreso' });
+
+        const [paquete, gastos, ingresos] = await Promise.all([
+            this.paquetesModel.aggregate(pipeline),
+            this.mayoristasGastosModel.aggregate(pipelineGastos),
+            this.mayoristasIngresosModel.aggregate(pipelineIngresos)
+        ]);
+
+        return {
+            paquete: paquete[0],
+            gastos,
+            ingresos
+        };
 
     }
 
@@ -247,7 +293,7 @@ export class PaquetesService {
                 await this.ventasMayoristasProductosModel.updateMany({ ventas_mayorista: pedido._id }, { activo: false });
             })
 
-        }else{
+        } else {
 
             const adj_fecha: any = add(new Date(fecha), { hours: 3 });
 
@@ -318,7 +364,7 @@ export class PaquetesService {
 
     }
 
-    // Completar paquete
+    // Crear paquete
     async completarPaquete(data: any): Promise<IPaquetes> {
 
         const { paquete, fecha, precio_total, cantidad_pedidos } = data;
@@ -343,22 +389,88 @@ export class PaquetesService {
         return paqueteDB;
     }
 
+    // Cerrar paquete
+    async cerrarPaquete(id: string, data: any): Promise<IPaquetes> {
+
+        const { dataPaquete, pedidos } = data;
+        const { fecha_paquete } = dataPaquete;
+ 
+        // Adaptando fecha
+        const adj_fecha = add(new Date(fecha_paquete), { hours: 3 });
+        dataPaquete.fecha_paquete = adj_fecha;
+
+        // Cierre del paquete
+        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(id, dataPaquete, { new: true });
+
+        // Actualizacion de fecha en -> Pedidos, Gastos e Ingresos del paquete
+        if (fecha_paquete && fecha_paquete !== '') {
+
+            await Promise.all([
+                this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_pedido: adj_fecha }),
+                this.mayoristasIngresosModel.updateMany({ paquete: paqueteDB._id }, { fecha_ingreso: adj_fecha }),
+                this.mayoristasGastosModel.updateMany({ paquete: paqueteDB._id }, { fecha_gasto: adj_fecha }),
+            ])
+
+        }
+
+        // Actualizacion de pedidos
+        pedidos.map( async pedido => {
+
+            const dataPedido = {
+                fecha_pedido: adj_fecha,
+                deuda: pedido.deuda,
+                estado: pedido.estado,
+                deuda_monto: pedido.deuda_monto,
+                monto_recibido: pedido.monto_recibido,
+                monto_anticipo: pedido.monto_anticipo,
+                monto_cuenta_corriente: pedido.monto_cuenta_corriente,          
+            }
+
+            await this.ventasMayoristasModel.findByIdAndUpdate(pedido._id, dataPedido);    
+
+            // Impacto en cuenta corriente
+    
+            const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista: pedido.mayorista._id });
+
+            let nuevoSaldo = 0;
+
+            if(pedido.deuda_monto > 0) nuevoSaldo = cuentaCorrienteDB.saldo - pedido.deuda_monto;
+            else if(pedido.monto_anticipo > 0) nuevoSaldo = cuentaCorrienteDB.saldo + pedido.monto_anticipo;
+            
+            await this.cuentasCorrientesMayoristasModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
+
+        })
+
+
+
+        return paqueteDB;
+
+    }
+
     // Actualizar paquete
     async actualizarPaquete(id: string, paquetesUpdateDTO: PaquetesUpdateDTO): Promise<IPaquetes> {
-        
+
         const { fecha_paquete } = paquetesUpdateDTO;
-        
+
         const adj_fecha = add(new Date(fecha_paquete), { hours: 3 });
-        
+
         // Actualizacion de paquete
         paquetesUpdateDTO.fecha_paquete = adj_fecha;
         const paqueteDB = await this.paquetesModel.findByIdAndUpdate(id, paquetesUpdateDTO, { new: true });
-        
-        // Actualizacion de fecha en pedidos
-        if(fecha_paquete && fecha_paquete !== '') await this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_pedido: adj_fecha });    
-        
+
+        // Actualizacion de fecha en -> Pedidos, Gastos e Ingresos del paquete
+        if (fecha_paquete && fecha_paquete !== '') {
+
+            await Promise.all([
+                this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_pedido: adj_fecha }),
+                this.mayoristasIngresosModel.updateMany({ paquete: paqueteDB._id }, { fecha_ingreso: adj_fecha }),
+                this.mayoristasGastosModel.updateMany({ paquete: paqueteDB._id }, { fecha_gasto: adj_fecha }),
+            ])
+
+        }
+
         return paqueteDB;
-    
+
     }
 
     // Eliminar paquete
@@ -377,6 +489,12 @@ export class PaquetesService {
         pedidosDB.map(async pedido => {
             await this.ventasMayoristasProductosModel.deleteMany({ ventas_mayorista: pedido._id });
         })
+
+        // Se eliminan los gastos e ingresos del paquete
+        await Promise.all([
+            this.mayoristasGastosModel.deleteMany({ paquete: id }),
+            this.mayoristasIngresosModel.deleteMany({ paquete: id }),
+        ])
 
         return paqueteDB;
     }

@@ -1,8 +1,8 @@
 import { Document } from 'mongoose';
 
 export interface IMayoristasGastos extends Document {
-    readonly fecha_gasto: string;
-    readonly caja: string;
+    fecha_gasto: any;
+    readonly paquete: string;
     readonly tipo_gasto: string;
     readonly repartidor: string;
     readonly monto: number;

@@ -2,9 +2,9 @@ import { IsNotEmpty } from "class-validator";
 
 export class MayoristasGastosDTO {
   
-  readonly fecha_gasto: string;
+  fecha_gasto: any;
 
-  readonly caja: string;
+  readonly paquete: string;
 
   @IsNotEmpty()
   readonly tipo_gasto: string;

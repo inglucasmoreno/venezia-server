@@ -7,7 +7,7 @@ import { MayoristasUpdateDTO } from './dto/mayoristas-update.dto';
 
 @Controller('mayoristas')
 export class MayoristasController {
-  constructor( private mayoristasService: MayoristasService ){}
+    constructor(private mayoristasService: MayoristasService) { }
 
     // Mayorista por ID
     @UseGuards(JwtAuthGuard)
@@ -22,7 +22,7 @@ export class MayoristasController {
 
     // Crear mayorista
     @Post('/')
-    async crearMayorista(@Res() res, @Body() mayoristaDTO: any ) {
+    async crearMayorista(@Res() res, @Body() mayoristaDTO: any) {
 
         const { password } = mayoristaDTO;
 
@@ -31,12 +31,12 @@ export class MayoristasController {
         mayoristaDTO.password = bcryptjs.hashSync(password, salt);
 
         // Se crea el mayorista
-        const mayoristaCreado = await this.mayoristasService.crearMayorista(mayoristaDTO);        
+        const mayoristaCreado = await this.mayoristasService.crearMayorista(mayoristaDTO);
         res.status(HttpStatus.CREATED).json({
             message: 'Mayorista creado correctamente',
             mayorista: mayoristaCreado
         });
-    
+
     }
 
     // Listar mayoristas
@@ -49,14 +49,26 @@ export class MayoristasController {
             mayoristas
         });
     }
-    
+
+    // Listar mayoristas con cuenta corriente
+    @UseGuards(JwtAuthGuard)
+    @Get('/parametro/cuenta-corriente')
+    async listarMayoristasConCC(@Res() res, @Query() querys) {
+        const {mayoristas, totalItems} = await this.mayoristasService.listarMayoristasConCC(querys);
+        res.status(HttpStatus.OK).json({
+            message: 'Listado de mayoristas correcto',
+            mayoristas,
+            totalItems
+        });
+    }
+
     // Actualizar mayorista
     @Put('/:id')
-    async actualizarUsuario(@Res() res, @Body() mayoristaUpdateDTO: MayoristasUpdateDTO, @Param('id') mayoristaID ) {
+    async actualizarUsuario(@Res() res, @Body() mayoristaUpdateDTO: MayoristasUpdateDTO, @Param('id') mayoristaID) {
 
         const { password } = mayoristaUpdateDTO;
 
-        if(password){
+        if (password) {
             const salt = bcryptjs.genSaltSync();
             mayoristaUpdateDTO.password = bcryptjs.hashSync(password, salt);
         }
@@ -69,6 +81,6 @@ export class MayoristasController {
         });
 
     }
-    
+
 }
 

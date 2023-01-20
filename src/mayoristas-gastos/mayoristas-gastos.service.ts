@@ -27,7 +27,20 @@ export class MayoristasGastosService {
     const idGasto = new Types.ObjectId(id);
     pipeline.push({ $match: { _id: idGasto } })
 
-    // Informacion de usuario creador
+    // Informacion de paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
+
+    // Informacion de tipo de gastos
     pipeline.push({
       $lookup: { // Lookup
         from: 'mayoristas_tipos_gastos',
@@ -136,30 +149,43 @@ export class MayoristasGastosService {
     // Filtro - Fecha desde
     if(fechaDesde && fechaDesde.trim() !== ''){
       pipeline.push({$match: { 
-        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
       }});
       pipelineTotal.push({$match: { 
-        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
       }});
       pipelineCalculo.push({$match: { 
-        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+        fecha_gasto: { $gte: add(new Date(fechaDesde),{ hours: 0 })} 
       }});
     }
     
     // Filtro - Fecha hasta
     if(fechaHasta && fechaHasta.trim() !== ''){
       pipeline.push({$match: { 
-        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 0 })} 
       }});
       pipelineTotal.push({$match: { 
-        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 0 })} 
       }});
       pipelineCalculo.push({$match: { 
-        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+        fecha_gasto: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 0 })} 
       }});
     }
 
-    // Informacion de usuario creador
+    // Informacion de paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
+
+    // Informacion de tipo de gastos
     pipeline.push({
       $lookup: { // Lookup
         from: 'mayoristas_tipos_gastos',
@@ -243,32 +269,22 @@ export class MayoristasGastosService {
 
   // Crear gasto
   async crearGasto(gastosDTO: MayoristasGastosDTO): Promise<IMayoristasGastos> {
+    
+    const { fecha_gasto, paquete, tipo_gasto } = gastosDTO;
+    
+    const adj_fecha: any = add(new Date(fecha_gasto), { hours: 3 });
 
-    const { repartidor } = gastosDTO;
-
-    if (repartidor.trim() === '000000000000000000000000') { // El cobro se realiza en la sucursal
-      const sucursal = await this.usuariosModel.findById('000000000000000000000000');
-      if (!sucursal) {
-        const dataSucursal = {
-          _id: '000000000000000000000000',
-          usuario: 'sucursal',
-          dni: '0000000000000000',
-          apellido: 'sucursal',
-          nombre: 'sucursal',
-          password: '00000000000000',
-          email: 'sucursal@gmail.com',
-          role: 'DELIVERY_ROLE',
-          permisos: [],
-          activo: false
-        }
-        const usuarioSucursal = new this.usuariosModel(dataSucursal);
-        await usuarioSucursal.save();
-      }
-      gastosDTO.repartidor = '000000000000000000000000';
-    }
+    gastosDTO.fecha_gasto = adj_fecha;
+    
+    // Verificacion: Gasto ya cargado
+    const repetido = await this.gastosModel.find({ paquete, tipo_gasto });
+    if(repetido.length > 0) throw new NotFoundException('El gasto ya se encuentra cargado');
 
     const nuevoGasto = new this.gastosModel(gastosDTO);
-    return await nuevoGasto.save();
+    const gastoDB = await nuevoGasto.save();
+
+    return await this.getGasto(gastoDB._id);
+  
   }
 
   // Actualizar gasto

@@ -159,12 +159,12 @@ export class VentasMayoristasService {
     if (fechaDesde && fechaDesde.trim() !== '') {
       pipeline.push({
         $match: {
-          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
         }
       });
     }
@@ -173,12 +173,12 @@ export class VentasMayoristasService {
     if (fechaHasta && fechaHasta.trim() !== '') {
       pipeline.push({
         $match: {
-          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
         }
       });
     }
@@ -296,16 +296,28 @@ export class VentasMayoristasService {
       this.ventasModel.aggregate(pipelineTotal)
     ]);
 
+    // Se agrega valores de cuenta corriente
+    const cuentas_corrientes = await this.cuentasCorrientesModel.find();
+
     // Calculo de deuda
     let totalDeuda = 0;
     let totalIngresos = 0;
     let totalMonto = 0;
+
+    // Calculos de totales
     ventasTotal.map(venta => {
       if (venta.estado === 'Deuda') totalDeuda += venta.deuda_monto;
       totalIngresos += venta.monto_recibido;
       totalMonto += venta.precio_total;
-    })
+    })    
 
+    // Se le agrega la cuenta corriente
+    ventas.map( venta => {
+      venta.cuenta_corriente = cuentas_corrientes.find( (cc: any) => {
+       return String(venta.mayorista._id) === String(cc.mayorista);
+      });
+    })
+    
     return {
       ventas,
       totalItems: ventasTotal.length,
@@ -810,8 +822,6 @@ export class VentasMayoristasService {
       });
 
     }
-
-
 
     return 'Pedidos enviados';
 

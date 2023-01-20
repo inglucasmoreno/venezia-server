@@ -13,10 +13,12 @@ export class PaquetesController {
     @UseGuards(JwtAuthGuard)
     @Get('/:id')
     async getPaquete(@Res() res, @Param('id') paqueteID) {
-        const paquete = await this.paquetesService.getPaquete(paqueteID);
+        const { paquete, gastos, ingresos } = await this.paquetesService.getPaquete(paqueteID);
         res.status(HttpStatus.OK).json({
             message: 'Paquete obtenido correctamente',
-            paquete
+            paquete,
+            gastos,
+            ingresos
         });
     }
 
@@ -70,6 +72,17 @@ export class PaquetesController {
         const paquete = await this.paquetesService.completarPaquete(data);
         res.status(HttpStatus.CREATED).json({
             message: 'Paquete completado correctamente',
+            paquete
+        });
+    }
+
+    // Cerrar paquete
+    @UseGuards(JwtAuthGuard)
+    @Put('/cerrar/:id')
+    async cerrarPaquete(@Res() res, @Body() data: any, @Param('id') paqueteID) {
+        const paquete = await this.paquetesService.cerrarPaquete(paqueteID, data);
+        res.status(HttpStatus.OK).json({
+            message: 'Paquete cerrado correctamente',
             paquete
         });
     }

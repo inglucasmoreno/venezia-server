@@ -27,7 +27,20 @@ export class MayoristasIngresosService {
     const idIngreso = new Types.ObjectId(id);
     pipeline.push({ $match: { _id: idIngreso } })
 
-    // Informacion de usuario creador
+    // Informacion de paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
+
+    // Informacion de tipo de ingresos
     pipeline.push({
       $lookup: { // Lookup
         from: 'mayoristas_tipos_ingresos',
@@ -137,17 +150,17 @@ export class MayoristasIngresosService {
     if (fechaDesde && fechaDesde.trim() !== '') {
       pipeline.push({
         $match: {
-          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
         }
       });
       pipelineCalculo.push({
         $match: {
-          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+          fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
         }
       });
     }
@@ -156,22 +169,35 @@ export class MayoristasIngresosService {
     if (fechaHasta && fechaHasta.trim() !== '') {
       pipeline.push({
         $match: {
-          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
         }
       });
       pipelineTotal.push({
         $match: {
-          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
         }
       });
       pipelineCalculo.push({
         $match: {
-          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+          fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
         }
       });
     }
 
-    // Informacion de usuario creador
+    // Informacion de paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
+
+    // Informacion de tipo de ingresos
     pipeline.push({
       $lookup: { // Lookup
         from: 'mayoristas_tipos_ingresos',
@@ -257,32 +283,22 @@ export class MayoristasIngresosService {
 
   // Crear ingreso
   async crearIngreso(ingresosDTO: MayoristasIngresosDTO): Promise<IMayoristasIngresos> {
+    
+    const { fecha_ingreso, paquete, tipo_ingreso } = ingresosDTO;
+    
+    const adj_fecha: any = add(new Date(fecha_ingreso), { hours: 3 });
 
-    const { repartidor } = ingresosDTO;
-
-    if (repartidor.trim() === '000000000000000000000000') { // El cobro se realiza en la sucursal
-      const sucursal = await this.usuariosModel.findById('000000000000000000000000');
-      if (!sucursal) {
-        const dataSucursal = {
-          _id: '000000000000000000000000',
-          usuario: 'sucursal',
-          dni: '0000000000000000',
-          apellido: 'sucursal',
-          nombre: 'sucursal',
-          password: '00000000000000',
-          email: 'sucursal@gmail.com',
-          role: 'DELIVERY_ROLE',
-          permisos: [],
-          activo: false
-        }
-        const usuarioSucursal = new this.usuariosModel(dataSucursal);
-        await usuarioSucursal.save();
-      }
-      ingresosDTO.repartidor = '000000000000000000000000';
-    }
+    ingresosDTO.fecha_ingreso = adj_fecha;
+    
+    // Verificacion: Ingreso ya cargado
+    const repetido = await this.ingresosModel.find({ paquete, tipo_ingreso });
+    if(repetido.length > 0) throw new NotFoundException('El ingreso ya se encuentra cargado');
 
     const nuevoIngreso = new this.ingresosModel(ingresosDTO);
-    return await nuevoIngreso.save();
+    const ingresoDB = await nuevoIngreso.save();
+
+    return await this.getIngreso(ingresoDB._id);
+  
   }
 
   // Actualizar ingreso

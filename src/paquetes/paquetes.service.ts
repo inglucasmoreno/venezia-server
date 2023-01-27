@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
+import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayoristas.interface';
+import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
 import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
 import { IMayoristasGastos } from 'src/mayoristas-gastos/interface/mayoristas-gastos.interface';
 import { IMayoristasIngresos } from 'src/mayoristas-ingresos/interface/mayoristas-ingresos.interface';
@@ -21,6 +23,8 @@ export class PaquetesService {
         @InjectModel('MayoristasGastos') private readonly mayoristasGastosModel: Model<IMayoristasGastos>,
         @InjectModel('MayoristasIngresos') private readonly mayoristasIngresosModel: Model<IMayoristasIngresos>,
         @InjectModel('CuentasCorrientesMayoristas') private readonly cuentasCorrientesMayoristasModel: Model<ICuentasCorrientesMayoristas>,
+        @InjectModel('CobrosMayoristas') private readonly cobrosMayoristasModel: Model<ICobrosMayoristas>,
+        @InjectModel('CobrosPedidos') private readonly cobrosPedidosModel: Model<ICobrosPedidos>,
     ) { }
 
     // Paquete por ID
@@ -106,16 +110,36 @@ export class PaquetesService {
 
         pipelineIngresos.push({ $unwind: '$tipo_ingreso' });
 
-        const [paquete, gastos, ingresos] = await Promise.all([
+
+        // Cobros
+        const pipelineCobros = [];
+        pipelineCobros.push({ $match: { paquete: idPaquete } });
+
+        // Informacion de mayorista
+        pipelineCobros.push({
+            $lookup: { // Lookup
+                from: 'mayoristas',
+                localField: 'mayorista',
+                foreignField: '_id',
+                as: 'mayorista'
+            }
+        }
+        );
+
+        pipelineCobros.push({ $unwind: '$mayorista' });
+
+        const [paquete, gastos, ingresos, cobros] = await Promise.all([
             this.paquetesModel.aggregate(pipeline),
             this.mayoristasGastosModel.aggregate(pipelineGastos),
-            this.mayoristasIngresosModel.aggregate(pipelineIngresos)
+            this.mayoristasIngresosModel.aggregate(pipelineIngresos),
+            this.cobrosMayoristasModel.aggregate(pipelineCobros),
         ]);
 
         return {
             paquete: paquete[0],
             gastos,
-            ingresos
+            ingresos,
+            cobros
         };
 
     }
@@ -138,15 +162,18 @@ export class PaquetesService {
 
         const pipeline = [];
         const pipelineTotal = [];
+        const pipelineTotales = [];
 
         pipeline.push({ $match: {} });
         pipelineTotal.push({ $match: {} });
+        pipelineTotales.push({ $match: {} });
 
         // Por repartidor
         if (repartidor && repartidor !== '') {
             const idRepartidor = new Types.ObjectId(repartidor);
             pipeline.push({ $match: { repartidor: idRepartidor } })
             pipelineTotal.push({ $match: { repartidor: idRepartidor } })
+            pipelineTotales.push({ $match: { repartidor: idRepartidor } })
         }
 
         // Filtro - Activo / Inactivo
@@ -155,24 +182,31 @@ export class PaquetesService {
             filtroActivo = { activo: activo === 'true' ? true : false };
             pipeline.push({ $match: filtroActivo });
             pipelineTotal.push({ $match: filtroActivo });
+            pipelineTotales.push({ $match: filtroActivo });
         }
 
         // Filtro por estado
         if (estado && estado !== '') {
             pipeline.push({ $match: { estado } });
             pipelineTotal.push({ $match: { estado } });
+            pipelineTotales.push({ $match: { estado } });
         }
 
         // Filtro - Fecha desde
         if (fechaDesde && fechaDesde.trim() !== '') {
             pipeline.push({
                 $match: {
-                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
                 }
             });
             pipelineTotal.push({
                 $match: {
-                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
+                }
+            });
+            pipelineTotales.push({
+                $match: {
+                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
                 }
             });
         }
@@ -181,12 +215,17 @@ export class PaquetesService {
         if (fechaHasta && fechaHasta.trim() !== '') {
             pipeline.push({
                 $match: {
-                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
                 }
             });
             pipelineTotal.push({
                 $match: {
-                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
+                }
+            });
+            pipelineTotales.push({
+                $match: {
+                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
                 }
             });
         }
@@ -222,6 +261,7 @@ export class PaquetesService {
             const regex = new RegExp(parametro, 'i');
             pipeline.push({ $match: { $or: [{ numero: Number(parametro) }] } });
             pipelineTotal.push({ $match: { $or: [{ numero: Number(parametro) }] } });
+            pipelineTotales.push({ $match: { $or: [{ numero: Number(parametro) }] } });
         }
 
         // Ordenando datos
@@ -260,14 +300,25 @@ export class PaquetesService {
 
         pipeline.push({ $unwind: '$updatorUser' });
 
-        const [paquetes, paquetesTotal] = await Promise.all([
+        pipelineTotales.push({
+            $group: {
+              _id: 'Totales',
+              precio_total: { $sum: "$precio_total" },              
+              total_deuda: { $sum: "$total_deuda" },
+              total_recibir: { $sum: "$total_recibir" },
+            }
+          })
+
+        const [paquetes, paquetesTotal, totales] = await Promise.all([
             this.paquetesModel.aggregate(pipeline),
-            this.paquetesModel.aggregate(pipelineTotal)
+            this.paquetesModel.aggregate(pipelineTotal),
+            this.paquetesModel.aggregate(pipelineTotales),
         ]);
 
         return {
             paquetes,
-            totalItems: paquetesTotal.length
+            totalItems: paquetesTotal.length,
+            totales: totales[0]
         };
 
     }
@@ -320,8 +371,6 @@ export class PaquetesService {
         const { fecha } = querys;
 
         const adj_fecha: any = add(new Date(fecha), { hours: 3 });
-
-        console.log(adj_fecha);
 
         await Promise.all([
             this.paquetesModel.updateMany({ estado: 'Pendiente' }, { fecha_paquete: adj_fecha, estado: 'Enviado' }),
@@ -390,7 +439,7 @@ export class PaquetesService {
     }
 
     // Cerrar paquete
-    async cerrarPaquete(id: string, data: any): Promise<IPaquetes> {
+    async cerrarPaquete(id: string, data: any): Promise<any> {
 
         const { dataPaquete, pedidos } = data;
         const { fecha_paquete } = dataPaquete;
@@ -409,6 +458,7 @@ export class PaquetesService {
                 this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_pedido: adj_fecha }),
                 this.mayoristasIngresosModel.updateMany({ paquete: paqueteDB._id }, { fecha_ingreso: adj_fecha }),
                 this.mayoristasGastosModel.updateMany({ paquete: paqueteDB._id }, { fecha_gasto: adj_fecha }),
+                this.cobrosMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_cobro: adj_fecha }),
             ])
 
         }
@@ -441,8 +491,51 @@ export class PaquetesService {
 
         })
 
+        // Impacto de los cobros del paquete
+        const cobros = await this.cobrosMayoristasModel.find({ paquete: id });
 
+        cobros.map( async cobro => {
 
+            // Impacto en cuenta corriente
+            const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista: String(cobro.mayorista) });
+            const nuevoSaldo = cuentaCorrienteDB.saldo + cobro.monto_total_recibido;
+
+            await this.cuentasCorrientesMayoristasModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
+
+        })
+
+        // Actualizacion de pedidos
+        const relaciones = await this.cobrosPedidosModel.find({ paquete_cobro: id });
+
+        // Actualizacion de pedidos
+        for(const relacion of relaciones){
+            
+            // Datos actuales de el pedido
+            const pedidoDB = await this.ventasMayoristasModel.findById(relacion.pedido);
+
+            const dataPedido = {
+                estado: relacion.cancelado ? 'Completado' : 'Deuda',
+                deuda: !relacion.cancelado,
+                monto_recibido: pedidoDB.monto_recibido + relacion.monto_cobrado,
+                deuda_monto: pedidoDB.deuda_monto - relacion.monto_cobrado,       
+            }
+
+            await this.ventasMayoristasModel.findByIdAndUpdate(relacion.pedido, dataPedido);
+
+            const paqueteDB = await this.paquetesModel.findById(relacion.paquete_pedido);
+
+            const dataPaquete = {
+                total_deuda: paqueteDB.total_deuda - relacion.monto_cobrado,
+                total_parcial: paqueteDB.total_parcial + relacion.monto_cobrado,
+                estado: (paqueteDB.total_deuda - relacion.monto_cobrado) === 0 ? 'Completado' : 'Deuda',
+                // total_cobros: paqueteDB.total_cobros + relacion.monto_cobrado,
+                total_recibir: paqueteDB.total_recibir + relacion.monto_cobrado
+            }
+
+            await this.paquetesModel.findByIdAndUpdate(paqueteDB._id, dataPaquete);
+
+        }
+        
         return paqueteDB;
 
     }
@@ -465,6 +558,7 @@ export class PaquetesService {
                 this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_pedido: adj_fecha }),
                 this.mayoristasIngresosModel.updateMany({ paquete: paqueteDB._id }, { fecha_ingreso: adj_fecha }),
                 this.mayoristasGastosModel.updateMany({ paquete: paqueteDB._id }, { fecha_gasto: adj_fecha }),
+                this.cobrosMayoristasModel.updateMany({ paquete: paqueteDB._id }, { fecha_cobro: adj_fecha }),
             ])
 
         }
@@ -494,6 +588,8 @@ export class PaquetesService {
         await Promise.all([
             this.mayoristasGastosModel.deleteMany({ paquete: id }),
             this.mayoristasIngresosModel.deleteMany({ paquete: id }),
+            this.cobrosMayoristasModel.deleteMany({ paquete: id }),
+            this.cobrosPedidosModel.deleteMany({ paquete: id })
         ])
 
         return paqueteDB;

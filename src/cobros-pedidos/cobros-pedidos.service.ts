@@ -61,6 +61,32 @@ export class CobrosPedidosService {
 
     pipeline.push({ $unwind: '$pedido' });
 
+    // Informacion de paquete - cobro
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete_cobro',
+        foreignField: '_id',
+        as: 'paquete_cobro'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete_cobro' });
+
+    // Informacion de paquete - pedido
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete_pedido',
+        foreignField: '_id',
+        as: 'paquete_pedido'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete_pedido' });
+    
     // Informacion de usuario creador
     pipeline.push({
       $lookup: { // Lookup
@@ -102,7 +128,7 @@ export class CobrosPedidosService {
     pipeline.push({ $match: {} });
 
     // Relacion por Cobro
-    if(cobro && cobro !== ''){
+    if (cobro && cobro !== '') {
       const idCobro = new Types.ObjectId(cobro);
       pipeline.push({ $match: { cobro: idCobro } });
     }
@@ -145,6 +171,32 @@ export class CobrosPedidosService {
     );
 
     pipeline.push({ $unwind: '$pedido' });
+
+    // Informacion de paquete - cobro
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete_cobro',
+        foreignField: '_id',
+        as: 'paquete_cobro'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete_cobro' });
+
+    // Informacion de paquete - pedido
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete_pedido',
+        foreignField: '_id',
+        as: 'paquete_pedido'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete_pedido' });
 
     // Informacion de usuario creador
     pipeline.push({

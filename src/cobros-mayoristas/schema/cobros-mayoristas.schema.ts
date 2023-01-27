@@ -7,11 +7,6 @@ export const cobrosMayoristasSchema = new Schema({
     type: Date,
     required: new Date()
   },
-
-  caja: {
-    type: String,
-    default: ''
-  },
   
   nro: {
     type: Number,
@@ -20,6 +15,12 @@ export const cobrosMayoristasSchema = new Schema({
 
   tipo: {
     type: String,
+    required: true
+  },
+
+  paquete: {
+    type: Schema.Types.ObjectId,
+    ref: 'paquetes',
     required: true
   },
 
@@ -35,24 +36,29 @@ export const cobrosMayoristasSchema = new Schema({
     required: true
   },
 
-  anticipo: {
+  monto_anticipo: {
     type: Number,
     required: true
   },
 
-  monto: {
+  monto_total_recibido: {
     type: Number,
     required: true
   },
 
-  monto_total: {
+  monto_cancelar_deuda: {
     type: Number,
     required: true
   },
 
-  ingreso: {
-    type: Boolean,
-    default: false
+  deuda_total: {
+    type: Number,
+    required: true
+  },
+
+  deuda_restante: {
+    type: Number,
+    required: true
   },
 
   activo: {

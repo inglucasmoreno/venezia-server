@@ -10,6 +10,12 @@ export class CobrosPedidosDTO {
   
   @IsString()
   readonly pedido: string;
+
+  @IsString()
+  readonly paquete_cobro: string;
+
+  @IsString()
+  readonly paquete_pedido: string;
   
   @IsBoolean()
   readonly cancelado: boolean;

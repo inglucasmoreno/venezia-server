@@ -65,6 +65,11 @@ export const paquetesSchema = new Schema({
         default: 0,
     },
 
+    total_cobros: {
+        type: Number,
+        default: 0,
+    },
+
     creatorUser: {
         type: Schema.Types.ObjectId,
         ref: 'usuario',

@@ -6,6 +6,10 @@ export class CobrosPedidosUpdateDTO {
   readonly cobro: string;
   
   readonly pedido: string;
+
+  readonly paquete_cobro: string;
+
+  readonly paquete_pedido: string;
   
   readonly cancelado: boolean;
  

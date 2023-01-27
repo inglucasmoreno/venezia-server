@@ -23,6 +23,8 @@ export class PaquetesUpdateDTO {
     
     readonly total_recibir: number;
 
+    readonly total_cobros: number;
+
     readonly estado: string;
 
     readonly creatorUser: string;

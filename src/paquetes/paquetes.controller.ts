@@ -13,12 +13,13 @@ export class PaquetesController {
     @UseGuards(JwtAuthGuard)
     @Get('/:id')
     async getPaquete(@Res() res, @Param('id') paqueteID) {
-        const { paquete, gastos, ingresos } = await this.paquetesService.getPaquete(paqueteID);
+        const { paquete, gastos, ingresos, cobros } = await this.paquetesService.getPaquete(paqueteID);
         res.status(HttpStatus.OK).json({
             message: 'Paquete obtenido correctamente',
             paquete,
             gastos,
-            ingresos
+            ingresos,
+            cobros
         });
     }
 
@@ -26,11 +27,12 @@ export class PaquetesController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async listarPaquetes(@Res() res, @Query() querys) {
-        const { paquetes, totalItems } = await this.paquetesService.listarPaquetes(querys);
+        const { paquetes, totalItems, totales } = await this.paquetesService.listarPaquetes(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de paquetes correcto',
             paquetes,
-            totalItems
+            totalItems,
+            totales
         });
     }
 

@@ -1,17 +1,18 @@
 import { Document } from 'mongoose';
 
 export interface ICobrosMayoristas extends Document {
-  fecha_cobro: string;
-  readonly caja: string;
+  fecha_cobro: any;
   readonly nro: number;
   readonly tipo: string;
+  readonly paquete: string;
   readonly mayorista: string;
   readonly repartidor: string;
-  readonly anticipo: number;
-  readonly monto: number;
-  readonly monto_total: number;
+  readonly monto_anticipo: number;
+  readonly monto_total_recibido: number;
+  readonly monto_cancelar_deuda: number;
+  readonly deuda_total: number;
+  readonly deuda_restante: number;
   readonly creatorUser: string;
   readonly updatorUser: string;
-  readonly ingreso: boolean;
   readonly activo: boolean;
 }

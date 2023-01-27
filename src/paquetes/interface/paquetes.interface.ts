@@ -12,6 +12,7 @@ export interface IPaquetes extends Document {
     readonly total_gastos: number;
     readonly total_ingresos: number;
     readonly total_recibir: number;
+    readonly total_cobros: number;
     readonly estado: string;
     readonly creatorUser: string;
     readonly updatorUser: string;

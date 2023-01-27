@@ -32,6 +32,19 @@ export class CobrosMayoristasService {
     const idCobro = new Types.ObjectId(id);
     pipeline.push({ $match: { _id: idCobro } })
 
+    // Informacion de paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
+
     // Informacion de repartidor
     pipeline.push({
       $lookup: { // Lookup
@@ -104,7 +117,7 @@ export class CobrosMayoristasService {
       tipo,
       parametro,
       fechaDesde,
-      fechaHasta
+      fechaHasta,
     } = querys;
 
     const pipeline = [];
@@ -200,6 +213,19 @@ export class CobrosMayoristasService {
 
     pipeline.push({ $unwind: '$mayorista' });
 
+    // Informacion de paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
+
     // Informacion de usuario creador
     pipeline.push({
       $lookup: { // Lookup
@@ -240,7 +266,7 @@ export class CobrosMayoristasService {
 
     const [cobros, cobrosTotal] = await Promise.all([
       this.cobrosModel.aggregate(pipeline),
-      this.cobrosModel.aggregate(pipelineTotal)    
+      this.cobrosModel.aggregate(pipelineTotal)
     ]);
 
     return {
@@ -253,12 +279,16 @@ export class CobrosMayoristasService {
   // Crear cobro
   async crearCobro(cobrosDTO: any): Promise<ICobrosMayoristas> {
 
-    const { repartidor, pedidos, mayorista, monto, fecha_cobro } = cobrosDTO;
+    const { repartidor, pedidos, mayorista, monto_total_recibido, paquete, fecha_cobro } = cobrosDTO;
+
+    // Verifiacion: Cobro a mayorista duplicado
+    const duplicado = await this.cobrosModel.findOne({ mayorista, paquete });
+    if(duplicado) throw new NotFoundException('Ya se encuentra cargado un cobro para este mayorista');
 
     // Adaptando fecha de cobro
-    cobrosDTO.fecha_cobro = add(new Date(fecha_cobro), {hours: 3});
+    cobrosDTO.fecha_cobro = add(new Date(fecha_cobro), { hours: 3 });
 
-    // 1 - Calcular el proximo numero de pedido
+    // 1 - Calcular el proximo numero de cobro
 
     const ultimoCobro = await this.cobrosModel.find().sort({ createdAt: -1 }).limit(1);
 
@@ -288,10 +318,9 @@ export class CobrosMayoristasService {
       cobrosDTO.repartidor = '000000000000000000000000';
     }
 
-    const data = { 
-      ...cobrosDTO, 
+    const data = {
+      ...cobrosDTO,
       nro: proximoNumeroCobro,
-      ingreso: true
     };
 
     // 3 - Generar cobro
@@ -305,41 +334,43 @@ export class CobrosMayoristasService {
 
       // Generacion de relacion
       elemento.cobro = cobroDB._id;
-      const nuevaRelacion = new this.cobrosPedidosModel(elemento)
+      // elemento.paquete_cobro = paquete;
+      const nuevaRelacion = new this.cobrosPedidosModel(elemento);
       await nuevaRelacion.save()
 
       // Actualizacion de pedido
 
-      const pedidoDB = await this.ventasMayoristasModel.findById(elemento.pedido);
+      // const pedidoDB = await this.ventasMayoristasModel.findById(elemento.pedido);
 
-      let dataPedido: any = {};
-      if (elemento.cancelado) {
-        dataPedido = {
-          estado: 'Completado',
-          deuda: false,
-          monto_recibido: elemento.monto_total,
-          deuda_monto: 0,
-        }
-      } else {
-        dataPedido = {
-          estado: 'Deuda',
-          deuda: true,
-          monto_recibido: pedidoDB.monto_recibido + elemento.monto_cobrado,
-          deuda_monto: pedidoDB.deuda_monto - elemento.monto_cobrado,
-        }
-      }
+      // let dataPedido: any = {};
 
-      await this.ventasMayoristasModel.findByIdAndUpdate(elemento.pedido, dataPedido)
+      // if (elemento.cancelado) {
+      //   dataPedido = {
+      //     estado: 'Completado',
+      //     deuda: false,
+      //     monto_recibido: elemento.monto_total,
+      //     deuda_monto: 0,
+      //   }
+      // } else {
+      //   dataPedido = {
+      //     estado: 'Deuda',
+      //     deuda: true,
+      //     monto_recibido: pedidoDB.monto_recibido + elemento.monto_cobrado,
+      //     deuda_monto: pedidoDB.deuda_monto - elemento.monto_cobrado,
+      //   }
+      // }
+
+      // await this.ventasMayoristasModel.findByIdAndUpdate(elemento.pedido, dataPedido)
 
     });
 
     // Impacto sobre cuenta corriente
-    const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista });
-    const nuevoSaldo = cuentaCorrienteDB.saldo + monto;
+    // const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista });
+    // const nuevoSaldo = cuentaCorrienteDB.saldo + monto_total_recibido;
 
-    await this.cuentasCorrientesMayoristasModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
+    // await this.cuentasCorrientesMayoristasModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
 
-    return cobroDB;
+    return await this.getCobro(cobroDB._id);
 
   }
 
@@ -347,6 +378,18 @@ export class CobrosMayoristasService {
   async actualizarCobro(id: string, cobrosUpdateDTO: CobrosMayoristasUpdateDTO): Promise<ICobrosMayoristas> {
     const cobro = await this.cobrosModel.findByIdAndUpdate(id, cobrosUpdateDTO, { new: true });
     return cobro;
+  }
+
+  // Eliminar cobro
+  async eliminarCobro(id: string): Promise<ICobrosMayoristas> {
+
+    const [cobroDB,_] = await Promise.all([
+      this.cobrosModel.findByIdAndDelete(id),
+      this.cobrosPedidosModel.deleteMany({ cobro: id })
+    ]);
+
+    return cobroDB;
+
   }
 
 }

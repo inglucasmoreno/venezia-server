@@ -25,6 +25,8 @@ export class PaquetesDTO {
     readonly total_ingresos: number;
     
     readonly total_recibir: number;
+
+    readonly total_cobros: number;
     
     readonly estado: string;
 

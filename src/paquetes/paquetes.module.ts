@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { cobrosMayoristasSchema } from 'src/cobros-mayoristas/schema/cobros-mayoristas.schema';
+import { cobrosPedidosSchema } from 'src/cobros-pedidos/schema/cobros-pedidos.schema';
 import { cuentasCorrientesMayoristasSchema } from 'src/cuentas-corrientes-mayoristas/schema/cuentas-corrientes-mayoristas.schema';
 import { mayoristasGastosSchema } from 'src/mayoristas-gastos/schema/mayoristas-gastos.schema';
 import { mayoristasIngresosSchema } from 'src/mayoristas-ingresos/schema/mayoristas-ingresos.schema';
@@ -17,6 +19,8 @@ import { paquetesSchema } from './schema/paquetes.schema';
     MongooseModule.forFeature([{name: 'MayoristasGastos', schema: mayoristasGastosSchema}]),
     MongooseModule.forFeature([{name: 'MayoristasIngresos', schema: mayoristasIngresosSchema}]),
     MongooseModule.forFeature([{name: 'CuentasCorrientesMayoristas', schema: cuentasCorrientesMayoristasSchema}]),
+    MongooseModule.forFeature([{name: 'CobrosMayoristas', schema: cobrosMayoristasSchema}]),
+    MongooseModule.forFeature([{name: 'CobrosPedidos', schema: cobrosPedidosSchema}]),
   ],
   controllers: [PaquetesController],
   providers: [PaquetesService]

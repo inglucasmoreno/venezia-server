@@ -21,6 +21,18 @@ export const cobrosPedidosSchema = new Schema({
     required: true
   },
 
+  paquete_cobro: {
+    type: Schema.Types.ObjectId,
+    ref: 'paquetes',
+    required: true
+  },
+
+  paquete_pedido: {
+    type: Schema.Types.ObjectId,
+    ref: 'paquetes',
+    required: true
+  },
+
   cancelado: {
     type: Boolean,
     required: true

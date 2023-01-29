@@ -2,10 +2,16 @@
 import { Schema } from 'mongoose';
 
 export const ventasMayoristasProductosSchema = new Schema({
-   
+
+    paquete: {
+        type: Schema.Types.ObjectId,
+        ref: 'paquetes',
+        required: true,
+    },
+
     ventas_mayorista: {
         type: Schema.Types.ObjectId,
-        ref: 'ventas-mayoristas',
+        ref: 'ventas_mayoristas',
         required: true,
     },
 

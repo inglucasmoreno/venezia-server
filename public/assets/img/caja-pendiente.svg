@@ -6,7 +6,7 @@
    viewBox="0 0 783.79 812"
    version="1.1"
    id="svg243"
-   sodipodi:docname="pedido.svg"
+   sodipodi:docname="caja-pendiente.svg"
    inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -29,7 +29,7 @@
      showgrid="false"
      inkscape:zoom="0.70884842"
      inkscape:cx="352.68471"
-     inkscape:cy="437.32904"
+     inkscape:cy="435.9183"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="1912"
@@ -94,7 +94,7 @@
      points="777.01 486.53 774.54 539.56 236.41 594.89 0.67 487.51 0.67 435.89 236.41 538.79 777.01 486.53"
      fill="#a31d1e"
      id="polygon239"
-     style="fill:#800000" />
+     style="fill:#ffcc00" />
   <polygon
      points="236.41 538.79 236.41 594.89 0.67 487.51 0.67 435.89 236.41 538.79"
      opacity="0.1"

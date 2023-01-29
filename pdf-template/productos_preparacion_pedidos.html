@@ -29,6 +29,9 @@
           <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo del valle 202 </p>
           <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516 </p>
           <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Fecha del listado: </span> {{ fecha }} </p>
+          {{#ifCond numero_paquete '!==' null }}
+            <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Paquete: </span> {{ numero_paquete }} </p>
+          {{/ifCond}}
         </td>
         <td>
           <img style="width: 130px; margin-left: 100px;" src="http://localhost:3000/pdf/logo.png">            

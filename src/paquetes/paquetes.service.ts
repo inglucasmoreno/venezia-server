@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { add } from 'date-fns';
+import { add, format } from 'date-fns';
 import { Model, Types } from 'mongoose';
+import * as fs from 'fs';
+import * as pdf from 'pdf-creator-node';
 import { ICobrosMayoristas } from 'src/cobros-mayoristas/interface/cobros-mayoristas.interface';
 import { ICobrosPedidos } from 'src/cobros-pedidos/inteface/cobros-pedidos.interface';
 import { ICuentasCorrientesMayoristas } from 'src/cuentas-corrientes-mayoristas/interface/cuentas-corrientes-mayoristas.interface';
@@ -128,18 +130,92 @@ export class PaquetesService {
 
         pipelineCobros.push({ $unwind: '$mayorista' });
 
-        const [paquete, gastos, ingresos, cobros] = await Promise.all([
+        // Relacion cobros-pedidos
+        const pipelineCobroPedido = []
+        pipelineCobroPedido.push({ $match: { paquete_pedido: idPaquete } });
+
+        // Informacion de mayorista
+        pipelineCobroPedido.push({
+            $lookup: { // Lookup
+                from: 'mayoristas',
+                localField: 'mayorista',
+                foreignField: '_id',
+                as: 'mayorista'
+            }
+        }
+        );
+
+
+        pipelineCobroPedido.push({ $unwind: '$mayorista' });
+
+        // Informacion de cobro
+        pipelineCobroPedido.push({
+            $lookup: { // Lookup
+                from: 'cobros_mayoristas',
+                localField: 'cobro',
+                foreignField: '_id',
+                as: 'cobro'
+            }
+        }
+        );
+
+        pipelineCobroPedido.push({ $unwind: '$cobro' });
+
+        // Informacion de pedido
+        pipelineCobroPedido.push({
+            $lookup: { // Lookup
+                from: 'ventas_mayoristas',
+                localField: 'pedido',
+                foreignField: '_id',
+                as: 'pedido'
+            }
+        }
+        );
+
+        pipelineCobroPedido.push({ $unwind: '$pedido' });
+
+        // Informacion de paquete_cobro
+        pipelineCobroPedido.push({
+            $lookup: { // Lookup
+                from: 'paquetes',
+                localField: 'paquete_cobro',
+                foreignField: '_id',
+                as: 'paquete_cobro'
+            }
+        }
+        );
+
+        pipelineCobroPedido.push({ $unwind: '$paquete_cobro' });
+
+        // Ordenando datos
+        const ordenarGastos: any = {};
+        ordenarGastos['fecha_gasto'] = -1;
+        const ordenarIngresos: any = {};
+        ordenarIngresos['fecha_ingreso'] = -1;
+        const ordenarCobros: any = {};
+        ordenarCobros['fecha_cobro'] = -1;
+        const ordenarCobrosPedidos: any = {};
+        ordenarCobrosPedidos['cobro.fecha_cobro'] = -1;
+
+        pipelineGastos.push({ $sort: ordenarGastos });
+        pipelineIngresos.push({ $sort: ordenarIngresos });
+        pipelineCobros.push({ $sort: ordenarCobros });
+        pipelineCobroPedido.push({ $sort: ordenarCobrosPedidos });
+
+        const [paquete, gastos, ingresos, cobros, cobros_externos] = await Promise.all([
             this.paquetesModel.aggregate(pipeline),
             this.mayoristasGastosModel.aggregate(pipelineGastos),
             this.mayoristasIngresosModel.aggregate(pipelineIngresos),
             this.cobrosMayoristasModel.aggregate(pipelineCobros),
+            this.cobrosPedidosModel.aggregate(pipelineCobroPedido)
         ]);
 
         return {
             paquete: paquete[0],
             gastos,
             ingresos,
-            cobros
+            cobros,
+            cobros_externos
         };
 
     }
@@ -302,12 +378,13 @@ export class PaquetesService {
 
         pipelineTotales.push({
             $group: {
-              _id: 'Totales',
-              precio_total: { $sum: "$precio_total" },              
-              total_deuda: { $sum: "$total_deuda" },
-              total_recibir: { $sum: "$total_recibir" },
+                _id: 'Totales',
+                precio_total: { $sum: "$precio_total" },
+                total_deuda: { $sum: "$total_deuda" },
+                total_recibir: { $sum: "$total_recibir" },
             }
-          })
+        })
+
 
         const [paquetes, paquetesTotal, totales] = await Promise.all([
             this.paquetesModel.aggregate(pipeline),
@@ -443,7 +520,7 @@ export class PaquetesService {
 
         const { dataPaquete, pedidos } = data;
         const { fecha_paquete } = dataPaquete;
- 
+
         // Adaptando fecha
         const adj_fecha = add(new Date(fecha_paquete), { hours: 3 });
         dataPaquete.fecha_paquete = adj_fecha;
@@ -464,7 +541,7 @@ export class PaquetesService {
         }
 
         // Actualizacion de pedidos
-        pedidos.map( async pedido => {
+        pedidos.map(async pedido => {
 
             const dataPedido = {
                 fecha_pedido: adj_fecha,
@@ -473,20 +550,23 @@ export class PaquetesService {
                 deuda_monto: pedido.deuda_monto,
                 monto_recibido: pedido.monto_recibido,
                 monto_anticipo: pedido.monto_anticipo,
-                monto_cuenta_corriente: pedido.monto_cuenta_corriente,          
+                monto_cuenta_corriente: pedido.monto_cuenta_corriente,
             }
 
-            await this.ventasMayoristasModel.findByIdAndUpdate(pedido._id, dataPedido);    
+            console.log(dataPedido);
+
+            await this.ventasMayoristasModel.findByIdAndUpdate(pedido._id, dataPedido);
 
             // Impacto en cuenta corriente
-    
+
             const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista: pedido.mayorista._id });
 
-            let nuevoSaldo = 0;
+            let nuevoSaldo = cuentaCorrienteDB.saldo;
 
-            if(pedido.deuda_monto > 0) nuevoSaldo = cuentaCorrienteDB.saldo - pedido.deuda_monto;
-            else if(pedido.monto_anticipo > 0) nuevoSaldo = cuentaCorrienteDB.saldo + pedido.monto_anticipo;
-            
+            if (pedido.deuda_monto > 0) nuevoSaldo -= pedido.deuda_monto;
+            if (pedido.monto_anticipo > 0) nuevoSaldo += pedido.monto_anticipo;
+            if (pedido.monto_cuenta_corriente > 0) nuevoSaldo -= pedido.monto_cuenta_corriente;
+
             await this.cuentasCorrientesMayoristasModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
 
         })
@@ -494,22 +574,22 @@ export class PaquetesService {
         // Impacto de los cobros del paquete
         const cobros = await this.cobrosMayoristasModel.find({ paquete: id });
 
-        cobros.map( async cobro => {
+        for (const cobro of cobros) {
 
             // Impacto en cuenta corriente
-            const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista: String(cobro.mayorista) });
+            const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista: cobro.mayorista });
             const nuevoSaldo = cuentaCorrienteDB.saldo + cobro.monto_total_recibido;
 
             await this.cuentasCorrientesMayoristasModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
 
-        })
+        }
 
         // Actualizacion de pedidos
         const relaciones = await this.cobrosPedidosModel.find({ paquete_cobro: id });
 
         // Actualizacion de pedidos
-        for(const relacion of relaciones){
-            
+        for (const relacion of relaciones) {
+
             // Datos actuales de el pedido
             const pedidoDB = await this.ventasMayoristasModel.findById(relacion.pedido);
 
@@ -517,8 +597,10 @@ export class PaquetesService {
                 estado: relacion.cancelado ? 'Completado' : 'Deuda',
                 deuda: !relacion.cancelado,
                 monto_recibido: pedidoDB.monto_recibido + relacion.monto_cobrado,
-                deuda_monto: pedidoDB.deuda_monto - relacion.monto_cobrado,       
+                deuda_monto: pedidoDB.deuda_monto - relacion.monto_cobrado,
             }
+
+            console.log(dataPedido);
 
             await this.ventasMayoristasModel.findByIdAndUpdate(relacion.pedido, dataPedido);
 
@@ -532,10 +614,12 @@ export class PaquetesService {
                 total_recibir: paqueteDB.total_recibir + relacion.monto_cobrado
             }
 
+            console.log(dataPaquete);
+
             await this.paquetesModel.findByIdAndUpdate(paqueteDB._id, dataPaquete);
 
         }
-        
+
         return paqueteDB;
 
     }
@@ -589,11 +673,425 @@ export class PaquetesService {
             this.mayoristasGastosModel.deleteMany({ paquete: id }),
             this.mayoristasIngresosModel.deleteMany({ paquete: id }),
             this.cobrosMayoristasModel.deleteMany({ paquete: id }),
-            this.cobrosPedidosModel.deleteMany({ paquete: id })
+            this.cobrosPedidosModel.deleteMany({ paquete_cobro: id })
         ])
 
         return paqueteDB;
     }
+
+    // Reporte general
+    async reporteGeneral(querys: any): Promise<any> {
+
+        const { fechaDesde, fechaHasta, repartidor } = querys;
+
+        const pipeline = [];
+        const pipelinePedidos = [];
+
+        pipeline.push({ $match: {} });
+        pipelinePedidos.push({ $match: {} });
+
+        // Por repartidor
+        if (repartidor && repartidor !== '') {
+            const idRepartidor = new Types.ObjectId(repartidor);
+            pipeline.push({ $match: { repartidor: idRepartidor } });
+            pipelinePedidos.push({ $match: { repartidor: idRepartidor } });
+        }
+
+        // Filtro - Fecha desde
+        if (fechaDesde && fechaDesde.trim() !== '') {
+            pipeline.push({
+                $match: {
+                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
+                }
+            });
+            pipelinePedidos.push({
+                $match: {
+                    fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
+                }
+            });
+        }
+
+        // Filtro - Fecha hasta
+        if (fechaHasta && fechaHasta.trim() !== '') {
+            pipeline.push({
+                $match: {
+                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
+                }
+            });
+            pipelinePedidos.push({
+                $match: {
+                    fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
+                }
+            });
+        }
+
+        // Paquetes
+        pipeline.push({
+            $group: {
+                _id: 'Totales-Paquetes',
+                precio_total: { $sum: "$precio_total" },
+                total_gastos: { $sum: "$total_gastos" },
+                total_ingresos: { $sum: "$total_ingresos" },
+                total_deudas: { $sum: "$total_deuda" },
+                cantidad_paquetes: { $sum: 1 },
+            }
+        })
+
+        // Pedidos
+        pipelinePedidos.push({
+            $group: {
+                _id: 'Totales-Pedidos',
+                cantidad_pedidos: { $sum: 1 },
+            }
+        })
+
+
+        const [totales, totalesPedidos] = await Promise.all([
+            this.paquetesModel.aggregate(pipeline),
+            this.ventasMayoristasModel.aggregate(pipelinePedidos),
+        ])
+
+        return {
+            totales: totales[0],
+            cantidad_pedidos: totalesPedidos[0]?.cantidad_pedidos
+        };
+
+    }
+
+    async talonariosMasivosPDF(paquete: string): Promise<any> {
+
+        // DATOS DE PEDIDOS
+
+        const pipeline = [];
+
+        const idPaquete = new Types.ObjectId(paquete);
+        pipeline.push({ $match: { paquete: idPaquete } });
+
+        // Informacion - Paquete
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'paquetes',
+                localField: 'paquete',
+                foreignField: '_id',
+                as: 'paquete'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$paquete' });
+
+        // Informacion - Mayorista
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'mayoristas',
+                localField: 'mayorista',
+                foreignField: '_id',
+                as: 'mayorista'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$mayorista' });
+
+
+        // Informacion - Repartidor
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'repartidor',
+                foreignField: '_id',
+                as: 'repartidor'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$repartidor' });
+
+        // Ordenando datos
+        const ordenar: any = {};
+        ordenar['repartidor.apellido'] = 1;
+        pipeline.push({ $sort: ordenar });
+
+        var pedidosPDF: any = [];
+
+        const pedidos = await this.ventasMayoristasModel.aggregate(pipeline);
+
+        // Generando datos para generacion PDF
+        pedidos.map(async pedido => {
+
+            pedidosPDF.push({
+                pedido: String(pedido._id),
+                fecha: format(new Date(), 'dd/MM/yyyy'),
+                mayorista: pedido.mayorista.descripcion,
+                telefono: pedido.mayorista.telefono,
+                direccion: pedido.mayorista.direccion,
+                numero_pedido: pedido.numero,
+                numero_paquete: pedido.paquete.numero,
+                total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pedido.precio_total),
+                repartidor: pedido.repartidor.apellido + ' ' + pedido.repartidor.nombre,
+            })
+
+            console.log(pedidosPDF);
+
+        })
+
+
+        // DATOS DE PRODUCTOS
+
+        const pipelineProductos = [];
+        pipeline.push({ $match: { paquete: idPaquete } });
+
+        // Informacion - Unidad de medida
+        pipelineProductos.push({
+            $lookup: { // Lookup
+                from: 'unidad_medida',
+                localField: 'unidad_medida',
+                foreignField: '_id',
+                as: 'unidad_medida'
+            }
+        }
+        );
+
+        pipelineProductos.push({ $unwind: '$unidad_medida' });
+
+        let productosPDF = [];
+
+        const productos = await this.ventasMayoristasProductosModel.aggregate(pipelineProductos);
+
+        productos.map(producto => {
+            productosPDF.push({
+                pedido: String(producto.ventas_mayorista),
+                descripcion: producto.descripcion,
+                unidad_medida: producto.unidad_medida.descripcion,
+                precio: producto.precio,
+                precio_unitario: producto.precio_unitario,
+                cantidad: producto.cantidad
+            })
+        })
+
+        // UNIFICANDO INFORMACION
+
+        pedidosPDF.map(pedido => {
+
+            let variable = 0;
+
+            productosPDF.map(producto => {
+                if (producto.pedido === pedido.pedido) {
+                    variable += 1;
+                    pedido[`descripcion${variable}`] = producto.descripcion;
+                    pedido[`unidad_medida${variable}`] = producto.unidad_medida;
+                    pedido[`cantidad${variable}`] = producto.cantidad;
+                    pedido[`precio${variable}`] = producto.precio;
+                    pedido[`precio_unitario${variable}`] = producto.precio_unitario;
+                }
+            })
+
+        })
+
+        let html: any;
+        html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/talonarios_masivos.html', 'utf-8');
+
+        var options = {
+            format: 'A4',
+            orientation: 'portrait',
+            border: '10mm',
+            footer: {
+                height: "0mm",
+                contents: {}
+            }
+        }
+
+        const data = {
+            fecha: format(new Date(), 'dd/MM/yyyy'),
+            pedidos: pedidosPDF
+        }
+
+        // Configuraciones de documento
+        var document = {
+            html: html,
+            data,
+            path: (process.env.PUBLIC_DIR || './public') + '/pdf/talonarios_masivos.pdf'
+        }
+
+        // Generacion de PDF
+        await pdf.create(document, options);
+
+        return 'Generacion de PDF correcta';
+
+    }
+
+    // Lista de armado de pedidos general
+    async generarArmadoPedidosPDF(paquete: string): Promise<IVentasMayoristasProductos[]> {
+
+        // Se obtiene el paquete
+        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(paquete);
+
+        const pipeline = [];
+
+        const idPaquete = new Types.ObjectId(paquete);
+        pipeline.push({ $match: { paquete: idPaquete } });
+
+        // Informacion - Venta mayorista
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'ventas_mayoristas',
+                localField: 'ventas_mayorista',
+                foreignField: '_id',
+                as: 'ventas_mayorista'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$ventas_mayorista' });
+
+        // Informacion - Mayoristas
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'mayoristas',
+                localField: 'ventas_mayorista.mayorista',
+                foreignField: '_id',
+                as: 'ventas_mayorista.mayorista'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$ventas_mayorista.mayorista' });
+
+        // Informacion - Producto
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'productos',
+                localField: 'producto',
+                foreignField: '_id',
+                as: 'producto'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$producto' });
+
+
+        // Informacion - Unidad de medida
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'unidad_medida',
+                localField: 'producto.unidad_medida',
+                foreignField: '_id',
+                as: 'producto.unidad_medida'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$producto.unidad_medida' });
+
+        // Informacion - Unidad de medida
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'ventas_mayorista.repartidor',
+                foreignField: '_id',
+                as: 'ventas_mayorista.repartidor'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$ventas_mayorista.repartidor' });
+
+
+        // Solo los productos de un repartidor
+        // const idRepartidor = new Types.ObjectId(repartidor);
+        // pipeline.push({$match: { "ventas_mayorista.repartidor": idRepartidor }});
+
+        // Agrupando resultados por mayorista
+        pipeline.push({
+            $group: {
+                _id: {
+                    repartidor_apellido: '$ventas_mayorista.repartidor.apellido',
+                    repartidor_nombre: '$ventas_mayorista.repartidor.nombre',
+                    mayorista: '$ventas_mayorista.mayorista.descripcion',
+                    unidad: '$producto.unidad_medida.descripcion',
+                    producto: '$producto.descripcion',
+                },
+                cantidad: { $sum: '$cantidad' }
+            }
+        })
+
+
+        // Ordenando datos
+        pipeline.push({
+            $sort: {
+                '_id.repartidor_apellido': 1,
+                '_id.mayorista': 1,
+                '_id.producto': 1
+            }
+        });
+
+        const productos = await this.ventasMayoristasProductosModel.aggregate(pipeline);
+
+        // let arrayMayoristas: string[] = [];
+        // let arrayMayoristasPDF: any[] = [];
+
+        // Arreglo de mayoristas
+        // productos.map( elemento => {
+        //   if(!arrayMayoristas.includes(elemento._id.mayorista)){
+        //     arrayMayoristas.unshift(elemento._id.mayorista);
+        //     arrayMayoristasPDF.unshift({
+        //       descripcion: elemento._id.mayorista
+        //     });
+        //   }
+        // });
+
+        // PRINT DE PANTALLA - PARA TENER UNA GUIA
+        // arrayMayoristas.map(mayorista => {
+        //   console.log('----------------------------------');
+        //   console.log(`MAYORISTA - ${mayorista}`);
+        //   console.log('----------------------------------');
+        //   productos.map( producto => {
+        //     if(producto._id.mayorista === mayorista){
+        //       console.log(`${producto._id.producto}`);      
+        //       console.log(`${producto._id.unidad}`);
+        //       console.log(`CANTIDAD - ${producto.cantidad}`);
+        //       console.log('');      
+        //     }
+        //   });
+        // });
+
+
+        // GENERACION DE PDF
+
+        let html: any;
+        html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/productos_preparacion_pedidos.html', 'utf-8');
+
+        var options = {
+            format: 'A4',
+            orientation: 'portrait',
+            border: '10mm',
+            footer: {
+                height: "0mm",
+                contents: {}
+            }
+        }
+
+        // Configuraciones de documento
+        var document = {
+            html: html,
+            data: {
+                fecha: format(new Date(), 'dd/MM/yyyy'),
+                productos: productos,
+                numero_paquete: paqueteDB.numero
+            },
+            path: (process.env.PUBLIC_DIR || './public') + '/pdf/productos_preparacion_pedidos.pdf'
+        }
+
+        // Generacion de PDF
+        await pdf.create(document, options);
+
+        return productos;
+
+    }
+
+
+
 
 
 }

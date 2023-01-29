@@ -1,6 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface IVentasMayoristasProductos extends Document {
+    readonly paquete: string;
     readonly ventas_mayorista: string;
     readonly producto: string;
     readonly descripcion: string;

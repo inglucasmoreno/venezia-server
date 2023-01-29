@@ -239,7 +239,8 @@ export class VentasMayoristasProductosService {
     await this.paquetesModel.findByIdAndUpdate(String(pedidoDB.paquete), { precio_total: precioPaqueteTMP })
 
     // return await this.getProducto(String(nuevoProducto._id));
-    return nuevoProducto;
+    // return nuevoProducto;
+    return this.getProducto(nuevoProducto._id);
   
   }
 
@@ -400,7 +401,7 @@ export class VentasMayoristasProductosService {
 
     pipeline.push({ $unwind: '$ventas_mayorista' });
 
-    // Informacion - Venta mayorista
+    // Informacion - Mayoristas
     pipeline.push({
       $lookup: { // Lookup
         from: 'mayoristas',
@@ -534,6 +535,7 @@ export class VentasMayoristasProductosService {
       data: {
         fecha: format(new Date(), 'dd/MM/yyyy'),
         productos: productos,
+        numero_paquete: null
       },
       path: (process.env.PUBLIC_DIR || './public') + '/pdf/productos_preparacion_pedidos.pdf'
     }

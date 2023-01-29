@@ -13,13 +13,14 @@ export class PaquetesController {
     @UseGuards(JwtAuthGuard)
     @Get('/:id')
     async getPaquete(@Res() res, @Param('id') paqueteID) {
-        const { paquete, gastos, ingresos, cobros } = await this.paquetesService.getPaquete(paqueteID);
+        const { paquete, gastos, ingresos, cobros, cobros_externos } = await this.paquetesService.getPaquete(paqueteID);
         res.status(HttpStatus.OK).json({
             message: 'Paquete obtenido correctamente',
             paquete,
             gastos,
             ingresos,
-            cobros
+            cobros,
+            cobros_externos
         });
     }
 
@@ -56,6 +57,28 @@ export class PaquetesController {
         });
     }
 
+    // Generacion - Talonarios masivos - PDF
+    @UseGuards(JwtAuthGuard)
+    @Get('/talonarios-masivos/pdf/:paquete')
+    async talonariosMasivosPDF(@Res() res, @Param('paquete') paqueteID) {
+        await this.paquetesService.talonariosMasivosPDF(paqueteID);
+        res.status(HttpStatus.OK).json({
+            message: 'Talonarios generados correctamente en PDF'
+        });
+    }   
+
+    // Generacion - Detalles de productos pendientes - PDF
+    @UseGuards(JwtAuthGuard)
+    @Get('/preparacion-pedidos/pdf/:paquete')
+    async generarArmadoPedidosPDF(@Res() res, @Param('paquete') paqueteID) {
+        const productos = await this.paquetesService.generarArmadoPedidosPDF(paqueteID);
+        res.status(HttpStatus.OK).json({
+            productos,
+            message: 'PDF generado correctamente para preparacion'
+        });
+    }
+
+
     // Crear paquete
     @UseGuards(JwtAuthGuard)
     @Post('/')
@@ -86,6 +109,19 @@ export class PaquetesController {
         res.status(HttpStatus.OK).json({
             message: 'Paquete cerrado correctamente',
             paquete
+        });
+    }
+
+    // Reporte general de paquetes
+    @UseGuards(JwtAuthGuard)
+    @Post('/reportes/general')
+    async reporteGeneral(@Res() res, @Body() data: any) {
+        console.log(data);
+        const { totales, cantidad_pedidos } = await this.paquetesService.reporteGeneral(data);
+        res.status(HttpStatus.OK).json({
+            message: 'Reporte generado correctamente',
+            totales,
+            cantidad_pedidos
         });
     }
 

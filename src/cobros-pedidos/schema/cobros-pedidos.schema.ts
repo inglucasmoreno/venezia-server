@@ -11,13 +11,13 @@ export const cobrosPedidosSchema = new Schema({
 
   cobro: {
     type: Schema.Types.ObjectId,
-    ref: 'cobros',
+    ref: 'cobros_mayoristas',
     required: true
   },
 
   pedido: {
     type: Schema.Types.ObjectId,
-    ref: 'pedidos',
+    ref: 'ventas_mayoristas',
     required: true
   },
 

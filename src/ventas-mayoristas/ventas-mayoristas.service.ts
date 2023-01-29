@@ -309,15 +309,15 @@ export class VentasMayoristasService {
       if (venta.estado === 'Deuda') totalDeuda += venta.deuda_monto;
       totalIngresos += venta.monto_recibido;
       totalMonto += venta.precio_total;
-    })    
+    })
 
     // Se le agrega la cuenta corriente
-    ventas.map( venta => {
-      venta.cuenta_corriente = cuentas_corrientes.find( (cc: any) => {
-       return String(venta.mayorista._id) === String(cc.mayorista);
+    ventas.map(venta => {
+      venta.cuenta_corriente = cuentas_corrientes.find((cc: any) => {
+        return String(venta.mayorista._id) === String(cc.mayorista);
       });
     })
-    
+
     return {
       ventas,
       totalItems: ventasTotal.length,
@@ -402,11 +402,11 @@ export class VentasMayoristasService {
 
     // Se actualizar el paquete
     const pedidosDB = await this.ventasModel.find({ paquete: String(pedidoDB.paquete) });
-    
+
     let precioPaqueteTMP = 0;
     let cantidadPedidosTMP = 0;
 
-    pedidosDB.map( pedido => {
+    pedidosDB.map(pedido => {
       cantidadPedidosTMP += 1;
       precioPaqueteTMP += pedido.precio_total;
     })
@@ -958,6 +958,19 @@ export class VentasMayoristasService {
     const pipeline = [];
     pipeline.push({ $match: { estado: 'Pendiente' } });
 
+    // Informacion - Paquete
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'paquetes',
+        localField: 'paquete',
+        foreignField: '_id',
+        as: 'paquete'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$paquete' });
+
     // Informacion - Mayorista
     pipeline.push({
       $lookup: { // Lookup
@@ -1004,6 +1017,7 @@ export class VentasMayoristasService {
         telefono: pedido.mayorista.telefono,
         direccion: pedido.mayorista.direccion,
         numero_pedido: pedido.numero,
+        numero_paquete: pedido.paquete.numero,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pedido.precio_total),
         repartidor: pedido.repartidor.apellido + ' ' + pedido.repartidor.nombre,
       })
@@ -1091,7 +1105,7 @@ export class VentasMayoristasService {
     // Generacion de PDF
     await pdf.create(document, options);
 
-    return 'Todo correcto';
+    return 'Generacion de PDF correcta';
 
   }
 

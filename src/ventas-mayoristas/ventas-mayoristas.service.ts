@@ -311,11 +311,25 @@ export class VentasMayoristasService {
       totalMonto += venta.precio_total;
     })
 
-    // Se le agrega la cuenta corriente
     ventas.map(venta => {
+
+      // Se le agrega la cuenta corriente
       venta.cuenta_corriente = cuentas_corrientes.find((cc: any) => {
         return String(venta.mayorista._id) === String(cc.mayorista);
       });
+
+      venta.productos.sort(function (a, b) {
+        // A va primero que B
+        if (a.descripcion < b.descripcion)
+          return -1;
+        // B va primero que A
+        else if (a.descripcion > b.descripcion)
+          return 1;
+        // A y B son iguales
+        else
+          return 0;
+      });
+
     })
 
     return {

@@ -26,14 +26,14 @@
   <table>
     <tr>
       <td>
-        <p style="margin-top: 12px; font-size: 20px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo
+        <p style="margin-top: 10px; font-size: 18px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo
           del valle 202 </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516
         </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Fecha de pedido: </span> {{
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Fecha de pedido: </span> {{
           fecha }} </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Numero de pedido: </span> {{ numero_pedido }} - <span> (Paquete nro {{ numero_paquete }}) </span> </p>
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Pedido: </span> {{ numero_pedido }} - <span> (Paquete nro {{ numero_paquete }}) </span> </p>
       </td>
       <td>
         <img style="width: 130px; margin-left: 100px;" src="http://localhost:3000/pdf/logo.png">
@@ -43,11 +43,11 @@
 
   <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
 
-  <div style="font-size: 9px; margin-top: 5px;">
-    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Nombre/Razón social: </span> {{ mayorista }} </p>
-    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio </span> {{ direccion }} </p>
-    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> {{ telefono }} </p>
-    <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Repartidor: </span>
+  <div style="font-size: 8px; margin-top: 5px;">
+    <p style="margin-top: 7px;"> <span style="font-weight: bold;"> Nombre/Razón social: </span> {{ mayorista }} </p>
+    <p style="margin-top: 7px;"> <span style="font-weight: bold;"> Domicilio </span> {{ direccion }} </p>
+    <p style="margin-top: 7px;"> <span style="font-weight: bold;"> Teléfono: </span> {{ telefono }} </p>
+    <p style="margin-top: 7px;"> <span style="font-weight: bold;"> Repartidor: </span>
       {{ repartidor }}
     </p>
   </div>
@@ -56,7 +56,7 @@
   <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
 
   <!-- Tabla de productos -->
-  <div style="margin-top: 5px; font-size: 9px;">
+  <div style="margin-top: 5px; font-size: 8px;">
     <table>
       <tr>
         <th style="width: 250px; text-align: left;"> Descripción </th>
@@ -117,6 +117,26 @@
         <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario5 }} </td>
         <td style="text-align:right; padding-top: 5px;"> ${{ precio5 }} </td>
       </tr>
+
+    <!-- PRODUCTO 6 -->
+
+    <tr>
+      <td style="text-align:left; padding-top: 5px;"> {{ descripcion6 }}</td>
+      <td style="text-align:right; padding-top: 5px;"> {{ cantidad6 }} </td>
+      <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida6 }} </td>
+      <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario6 }} </td>
+      <td style="text-align:right; padding-top: 5px;"> ${{ precio6 }} </td>
+    </tr>
+
+    <!-- PRODUCTO 7 -->
+
+    <tr>
+      <td style="text-align:left; padding-top: 5px;"> {{ descripcion7 }}</td>
+      <td style="text-align:right; padding-top: 5px;"> {{ cantidad7 }} </td>
+      <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida7 }} </td>
+      <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario7 }} </td>
+      <td style="text-align:right; padding-top: 5px;"> ${{ precio7 }} </td>
+    </tr>
 
     </table>
     <div style="width: 100%; border: 1px solid black; margin-top: 10px;"></div>
@@ -130,14 +150,14 @@
   <table>
     <tr>
       <td>
-        <p style="margin-top: 12px; font-size: 20px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo
+        <p style="margin-top: 10px; font-size: 18px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo
           del valle 202 </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516
         </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Fecha de pedido: </span> {{
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Fecha de pedido: </span> {{
           fecha }} </p>
-        <p style="margin-top: 10px; font-size: 10px;"> <span style="font-weight: bold;"> Numero de pedido: </span> {{ numero_pedido }} - <span> (Paquete nro {{ numero_paquete }}) </span> </p>
+        <p style="margin-top: 7px; font-size: 8px;"> <span style="font-weight: bold;"> Numero de pedido: </span> {{ numero_pedido }} - <span> (Paquete nro {{ numero_paquete }}) </span> </p>
       </td>
       <td>
         <img style="width: 130px; margin-left: 100px;" src="http://localhost:3000/pdf/logo.png">
@@ -147,7 +167,7 @@
 
   <div style="width: 100%; border: 1px solid black; margin-top: 5px;"></div>
 
-  <div style="font-size: 9px; margin-top: 5px;">
+  <div style="font-size: 8px; margin-top: 5px;">
     <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Nombre/Razón social: </span> {{ mayorista }} </p>
     <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Domicilio </span> {{ direccion }} </p>
     <p style="margin-top: 10px;"> <span style="font-weight: bold;"> Teléfono: </span> {{ telefono }} </p>
@@ -220,6 +240,26 @@
         <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida5 }} </td>
         <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario5 }} </td>
         <td style="text-align:right; padding-top: 5px;"> ${{ precio5 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 6 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion6 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario6 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio6 }} </td>
+      </tr>
+
+      <!-- PRODUCTO 7 -->
+
+      <tr>
+        <td style="text-align:left; padding-top: 5px;"> {{ descripcion7 }}</td>
+        <td style="text-align:right; padding-top: 5px;"> {{ cantidad7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> {{ unidad_medida7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio_unitario7 }} </td>
+        <td style="text-align:right; padding-top: 5px;"> ${{ precio7 }} </td>
       </tr>
 
     </table>

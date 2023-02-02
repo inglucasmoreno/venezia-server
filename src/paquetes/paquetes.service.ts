@@ -553,8 +553,6 @@ export class PaquetesService {
                 monto_cuenta_corriente: pedido.monto_cuenta_corriente,
             }
 
-            console.log(dataPedido);
-
             await this.ventasMayoristasModel.findByIdAndUpdate(pedido._id, dataPedido);
 
             // Impacto en cuenta corriente
@@ -600,7 +598,6 @@ export class PaquetesService {
                 deuda_monto: pedidoDB.deuda_monto - relacion.monto_cobrado,
             }
 
-            console.log(dataPedido);
 
             await this.ventasMayoristasModel.findByIdAndUpdate(relacion.pedido, dataPedido);
 
@@ -614,7 +611,6 @@ export class PaquetesService {
                 total_recibir: paqueteDB.total_recibir + relacion.monto_cobrado
             }
 
-            console.log(dataPaquete);
 
             await this.paquetesModel.findByIdAndUpdate(paqueteDB._id, dataPaquete);
 
@@ -686,9 +682,20 @@ export class PaquetesService {
 
         const pipeline = [];
         const pipelinePedidos = [];
+        const pipelineGastos = [];
+        const pipelineIngresos = [];
+        const pipelineTotalPorRepartidor = [];
+        const pipelineGastosPorRepartidor = [];
+        const pipelineIngresosPorRepartidor = [];
 
         pipeline.push({ $match: {} });
         pipelinePedidos.push({ $match: {} });
+        pipelineGastos.push({ $match: {} });
+        pipelineIngresos.push({ $match: {} });
+        pipelineTotalPorRepartidor.push({ $match: {} });
+        pipelineGastosPorRepartidor.push({ $match: {} });
+        pipelineIngresosPorRepartidor.push({ $match: {} });
+
 
         // Por repartidor
         if (repartidor && repartidor !== '') {
@@ -709,6 +716,26 @@ export class PaquetesService {
                     fecha_pedido: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
                 }
             });
+            pipelineGastos.push({
+                $match: {
+                    fecha_gasto: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
+                }
+            });
+            pipelineIngresos.push({
+                $match: {
+                    fecha_ingreso: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
+                }
+            });
+            pipelineTotalPorRepartidor.push({
+                $match: {
+                    fecha_paquete: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
+                }
+            });
+            pipelineGastosPorRepartidor.push({
+                $match: {
+                    fecha_gasto: { $gte: add(new Date(fechaDesde), { hours: 0 }) }
+                }
+            });
         }
 
         // Filtro - Fecha hasta
@@ -723,15 +750,124 @@ export class PaquetesService {
                     fecha_pedido: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
                 }
             });
+            pipelineGastos.push({
+                $match: {
+                    fecha_gasto: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
+                }
+            });
+            pipelineIngresos.push({
+                $match: {
+                    fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
+                }
+            });
+            pipelineTotalPorRepartidor.push({
+                $match: {
+                    fecha_paquete: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
+                }
+            });
+            pipelineIngresosPorRepartidor.push({
+                $match: {
+                    fecha_ingreso: { $lte: add(new Date(fechaHasta), { days: 1, hours: 0 }) }
+                }
+            });
         }
+
+        // Informacion - Repartidor
+        pipelineTotalPorRepartidor.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'repartidor',
+                foreignField: '_id',
+                as: 'repartidor'
+            }
+        }
+        );
+
+        pipelineTotalPorRepartidor.push({ $unwind: '$repartidor' });
+
+        // Informacion - Repartidor
+        pipelineGastosPorRepartidor.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'repartidor',
+                foreignField: '_id',
+                as: 'repartidor'
+            }
+        }
+        );
+
+        pipelineGastosPorRepartidor.push({ $unwind: '$repartidor' });
+
+        // Informacion - Repartidor
+        pipelineIngresosPorRepartidor.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'repartidor',
+                foreignField: '_id',
+                as: 'repartidor'
+            }
+        }
+        );
+
+        pipelineIngresosPorRepartidor.push({ $unwind: '$repartidor' });
+
+        // Informacion - Tipo de gasto
+        pipelineGastos.push({
+            $lookup: { // Lookup
+                from: 'mayoristas_tipos_gastos',
+                localField: 'tipo_gasto',
+                foreignField: '_id',
+                as: 'tipo_gasto'
+            }
+        }
+        );
+
+        pipelineGastos.push({ $unwind: '$tipo_gasto' });
+
+        // Informacion - Tipo de gasto
+        pipelineGastosPorRepartidor.push({
+            $lookup: { // Lookup
+                from: 'mayoristas_tipos_gastos',
+                localField: 'tipo_gasto',
+                foreignField: '_id',
+                as: 'tipo_gasto'
+            }
+        }
+        );
+
+        pipelineGastosPorRepartidor.push({ $unwind: '$tipo_gasto' });
+
+        // Informacion - Tipo de ingreso
+        pipelineIngresos.push({
+            $lookup: { // Lookup
+                from: 'mayoristas_tipos_ingresos',
+                localField: 'tipo_ingreso',
+                foreignField: '_id',
+                as: 'tipo_ingreso'
+            }
+        }
+        );
+
+        pipelineIngresos.push({ $unwind: '$tipo_ingreso' });
+
+        // Informacion - Tipo de ingreso
+        pipelineIngresosPorRepartidor.push({
+            $lookup: { // Lookup
+                from: 'mayoristas_tipos_ingresos',
+                localField: 'tipo_ingreso',
+                foreignField: '_id',
+                as: 'tipo_ingreso'
+            }
+        }
+        );
+
+        pipelineIngresosPorRepartidor.push({ $unwind: '$tipo_ingreso' });
 
         // Paquetes
         pipeline.push({
             $group: {
                 _id: 'Totales-Paquetes',
                 precio_total: { $sum: "$precio_total" },
-                total_gastos: { $sum: "$total_gastos" },
-                total_ingresos: { $sum: "$total_ingresos" },
                 total_deudas: { $sum: "$total_deuda" },
                 cantidad_paquetes: { $sum: 1 },
             }
@@ -745,15 +881,169 @@ export class PaquetesService {
             }
         })
 
+        // Gastos
+        pipelineGastos.push({
+            $group: {
+                _id: '$tipo_gasto.descripcion',
+                total: { $sum: "$monto" }
+            }
+        })
 
-        const [totales, totalesPedidos] = await Promise.all([
+        // Ingresos
+        pipelineIngresos.push({
+            $group: {
+                _id: '$tipo_ingreso.descripcion',
+                total: { $sum: "$monto" }
+            }
+        })
+
+        // Total por repartidor
+        pipelineTotalPorRepartidor.push({
+            $group: {
+                _id: {
+                    repartidor: '$repartidor._id',
+                    repartidor_apellido: '$repartidor.apellido',
+                    repartidor_nombre: '$repartidor.nombre',
+                },
+                precio_total: { $sum: "$precio_total" },
+                deuda_total: { $sum: "$total_deuda" },
+            }
+        })
+
+        // Gastos por repartidor
+        pipelineGastosPorRepartidor.push({
+            $group: {
+                _id: {
+                    repartidor: '$repartidor._id',
+                    repartidor_apellido: '$repartidor.apellido',
+                    repartidor_nombre: '$repartidor.nombre',
+                    tipo_gasto: '$tipo_gasto.descripcion'
+                },
+                monto: { $sum: "$monto" },
+            }
+        })
+
+        // Ingresos por repartidor
+        pipelineIngresosPorRepartidor.push({
+            $group: {
+                _id: {
+                    repartidor: '$repartidor._id',
+                    repartidor_apellido: '$repartidor.apellido',
+                    repartidor_nombre: '$repartidor.nombre',
+                    tipo_ingreso: '$tipo_ingreso.descripcion'
+                },
+                monto: { $sum: "$monto" },
+            }
+        })
+
+        // Ordenando datos - Gastos
+        pipelineGastos.push({
+            $sort: {
+                '_id.tipo_gasto.descripcion': 1,
+            }
+        });
+
+        // Ordenando datos - Ingresos
+        pipelineIngresos.push({
+            $sort: {
+                '_id.tipo_ingreso.descripcion': 1,
+            }
+        });
+
+
+        // Ordenando datos - Gastos por repartidor
+        pipelineGastosPorRepartidor.push({
+            $sort: {
+                '_id.repartidor_apellido': 1,
+                '_id.tipo_gasto.descripcion': 1,
+            }
+        });
+
+        // Ordenando datos - Ingresos por repartidor
+        pipelineIngresosPorRepartidor.push({
+            $sort: {
+                '_id.repartidor_apellido': 1,
+                '_id.tipo_ingreso.descripcion': 1,
+            }
+        });
+
+
+        const [totales, totalesPedidos, gastos, ingresos, totalPorRepartidor, gastosPorRepartidor, ingresosPorRepartidor] = await Promise.all([
             this.paquetesModel.aggregate(pipeline),
             this.ventasMayoristasModel.aggregate(pipelinePedidos),
+            this.mayoristasGastosModel.aggregate(pipelineGastos),
+            this.mayoristasIngresosModel.aggregate(pipelineIngresos),
+            this.paquetesModel.aggregate(pipelineTotalPorRepartidor),
+            this.mayoristasGastosModel.aggregate(pipelineGastosPorRepartidor),
+            this.mayoristasIngresosModel.aggregate(pipelineIngresosPorRepartidor),
         ])
+
+        // Calculo de total gastos
+        let totalGastosTMP = 0
+        gastos.map(gasto => {
+            totalGastosTMP += gasto.total;
+        });
+
+        // Calculo de total ingresos
+        let totalIngresosTMP = 0
+        ingresos.map(ingreso => {
+            totalIngresosTMP += ingreso.total;
+        });
+
+        // Armando DATA de Repartidor
+        let dataRepartidores = [];
+
+        totalPorRepartidor.map( total => {
+            dataRepartidores.push({
+                repartidor_id: String(total._id.repartidor),
+                repartidor_descripcion: total._id.repartidor_apellido + ' ' + total._id.repartidor_nombre,
+                ganancia: total.precio_total - total.deuda_total
+            })
+        });
+
+        dataRepartidores.map( repartidor => {
+
+            repartidor.gastos = [];
+            repartidor.ingresos = [];
+            repartidor.total_gastos = 0;
+            repartidor.total_ingresos = 0;
+
+            // Gastos por repartidor
+            gastosPorRepartidor.map( (gasto: any) => {
+
+                if(String(gasto._id.repartidor) === repartidor.repartidor_id){
+                    repartidor.total_gastos += gasto.monto;
+                    repartidor.gastos.push({
+                        tipo_gasto: gasto._id.tipo_gasto,
+                        total: gasto.monto    
+                    })
+                }
+
+            }) 
+
+            // Ingresos por repartidor
+            ingresosPorRepartidor.map( (ingreso: any) => {
+
+                if(String(ingreso._id.repartidor) === repartidor.repartidor_id){
+                    repartidor.total_ingresos += ingreso.monto;
+                    repartidor.ingresos.push({
+                        tipo_ingreso: ingreso._id.tipo_ingreso,
+                        total: ingreso.monto    
+                    })
+                }
+
+            }) 
+
+        })
 
         return {
             totales: totales[0],
-            cantidad_pedidos: totalesPedidos[0]?.cantidad_pedidos
+            cantidad_pedidos: totalesPedidos[0]?.cantidad_pedidos,
+            gastos,
+            totalGastos: totalGastosTMP,
+            ingresos,
+            totalIngresos: totalIngresosTMP,
+            dataRepartidores
         };
 
     }
@@ -830,8 +1120,6 @@ export class PaquetesService {
                 total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pedido.precio_total),
                 repartidor: pedido.repartidor.apellido + ' ' + pedido.repartidor.nombre,
             })
-
-            console.log(pedidosPDF);
 
         })
 

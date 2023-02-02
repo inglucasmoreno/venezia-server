@@ -116,12 +116,16 @@ export class PaquetesController {
     @UseGuards(JwtAuthGuard)
     @Post('/reportes/general')
     async reporteGeneral(@Res() res, @Body() data: any) {
-        console.log(data);
-        const { totales, cantidad_pedidos } = await this.paquetesService.reporteGeneral(data);
+        const { totales, cantidad_pedidos, gastos, totalGastos, ingresos, totalIngresos, dataRepartidores } = await this.paquetesService.reporteGeneral(data);
         res.status(HttpStatus.OK).json({
             message: 'Reporte generado correctamente',
             totales,
-            cantidad_pedidos
+            cantidad_pedidos,
+            gastos,
+            totalGastos,
+            ingresos,
+            totalIngresos,
+            dataRepartidores
         });
     }
 

@@ -541,8 +541,8 @@ export class PaquetesService {
         }
 
         // Actualizacion de pedidos
-        pedidos.map(async pedido => {
-
+        for(const pedido of pedidos) {
+            
             const dataPedido = {
                 fecha_pedido: adj_fecha,
                 deuda: pedido.deuda,
@@ -567,7 +567,7 @@ export class PaquetesService {
 
             await this.cuentasCorrientesMayoristasModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldo });
 
-        })
+        }
 
         // Impacto de los cobros del paquete
         const cobros = await this.cobrosMayoristasModel.find({ paquete: id });
@@ -1035,6 +1035,18 @@ export class PaquetesService {
             }) 
 
         })
+        
+        dataRepartidores.sort(function (a, b) {
+            // A va primero que B
+            if (a.repartidor_descripcion < b.repartidor_descripcion)
+              return -1;
+            // B va primero que A
+            else if (a.repartidor_descripcion > b.repartidor_descripcion)
+              return 1;
+            // A y B son iguales
+            else
+              return 0;
+        });
 
         return {
             totales: totales[0],

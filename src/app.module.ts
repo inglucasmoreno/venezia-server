@@ -32,6 +32,7 @@ import { CuentasCorrientesMayoristasModule } from './cuentas-corrientes-mayorist
 import { CobrosMayoristasModule } from './cobros-mayoristas/cobros-mayoristas.module';
 import { CobrosPedidosModule } from './cobros-pedidos/cobros-pedidos.module';
 import { PaquetesModule } from './paquetes/paquetes.module';
+import { ClientesModule } from './clientes/clientes.module';
 
 @Module({
   imports: [
@@ -59,7 +60,7 @@ import { PaquetesModule } from './paquetes/paquetes.module';
     UsuariosModule, 
     AuthModule,
     InicializacionModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
-    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule, MayoristasModule, RepartidoresModule, MayoristasTiposGastosModule, MayoristasGastosModule, CajasMayoristasModule, MayoristasTiposIngresosModule, MayoristasIngresosModule, CuentasCorrientesMayoristasModule, CobrosMayoristasModule, CobrosPedidosModule, PaquetesModule,          // Para trabajar con WebSocket
+    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule, MayoristasModule, RepartidoresModule, MayoristasTiposGastosModule, MayoristasGastosModule, CajasMayoristasModule, MayoristasTiposIngresosModule, MayoristasIngresosModule, CuentasCorrientesMayoristasModule, CobrosMayoristasModule, CobrosPedidosModule, PaquetesModule, ClientesModule,          // Para trabajar con WebSocket
     
   ],
   

@@ -8,6 +8,12 @@ export const reservasSchema = new Schema({
     required: true,
   },
 
+  cliente: {
+    type: Schema.Types.ObjectId,
+    ref: 'clientes',
+    required: true
+  },
+
   adelanto: {
     type: Number,
     required: true,
@@ -23,7 +29,12 @@ export const reservasSchema = new Schema({
     required: true
   },
 
-  fecha_pedido: {
+  hora_entrega: {
+    type: String,
+    required: true
+  },
+
+  fecha_reserva: {
     type: Date,
     required: true
   },
@@ -33,9 +44,14 @@ export const reservasSchema = new Schema({
     default: new Date()
   },
 
+  observaciones: {
+    type: String,
+    default: ''
+  },
+
   estado: {
     type: String,
-    default: 'Creada'
+    default: 'Pendiente'
   },
 
   creatorUser: {

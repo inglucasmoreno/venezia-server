@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ReservasUpdateDTO } from './dto/reservas-update.dto';
 import { ReservasService } from './reservas.service';
@@ -12,10 +12,11 @@ export class ReservasController {
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   async getReserva(@Res() res, @Param('id') reservaID) {
-    const reserva = await this.reservasService.getReserva(reservaID);
+    const {reserva, productos} = await this.reservasService.getReserva(reservaID);
     res.status(HttpStatus.OK).json({
       message: 'Reserva obtenida correctamente',
-      reserva
+      reserva,
+      productos
     });
   }
 
@@ -48,6 +49,15 @@ export class ReservasController {
     res.status(HttpStatus.OK).json({
       message: 'Reserva actualizada correctamente',
       reserva
+    });
+  }
+
+  // Eliminar reserva
+  @Delete('/:id')
+  async eliminarReserva(@Res() res, @Param('id') reservaID) {
+    await this.reservasService.eliminarReserva(reservaID);
+    res.status(HttpStatus.OK).json({
+      message: 'Reserva eliminada correctamente',
     });
   }
 

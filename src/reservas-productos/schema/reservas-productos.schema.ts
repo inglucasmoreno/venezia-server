@@ -9,6 +9,16 @@ export const reservasProductosSchema = new Schema({
     required: true
   },
 
+  descripcion: {
+    type: String,
+    required: true,
+  },
+
+  unidad_medida_descripcion: {
+    type: String,
+    required: true,
+  },
+
   producto: {
     type: Schema.Types.ObjectId,
     ref: 'productos',

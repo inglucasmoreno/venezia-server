@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { IReservasProductos } from 'src/reservas-productos/interface/reservas-productos.interface';
 import { IReservas } from './interface/reservas.interface';
 
 @Injectable()
@@ -8,10 +9,11 @@ export class ReservasService {
 
   constructor(
     @InjectModel('Reservas') private readonly reservasModel: Model<IReservas>,
+    @InjectModel('ReservasProductos') private readonly reservasProductosModel: Model<IReservasProductos>,
   ) { }
 
   // Reserva por ID
-  async getReserva(id: string): Promise<IReservas> {
+  async getReserva(id: string): Promise<any> {
 
     const reservaDB = await this.reservasModel.findById(id);
     if (!reservaDB) throw new NotFoundException('La reserva no existe');
@@ -21,6 +23,19 @@ export class ReservasService {
     // Reserva por ID
     const idReserva = new Types.ObjectId(id);
     pipeline.push({ $match: { _id: idReserva } })
+
+    // Informacion de cliente
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'clientes',
+        localField: 'cliente',
+        foreignField: '_id',
+        as: 'cliente'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$cliente' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -48,16 +63,24 @@ export class ReservasService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
-    const reserva = await this.reservasModel.aggregate(pipeline);
+    const [reserva, productos] = await Promise.all([
+      this.reservasModel.aggregate(pipeline),
+      this.reservasProductosModel.find({ reserva: id })
+    ])
 
-    return reserva[0];
+    return {
+      reserva: reserva[0],
+      productos
+    }
   }
 
   // Crear reserva
   async crearReserva(reservasDTO: any): Promise<IReservas> {
 
+    const { productos } = reservasDTO;
+
     // Numero de reserva
-    const reservas = await this.reservasModel.find().sort({ createdAt: -1 }).limit(1);
+    const reservas = await this.reservasModel.find().sort({ nro: -1 }).limit(1);
 
     let ultimoNumero = 0;
     if (reservas.length > 0) ultimoNumero = reservas[0].nro;
@@ -67,11 +90,18 @@ export class ReservasService {
       nro: ultimoNumero + 1
     }
 
+    console.log(reservasDTO.productos);
+
     // Creacion de reserva
     const nuevaReserva = new this.reservasModel(data);
     const reserva = await nuevaReserva.save();
-    
+
     // Cargar los productos a la reserva
+    productos.map(async producto => {
+      producto.reserva = reserva._id;
+      const nuevoProducto = new this.reservasProductosModel(producto);
+      await nuevoProducto.save();
+    })
 
     return reserva;
 
@@ -86,7 +116,8 @@ export class ReservasService {
       desde,
       registerpp,
       parametro,
-      activo
+      activo,
+      estado
     } = querys;
 
     const pipeline = [];
@@ -94,6 +125,19 @@ export class ReservasService {
 
     pipeline.push({ $match: {} });
     pipelineTotal.push({ $match: {} });
+
+    // Informacion de usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'clientes',
+        localField: 'cliente',
+        foreignField: '_id',
+        as: 'cliente'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$cliente' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -129,11 +173,17 @@ export class ReservasService {
       pipelineTotal.push({ $match: filtroActivo });
     }
 
+    // Filtro por estado
+    if(estado && estado !== ''){
+      pipeline.push({ $match: { estado } });
+      pipelineTotal.push({ $match: { estado } });      
+    }
+
     // Filtro por parametros
     if (parametro && parametro !== '') {
       const regex = new RegExp(parametro, 'i');
-      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }] } });
-      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }] } });
+      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.identificacion': parametro }, { 'cliente.descripcion': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.identificacion': parametro }, { 'cliente.descripcion': regex }] } });
     }
 
     // Ordenando datos
@@ -167,6 +217,23 @@ export class ReservasService {
 
     const reservaRes = await this.reservasModel.findByIdAndUpdate(id, reservasUpdateDTO, { new: true });
     return reservaRes;
+
+  }
+
+  // Eliminar reserva
+  async eliminarReserva(id: string): Promise<String> {
+
+    // Se verifica si la reserva existe
+    let reservaDB = await this.getReserva(id);
+    if (!reservaDB) throw new NotFoundException('La reserva no existe');
+
+    // Se eliminan los productos de la reserva
+    await this.reservasProductosModel.deleteMany({ reserva: id });
+
+    // Se elimina la reserva
+    await this.reservasModel.findByIdAndDelete(id);
+
+    return 'Reserva eliminada correctamente';
 
   }
 

@@ -6,6 +6,12 @@ export class ReservasProductosDTO {
   readonly reserva: string;
   
   @IsString()
+  readonly descripcion: string;
+
+  @IsString()
+  readonly unidad_medida_descripcion: string;
+
+  @IsString()
   readonly producto: string;
 
   @IsNumber()

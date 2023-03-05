@@ -1,15 +1,23 @@
 
 export class ReservasUpdateDTO {
   
+  readonly cliente: string;
+
   readonly adelanto: number;
   
   readonly precio_total: number;
+
+  readonly productos: Array<any>;
   
   readonly fecha_entrega: string;
+
+  readonly hora_entrega: string;
  
-  readonly fecha_pedido: string;
+  readonly fecha_reserva: string;
   
   readonly fecha_finalizacion: string;
+
+  readonly observaciones: string;
 
   readonly estado: string;
   

@@ -210,4 +210,16 @@ export class ReservasProductosService {
 
   }
 
+  // Eliminar producto
+  async eliminarProducto(id: string): Promise<any> {
+
+    // Se verifica si el producto a eliminar existe
+    let productoDB = await this.getProducto(id);
+    if (!productoDB) throw new NotFoundException('El producto no existe');
+
+    await this.reservasProductosModel.findByIdAndDelete(id);
+    return 'Producto eliminado correctamente';
+
+  }
+
 }

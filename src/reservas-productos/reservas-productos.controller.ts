@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ReservasProductosUpdateDTO } from './dto/reservas-productos-update.dto';
 import { ReservasProductosService } from './reservas-productos.service';
@@ -48,6 +48,15 @@ export class ReservasProductosController {
     res.status(HttpStatus.OK).json({
       message: 'Producto actualizado correctamente',
       producto
+    });
+  }
+
+  // Eliminar producto
+  @Delete('/:id')
+  async eliminarProducto(@Res() res, @Param('id') productoID) {
+    await this.reservasProductosService.eliminarProducto(productoID);
+    res.status(HttpStatus.OK).json({
+      message: 'Producto eliminado correctamente',
     });
   }
 

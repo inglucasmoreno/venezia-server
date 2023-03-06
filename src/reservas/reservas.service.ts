@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
 import { IReservasProductos } from 'src/reservas-productos/interface/reservas-productos.interface';
 import { IReservas } from './interface/reservas.interface';
@@ -77,7 +78,7 @@ export class ReservasService {
   // Crear reserva
   async crearReserva(reservasDTO: any): Promise<IReservas> {
 
-    const { productos } = reservasDTO;
+    const { productos, fecha_entrega, fecha_reserva } = reservasDTO;
 
     // Numero de reserva
     const reservas = await this.reservasModel.find().sort({ nro: -1 }).limit(1);
@@ -85,12 +86,14 @@ export class ReservasService {
     let ultimoNumero = 0;
     if (reservas.length > 0) ultimoNumero = reservas[0].nro;
 
+    // Adaptacion de fechas
+    reservasDTO.fecha_reserva = add(new Date(fecha_reserva), { hours: 3 });
+    reservasDTO.fecha_entrega = add(new Date(fecha_entrega), { hours: 3 });
+
     const data = {
       ...reservasDTO,
       nro: ultimoNumero + 1
     }
-
-    console.log(reservasDTO.productos);
 
     // Creacion de reserva
     const nuevaReserva = new this.reservasModel(data);
@@ -211,9 +214,22 @@ export class ReservasService {
   // Actualizar reserva
   async actualizarReserva(id: string, reservasUpdateDTO: any): Promise<IReservas> {
 
+    let { fecha_entrega, fecha_reserva } = reservasUpdateDTO;
+
     // Se verifica si la reserva a actualizar existe
     let reservaDB = await this.getReserva(id);
     if (!reservaDB) throw new NotFoundException('La reserva no existe');
+
+    if(fecha_reserva && fecha_reserva !== ''){
+      reservasUpdateDTO.fecha_reserva = add(new Date(fecha_reserva), { hours: 3 });
+      console.log(reservasUpdateDTO.fecha_reserva);
+    }
+
+    // Ajuste de fechas
+    if(fecha_entrega && fecha_entrega !== ''){
+      reservasUpdateDTO.fecha_entrega = add(new Date(fecha_entrega), { hours: 3 });
+      console.log(reservasUpdateDTO.fecha_entrega);
+    }
 
     const reservaRes = await this.reservasModel.findByIdAndUpdate(id, reservasUpdateDTO, { new: true });
     return reservaRes;

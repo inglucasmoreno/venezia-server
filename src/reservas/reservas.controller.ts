@@ -12,7 +12,7 @@ export class ReservasController {
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   async getReserva(@Res() res, @Param('id') reservaID) {
-    const {reserva, productos} = await this.reservasService.getReserva(reservaID);
+    const { reserva, productos } = await this.reservasService.getReserva(reservaID);
     res.status(HttpStatus.OK).json({
       message: 'Reserva obtenida correctamente',
       reserva,
@@ -39,6 +39,17 @@ export class ReservasController {
       message: 'Listado de reservas correcto',
       reservas,
       totalItems
+    });
+  }
+
+  // Reservas por vencer
+  @UseGuards(JwtAuthGuard)
+  @Get('/parametro/vencer')
+  async reservasPorVencer(@Res() res, @Query() querys) {
+    const reservas = await this.reservasService.reservasPorVencer(querys);
+    res.status(HttpStatus.OK).json({
+      message: 'Listado de reservas por vencer correcto',
+      reservas,
     });
   }
 

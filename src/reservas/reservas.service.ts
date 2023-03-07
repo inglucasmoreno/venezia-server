@@ -78,17 +78,20 @@ export class ReservasService {
   // Crear reserva
   async crearReserva(reservasDTO: any): Promise<IReservas> {
 
-    const { productos, fecha_entrega, fecha_reserva } = reservasDTO;
+    const { productos, fecha_entrega, fecha_reserva, fecha_alerta } = reservasDTO;
 
     // Numero de reserva
     const reservas = await this.reservasModel.find().sort({ nro: -1 }).limit(1);
+
+    console.log(reservasDTO);
 
     let ultimoNumero = 0;
     if (reservas.length > 0) ultimoNumero = reservas[0].nro;
 
     // Adaptacion de fechas
     reservasDTO.fecha_reserva = add(new Date(fecha_reserva), { hours: 3 });
-    reservasDTO.fecha_entrega = add(new Date(fecha_entrega), { hours: 3 });
+    reservasDTO.fecha_entrega = new Date(fecha_entrega);
+    reservasDTO.fecha_alerta = new Date(fecha_alerta);
 
     const data = {
       ...reservasDTO,
@@ -208,6 +211,35 @@ export class ReservasService {
       reservas,
       totalItems: reservasTotal.length
     };
+
+  }
+
+  // Reservas por vencer
+  async reservasPorVencer({ columna, direccion }): Promise<IReservas[]> {
+  
+    console.log(columna, direccion);
+
+    const pipeline = [];
+    pipeline.push({ $match: { estado: 'Pendiente' } })
+    
+    const fechaHoy = new Date();
+    console.log(fechaHoy);
+
+    // Mayor a la fecha de alerta
+    pipeline.push({$match: { 
+      fecha_alerta: { $lte: fechaHoy } 
+    }});
+
+
+    // Ordenando datos
+    const ordenar: any = {};
+    if (columna) {
+      ordenar[String(columna)] = Number(direccion);
+      pipeline.push({ $sort: ordenar });
+    }
+
+    const reservas = await this.reservasModel.aggregate(pipeline);
+    return reservas;
 
   }
 

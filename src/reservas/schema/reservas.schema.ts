@@ -39,9 +39,19 @@ export const reservasSchema = new Schema({
     required: true
   },
 
+  fecha_alerta: {
+    type: Date,
+    required: true
+  },
+
   fecha_finalizacion: {
     type: Date,
     default: new Date()
+  },
+
+  horas_antes: {
+    type: String,
+    required: true,
   },
 
   observaciones: {

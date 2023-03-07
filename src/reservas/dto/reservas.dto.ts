@@ -19,6 +19,9 @@ export class ReservasDTO {
 
   @IsString()
   readonly hora_entrega: string;
+
+  @IsString()
+  readonly fecha_alerta: string;
  
   @IsString()
   readonly fecha_reserva: string;
@@ -26,6 +29,9 @@ export class ReservasDTO {
   @IsString()
   @IsOptional()
   readonly fecha_finalizacion: string;
+
+  @IsString()
+  readonly horas_antes: string;
 
   @IsString()
   @IsOptional()

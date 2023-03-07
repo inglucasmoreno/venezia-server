@@ -13,9 +13,13 @@ export class ReservasUpdateDTO {
 
   readonly hora_entrega: string;
  
+  readonly fecha_alerta: string;
+
   readonly fecha_reserva: string;
   
   readonly fecha_finalizacion: string;
+
+  readonly horas_antes: string;
 
   readonly observaciones: string;
 

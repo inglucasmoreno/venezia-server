@@ -347,7 +347,7 @@ export class VentasService {
 
       // Ultimo numero de comprobante
       const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, this.facturacion.cbteTipo).catch( () => {
-        throw new NotFoundException('Problemas al obtener numero de comprobante');
+        throw new NotFoundException('No hay conexión con el servidor de AFIP');
       })
 
       let cbteNro = ultimoNumero + 1;
@@ -455,7 +455,7 @@ export class VentasService {
 
     // Ultimo numero de comprobante
     const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, this.facturacion.cbteTipo).catch( () => {
-      throw new NotFoundException('Problemas al obtener número de comprobante');
+      throw new NotFoundException('No hay conexión con el servidor de AFIP');
     })
 
     let cbteNro = ultimoNumero + 1;
@@ -651,7 +651,7 @@ export class VentasService {
 
     // Ultimo numero de comprobante
     const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, tipoNroComprobante).catch( () => {
-      throw new NotFoundException('Problemas al obtener número de comprobante');
+      throw new NotFoundException('No hay conexión con el servidor de AFIP');
     })
 
     let nroComprobante = ultimoNumero + 1;

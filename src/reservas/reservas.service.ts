@@ -83,8 +83,6 @@ export class ReservasService {
     // Numero de reserva
     const reservas = await this.reservasModel.find().sort({ nro: -1 }).limit(1);
 
-    console.log(reservasDTO);
-
     let ultimoNumero = 0;
     if (reservas.length > 0) ultimoNumero = reservas[0].nro;
 
@@ -217,13 +215,10 @@ export class ReservasService {
   // Reservas por vencer
   async reservasPorVencer({ columna, direccion }): Promise<IReservas[]> {
   
-    console.log(columna, direccion);
-
     const pipeline = [];
     pipeline.push({ $match: { estado: 'Pendiente' } })
     
     const fechaHoy = new Date();
-    console.log(fechaHoy);
 
     // Mayor a la fecha de alerta
     pipeline.push({$match: { 
@@ -246,21 +241,25 @@ export class ReservasService {
   // Actualizar reserva
   async actualizarReserva(id: string, reservasUpdateDTO: any): Promise<IReservas> {
 
-    let { fecha_entrega, fecha_reserva } = reservasUpdateDTO;
+    let { fecha_entrega, fecha_reserva, fecha_alerta } = reservasUpdateDTO;
 
     // Se verifica si la reserva a actualizar existe
     let reservaDB = await this.getReserva(id);
     if (!reservaDB) throw new NotFoundException('La reserva no existe');
 
+    // Ajuste de fecha de reserva
     if(fecha_reserva && fecha_reserva !== ''){
       reservasUpdateDTO.fecha_reserva = add(new Date(fecha_reserva), { hours: 3 });
-      console.log(reservasUpdateDTO.fecha_reserva);
     }
 
-    // Ajuste de fechas
+    // Ajuste de fecha de entrega
     if(fecha_entrega && fecha_entrega !== ''){
-      reservasUpdateDTO.fecha_entrega = add(new Date(fecha_entrega), { hours: 3 });
-      console.log(reservasUpdateDTO.fecha_entrega);
+      reservasUpdateDTO.fecha_entrega = new Date(fecha_entrega);
+    }
+
+    // Ajuste de fecha de alerta
+    if(fecha_alerta && fecha_alerta !== ''){
+      reservasUpdateDTO.fecha_entrega = new Date(fecha_alerta);
     }
 
     const reservaRes = await this.reservasModel.findByIdAndUpdate(id, reservasUpdateDTO, { new: true });

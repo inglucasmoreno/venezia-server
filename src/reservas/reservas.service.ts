@@ -114,6 +114,8 @@ export class ReservasService {
   // Listar reservas
   async listarReservas(querys: any): Promise<any> {
 
+    let fechaHoy = new Date();
+
     const {
       columna,
       direccion,
@@ -121,7 +123,8 @@ export class ReservasService {
       registerpp,
       parametro,
       activo,
-      estado
+      estado,
+      por_vencer
     } = querys;
 
     const pipeline = [];
@@ -129,6 +132,14 @@ export class ReservasService {
 
     pipeline.push({ $match: {} });
     pipelineTotal.push({ $match: {} });
+
+    // Reservas por vencer
+    if(por_vencer === 'true'){
+      // Mayor a la fecha de alerta
+      pipeline.push({$match: { 
+        fecha_alerta: { $lte: fechaHoy } 
+      }});
+    }
 
     // Informacion de usuario creador
     pipeline.push({
@@ -224,7 +235,6 @@ export class ReservasService {
     pipeline.push({$match: { 
       fecha_alerta: { $lte: fechaHoy } 
     }});
-
 
     // Ordenando datos
     const ordenar: any = {};

@@ -259,7 +259,7 @@ export class ReservasService {
 
     // Ajuste de fecha de alerta
     if(fecha_alerta && fecha_alerta !== ''){
-      reservasUpdateDTO.fecha_entrega = new Date(fecha_alerta);
+      reservasUpdateDTO.fecha_alerta = new Date(fecha_alerta);
     }
 
     const reservaRes = await this.reservasModel.findByIdAndUpdate(id, reservasUpdateDTO, { new: true });

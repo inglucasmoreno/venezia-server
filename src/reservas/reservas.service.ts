@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { add } from 'date-fns';
+import { add, format } from 'date-fns';
 import { Model, Types } from 'mongoose';
 import { IReservasProductos } from 'src/reservas-productos/interface/reservas-productos.interface';
 import { IReservas } from './interface/reservas.interface';
+import * as fs from 'fs';
+import * as pdf from 'pdf-creator-node';
 
 @Injectable()
 export class ReservasService {
@@ -78,7 +80,7 @@ export class ReservasService {
   // Crear reserva
   async crearReserva(reservasDTO: any): Promise<IReservas> {
 
-    const { productos, fecha_entrega, fecha_reserva, fecha_alerta } = reservasDTO;
+    const { productos, fecha_entrega, fecha_reserva, fecha_alerta, cliente_descripcion } = reservasDTO;
 
     // Numero de reserva
     const reservas = await this.reservasModel.find().sort({ nro: -1 }).limit(1);
@@ -88,8 +90,8 @@ export class ReservasService {
 
     // Adaptacion de fechas
     reservasDTO.fecha_reserva = add(new Date(fecha_reserva), { hours: 3 });
-    reservasDTO.fecha_entrega = new Date(fecha_entrega);
-    reservasDTO.fecha_alerta = new Date(fecha_alerta);
+    reservasDTO.fecha_entrega = add(new Date(fecha_entrega), { hours: 3 });
+    reservasDTO.fecha_alerta = add(new Date(fecha_alerta), { hours: 3 });
 
     const data = {
       ...reservasDTO,
@@ -106,6 +108,21 @@ export class ReservasService {
       const nuevoProducto = new this.reservasProductosModel(producto);
       await nuevoProducto.save();
     })
+
+    // Se crea el comprobante de la reserva
+    
+    const dataComprobante = {
+      nro_reserva: reserva.nro,
+      fecha_reserva: reserva.fecha_reserva,
+      fecha_entrega: reserva.fecha_entrega,
+      hora_entrega: reserva.hora_entrega,
+      cliente: cliente_descripcion,
+      precio_total: reserva.precio_total,
+      adelanto: reserva.adelanto,
+      productos
+    }
+
+    await this.generaraComprobante(dataComprobante);
 
     return reserva;
 
@@ -331,6 +348,49 @@ export class ReservasService {
     await this.reservasModel.findByIdAndDelete(id);
 
     return 'Reserva eliminada correctamente';
+
+  }
+
+  // Generar comprobante
+  async generaraComprobante(data: any): Promise<any> {
+    
+    // GENERACION DE PDF
+
+    let html: any;
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/comprobante_reserva.html', 'utf-8');
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+        height: "0mm",
+        contents: {}
+      }
+    }
+
+    // Completando data
+    data = { ...data, 
+      fecha: format(new Date(), 'dd/MM/yyyy'),
+      fecha_reserva: format(add(new Date(data.fecha_reserva), { hours: 3 }), 'dd/MM/yyyy'),
+      fecha_entrega: format(add(new Date(data.fecha_entrega), { hours: 3 }), 'dd/MM/yyyy'),
+      adelanto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data.adelanto),
+      precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data.precio_total),
+      falta_abonar: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data.precio_total - data.adelanto)
+    }
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data,
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/comprobante_reserva.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
+    return 'PDF generado correctamente';
+
 
   }
 

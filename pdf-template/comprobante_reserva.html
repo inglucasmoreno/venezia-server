@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+  <link rel="stylesheet" href="template.css">
+
+  <style>
+
+      /* CSS de PDF */
+
+      * {
+          box-sizing: border-box;
+          margin: 0px;
+          padding: 0px;
+          font-family: Arial, Helvetica, sans-serif;
+      }
+
+  </style>
+
+  <head>
+      <mate charest="utf-8" />
+      <title> Comprobante reserva </title>
+  </head>
+
+  <body style="font-family: Arial, Helvetica, sans-serif; padding-left: 10px; padding-top: 10px;">
+
+    <!-- ORIGINAL -->
+
+    <table style="margin-left: 5px;">
+      <tr>
+        <td>
+          <img style="width: 100px;" src="http://localhost:3000/pdf/logo.png">            
+        </td>
+        <td>
+          <!-- <p style="margin-top: 10px; font-size: 8px; margin-left: 15px;"> <span> Fecha y hora </p>
+          <p style="font-size: 8px; margin-left: 15px;"> <span> {{ fecha }} </p> -->
+        </td>
+      </tr>
+    </table>
+
+    <div style="margin-top: 2px; width: 200px;">
+      <div>
+        <p style="margin-top: 2px; font-size: 9px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 10px; font-size: 8px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo del valle 202 </p>
+        <p style="margin-top: 10px; font-size: 8px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516 </p>
+      </div>
+    </div>
+
+    <div style="width: 200px;"> ---------------------------------- </div>
+
+    <div style="font-size: 9px;">
+      <p> <span style="font-weight: bold;"> Nro de reserva: </span> {{ nro_reserva }} </p>
+      <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Fecha de reserva: </span> {{ fecha_reserva }} </p>
+      <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Fecha de entrega: </span> {{ fecha_entrega }} - {{ hora_entrega }}hs </p>
+      <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Cliente: </span> <span style="font-size: 8px;"> {{ cliente }} </span> </p>
+    </div>
+    
+    <!-- Productos -->
+    <div style="width: 200px;"> ---------------------------------- </div>
+      <p style="font-size: 9px;"> <span style="font-weight: bold;"> Listado de productos </span>  </p>
+      <div style="font-size: 9px; width: 200px; margin-top: 5px;">
+        {{#each productos}}
+        <div style="margin-bottom: 5px;">
+          <p style="font-weight: bold"> {{ descripcion }} </p>
+          <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>  
+          <p style="font-size: 8px;"> Cantidad: {{ cantidad }} </p>
+          <p style="font-size: 8px; font-weight: bold;"> Precio: ${{ precio }} </p>
+          <!-- <p style="font-size: 8px;"> ${{ precio }} </p>   -->
+        </div>
+        {{/each}}     
+      </div>
+    <div style="width: 200px;"> ---------------------------------- </div>
+      <p style="font-size: 9px;"> <span style="font-weight: bold;"> Monto de seña: </span> ${{ adelanto }} </p>
+      <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Precio total: </span> ${{ precio_total }} </p>
+      <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Falta abonar: </span> ${{ falta_abonar }} </p>
+    <div style="width: 200px;"> ---------------------------------- </div>
+      <p style="font-size: 9px; margin-top: 10px; margin-bottom: 10px;"> Firma de cliente: </p>
+    <div style="width: 200px;"> ---------------------------------- </div>
+      <p style="font-weight: bold; font-size: 10px;"> IMPORTANTE </p>
+      <p style="font-size: 9px; margin-top: 2px; margin-bottom: 10px; width: 200px;"> En caso de no abonar el monto necesario para completar la reserva su seña se perdera </p>
+
+    <!-- DUPLICADO -->
+
+    <div style="width: 200px;"> ---------------------------------- </div>
+
+    <table style="margin-left: 5px;">
+      <tr>
+        <td>
+          <img style="width: 100px;" src="http://localhost:3000/pdf/logo.png">            
+        </td>
+        <td>
+          <!-- <p style="margin-top: 10px; font-size: 8px; margin-left: 15px;"> <span> Fecha y hora </p>
+          <p style="font-size: 8px; margin-left: 15px;"> <span> {{ fecha }} </p> -->
+        </td>
+      </tr>
+    </table>
+
+    <div style="margin-top: 2px; width: 200px;">
+      <div>
+        <p style="margin-top: 2px; font-size: 9px;"> <span style="font-weight: bold"> VENEZIA PANADERIA </span> </p>
+        <p style="margin-top: 10px; font-size: 8px;"> <span style="font-weight: bold;"> Domicilio: </span> Aristobulo del valle 202 </p>
+        <p style="margin-top: 10px; font-size: 8px;"> <span style="font-weight: bold;"> Teléfono: </span> 2664660516 </p>
+      </div>
+    </div>
+
+    <div style="width: 200px;"> ---------------------------------- </div>
+
+    <div style="font-size: 9px;">
+      <p> <span style="font-weight: bold;"> Nro de reserva: </span> {{ nro_reserva }} </p>
+      <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Fecha de reserva: </span> {{ fecha_reserva }} </p>
+      <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Fecha de entrega: </span> {{ fecha_entrega }} - {{ hora_entrega }}hs </p>
+      <p style="margin-top: 5px;"> <span style="font-weight: bold;"> Cliente: </span> <span style="font-size: 8px;"> {{ cliente }} </span> </p>
+    </div>
+    
+    <!-- Productos -->
+    <div style="width: 200px;"> ---------------------------------- </div>
+      <p style="font-size: 9px;"> <span style="font-weight: bold;"> Listado de productos </span>  </p>
+      <div style="font-size: 9px; width: 200px; margin-top: 5px;">
+        {{#each productos}}
+        <div style="margin-bottom: 5px;">
+          <p style="font-weight: bold"> {{ descripcion }} </p>
+          <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>  
+          <p style="font-size: 8px;"> Cantidad: {{ cantidad }} </p>
+          <p style="font-size: 8px; font-weight: bold;"> Precio: ${{ precio }} </p>
+          <!-- <p style="font-size: 8px;"> ${{ precio }} </p>   -->
+        </div>
+        {{/each}}     
+      </div>
+    <div style="width: 200px;"> ---------------------------------- </div>
+      <p style="font-size: 9px;"> <span style="font-weight: bold;"> Monto de seña: </span> ${{ adelanto }} </p>
+      <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Precio total: </span> ${{ precio_total }} </p>
+      <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Falta abonar: </span> ${{ falta_abonar }} </p>
+    <div style="width: 200px;"> ---------------------------------- </div>
+      <p style="font-weight: bold; font-size: 10px;"> IMPORTANTE </p>
+      <p style="font-size: 9px; margin-top: 2px; margin-bottom: 10px; width: 200px;"> En caso de no abonar el monto necesario para completar la reserva su seña se perdera </p>
+
+    <br>
+    <br>
+  
+  </body>
+
+</html>

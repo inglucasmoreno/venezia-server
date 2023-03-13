@@ -20,16 +20,6 @@ export class ReservasController {
     });
   }
 
-  // Crear reserva
-  @Post('/')
-  async crearReserva(@Res() res, @Body() reservasDTO: any) {
-    const reserva = await this.reservasService.crearReserva(reservasDTO);
-    res.status(HttpStatus.CREATED).json({
-      message: 'Reserva creada correctamente',
-      reserva
-    });
-  }
-
   // Listar reservas
   @UseGuards(JwtAuthGuard)
   @Get('/')
@@ -50,6 +40,25 @@ export class ReservasController {
     res.status(HttpStatus.OK).json({
       message: 'Listado de reservas por vencer correcto',
       reservas,
+    });
+  }
+
+  // Crear reserva
+  @Post('/')
+  async crearReserva(@Res() res, @Body() reservasDTO: any) {
+    const reserva = await this.reservasService.crearReserva(reservasDTO);
+    res.status(HttpStatus.CREATED).json({
+      message: 'Reserva creada correctamente',
+      reserva
+    });
+  }
+
+  // Generar comprobante
+  @Post('/comprobante')
+  async generarComprobante(@Res() res, @Body() data: any) {
+    await this.reservasService.generaraComprobante(data);
+    res.status(HttpStatus.CREATED).json({
+      message: 'Comprobante generado correctamente',
     });
   }
 

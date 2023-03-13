@@ -23,7 +23,7 @@ export class ReservasService {
 
     // Reserva por ID
     const idReserva = new Types.ObjectId(id);
-    pipeline.push({ $match: { _id: idReserva } })
+    pipeline.push({ $match: { _id: idReserva } });
 
     // Informacion de cliente
     pipeline.push({
@@ -124,7 +124,8 @@ export class ReservasService {
       parametro,
       activo,
       estado,
-      por_vencer
+      por_vencer,
+      fecha
     } = querys;
 
     const pipeline = [];
@@ -134,11 +135,37 @@ export class ReservasService {
     pipelineTotal.push({ $match: {} });
 
     // Reservas por vencer
-    if(por_vencer === 'true'){
+    if (por_vencer === 'true') {
       // Mayor a la fecha de alerta
-      pipeline.push({$match: { 
-        fecha_alerta: { $lte: fechaHoy } 
-      }});
+      pipeline.push({ $match: { fecha_alerta: { $lte: fechaHoy }, estado: 'Pendiente' } });
+    }
+
+    // Filtro - Fecha desde
+    if (fecha && fecha.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_reserva: { $gte: add(new Date(fecha), { hours: 0 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          fecha_reserva: { $gte: add(new Date(fecha), { hours: 0 }) }
+        }
+      });
+    }
+
+    // Filtro - Fecha hasta
+    if (fecha && fecha.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_reserva: { $lte: add(new Date(fecha), { days: 1, hours: 0 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          fecha_reserva: { $lte: add(new Date(fecha), { days: 1, hours: 0 }) }
+        }
+      });
     }
 
     // Informacion de usuario creador
@@ -189,9 +216,9 @@ export class ReservasService {
     }
 
     // Filtro por estado
-    if(estado && estado !== ''){
+    if (estado && estado !== '') {
       pipeline.push({ $match: { estado } });
-      pipelineTotal.push({ $match: { estado } });      
+      pipelineTotal.push({ $match: { estado } });
     }
 
     // Filtro por parametros
@@ -225,16 +252,18 @@ export class ReservasService {
 
   // Reservas por vencer
   async reservasPorVencer({ columna, direccion }): Promise<IReservas[]> {
-  
+
     const pipeline = [];
     pipeline.push({ $match: { estado: 'Pendiente' } })
-    
+
     const fechaHoy = new Date();
 
     // Mayor a la fecha de alerta
-    pipeline.push({$match: { 
-      fecha_alerta: { $lte: fechaHoy } 
-    }});
+    pipeline.push({
+      $match: {
+        fecha_alerta: { $lte: fechaHoy }
+      }
+    });
 
     // Ordenando datos
     const ordenar: any = {};
@@ -244,6 +273,7 @@ export class ReservasService {
     }
 
     const reservas = await this.reservasModel.aggregate(pipeline);
+
     return reservas;
 
   }
@@ -251,25 +281,35 @@ export class ReservasService {
   // Actualizar reserva
   async actualizarReserva(id: string, reservasUpdateDTO: any): Promise<IReservas> {
 
-    let { fecha_entrega, fecha_reserva, fecha_alerta } = reservasUpdateDTO;
+    let { fecha_entrega, fecha_reserva, fecha_alerta, estado } = reservasUpdateDTO;
 
     // Se verifica si la reserva a actualizar existe
     let reservaDB = await this.getReserva(id);
     if (!reservaDB) throw new NotFoundException('La reserva no existe');
 
     // Ajuste de fecha de reserva
-    if(fecha_reserva && fecha_reserva !== ''){
+    if (fecha_reserva && fecha_reserva !== '') {
       reservasUpdateDTO.fecha_reserva = add(new Date(fecha_reserva), { hours: 3 });
     }
 
     // Ajuste de fecha de entrega
-    if(fecha_entrega && fecha_entrega !== ''){
+    if (fecha_entrega && fecha_entrega !== '') {
       reservasUpdateDTO.fecha_entrega = new Date(fecha_entrega);
     }
 
     // Ajuste de fecha de alerta
-    if(fecha_alerta && fecha_alerta !== ''){
+    if (fecha_alerta && fecha_alerta !== '') {
       reservasUpdateDTO.fecha_alerta = new Date(fecha_alerta);
+    }
+
+    // Finalizando reservas - No retirada
+    if (estado && estado === 'No retirada') {
+      reservasUpdateDTO.fecha_finalizacion = new Date();
+    }
+
+    // Finalizando reservas - Completada
+    if (estado && estado === 'Completada') {
+      reservasUpdateDTO.fecha_finalizacion = new Date();
     }
 
     const reservaRes = await this.reservasModel.findByIdAndUpdate(id, reservasUpdateDTO, { new: true });

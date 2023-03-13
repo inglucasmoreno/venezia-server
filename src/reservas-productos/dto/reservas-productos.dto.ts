@@ -8,8 +8,11 @@ export class ReservasProductosDTO {
   @IsString()
   readonly descripcion: string;
 
+  @IsBoolean()
+  readonly balanza: string;
+
   @IsString()
-  readonly unidad_medida_descripcion: string;
+  readonly unidad_medida: string;
 
   @IsString()
   readonly producto: string;

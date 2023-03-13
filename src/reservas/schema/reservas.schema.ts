@@ -55,6 +55,8 @@ export const reservasSchema = new Schema({
   },
 
   observaciones: {
+    trim: true,
+    uppercase: true,
     type: String,
     default: ''
   },

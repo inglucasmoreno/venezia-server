@@ -1,8 +1,13 @@
-
 export class ReservasProductosUpdateDTO {
 
   readonly reserva: string;
   
+  readonly descripcion: string;
+
+  readonly balanza: boolean;
+
+  readonly unidad_medida: string;
+
   readonly producto: string;
 
   readonly precio: number;

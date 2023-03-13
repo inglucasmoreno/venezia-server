@@ -14,7 +14,12 @@ export const reservasProductosSchema = new Schema({
     required: true,
   },
 
-  unidad_medida_descripcion: {
+  balanza: {
+    type: Boolean,
+    required: true,
+  },
+
+  unidad_medida: {
     type: String,
     required: true,
   },

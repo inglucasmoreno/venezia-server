@@ -244,6 +244,10 @@ export class PaquetesService {
         pipelineTotal.push({ $match: {} });
         pipelineTotales.push({ $match: {} });
 
+        pipeline.push({ $match: { estado: {$ne:  'Creando' } } });
+        pipelineTotal.push({ $match: { estado: {$ne:  'Creando' } } });
+        pipelineTotales.push({ $match: { estado: {$ne:  'Creando' } } });
+
         // Por repartidor
         if (repartidor && repartidor !== '') {
             const idRepartidor = new Types.ObjectId(repartidor);

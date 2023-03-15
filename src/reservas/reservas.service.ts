@@ -91,7 +91,7 @@ export class ReservasService {
     // Adaptacion de fechas
     reservasDTO.fecha_reserva = add(new Date(fecha_reserva), { hours: 3 });
     reservasDTO.fecha_entrega = add(new Date(fecha_entrega), { hours: 3 });
-    reservasDTO.fecha_alerta = add(new Date(fecha_alerta), { hours: 3 });
+    reservasDTO.fecha_alerta = new Date(fecha_alerta);
 
     const data = {
       ...reservasDTO,

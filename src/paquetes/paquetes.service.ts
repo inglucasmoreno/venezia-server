@@ -647,6 +647,24 @@ export class PaquetesService {
 
     }
 
+    // Actualizar repartidor
+    async actualizarRepartidor(id: string, repartidor: string): Promise<IPaquetes> {
+
+        // Actualizacion de paquete -> Repartidor
+        const paqueteDB = await this.paquetesModel.findByIdAndUpdate(id, { repartidor }, { new: true });
+
+        // Actualizacion en cascada
+        await Promise.all([
+            this.ventasMayoristasModel.updateMany({ paquete: paqueteDB._id }, { repartidor }),
+            this.mayoristasIngresosModel.updateMany({ paquete: paqueteDB._id }, { repartidor }),
+            this.mayoristasGastosModel.updateMany({ paquete: paqueteDB._id }, { repartidor }),
+            this.cobrosMayoristasModel.updateMany({ paquete: paqueteDB._id }, { repartidor }),
+        ])
+
+        return paqueteDB;
+
+    }
+
     // Eliminar paquete
     async eliminarPaquete(id: string): Promise<IPaquetes> {
 

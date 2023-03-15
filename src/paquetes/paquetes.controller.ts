@@ -101,17 +101,6 @@ export class PaquetesController {
         });
     }
 
-    // Cerrar paquete
-    @UseGuards(JwtAuthGuard)
-    @Put('/cerrar/:id')
-    async cerrarPaquete(@Res() res, @Body() data: any, @Param('id') paqueteID) {
-        const paquete = await this.paquetesService.cerrarPaquete(paqueteID, data);
-        res.status(HttpStatus.OK).json({
-            message: 'Paquete cerrado correctamente',
-            paquete
-        });
-    }
-
     // Reporte general de paquetes
     @UseGuards(JwtAuthGuard)
     @Post('/reportes/general')
@@ -129,6 +118,17 @@ export class PaquetesController {
         });
     }
 
+    // Cerrar paquete
+    @UseGuards(JwtAuthGuard)
+    @Put('/cerrar/:id')
+    async cerrarPaquete(@Res() res, @Body() data: any, @Param('id') paqueteID) {
+        const paquete = await this.paquetesService.cerrarPaquete(paqueteID, data);
+        res.status(HttpStatus.OK).json({
+            message: 'Paquete cerrado correctamente',
+            paquete
+        });
+    }
+
     // Actualizar paquete
     @UseGuards(JwtAuthGuard)
     @Put('/:id')
@@ -136,6 +136,18 @@ export class PaquetesController {
         const paquete = await this.paquetesService.actualizarPaquete(paqueteID, paquetesUpdateDTO);
         res.status(HttpStatus.OK).json({
             message: 'Paquete actualizado correctamente',
+            paquete
+        });
+    }
+
+    // Actualizar repartidor
+    @UseGuards(JwtAuthGuard)
+    @Put('/actualizar/repartidor/:id')
+    async actualizarRepartidor(@Res() res, @Body() data: any, @Param('id') paqueteID) {
+        const { repartidor } = data;
+        const paquete = await this.paquetesService.actualizarRepartidor(paqueteID, repartidor);
+        res.status(HttpStatus.OK).json({
+            message: 'Repartidor actualizado correctamente',
             paquete
         });
     }

@@ -61,6 +61,59 @@ export const reservasSchema = new Schema({
     default: ''
   },
 
+  tipo_observaciones: {
+    uppercase: true,
+    type: String,
+    default: 'General'
+  },
+
+  torta_relleno1: {
+    trim: true,
+    uppercase: true,
+    type: String,
+    default: ''
+  },
+
+  torta_relleno2: {
+    trim: true,
+    uppercase: true,
+    type: String,
+    default: ''
+  },
+
+  torta_relleno3: {
+    trim: true,
+    uppercase: true,
+    type: String,
+    default: ''
+  },
+
+  torta_forma: {
+    trim: true,
+    uppercase: true,
+    type: String,
+    default: ''
+  },
+
+  torta_peso: {
+    type: Number,
+    default: 0
+  },
+
+  torta_cobertura: {
+    trim: true,
+    uppercase: true,
+    type: String,
+    default: ''
+  },
+
+  torta_detalles: {
+    trim: true,
+    uppercase: true,
+    type: String,
+    default: ''
+  },
+
   estado: {
     type: String,
     default: 'Pendiente'

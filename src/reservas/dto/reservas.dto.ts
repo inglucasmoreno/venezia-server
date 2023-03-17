@@ -39,6 +39,38 @@ export class ReservasDTO {
 
   @IsString()
   @IsOptional()
+  readonly tipo_observaciones: string;
+
+  @IsString()
+  @IsOptional()
+  readonly torta_relleno1: string;
+
+  @IsString()
+  @IsOptional()
+  readonly torta_relleno2: string;
+  
+  @IsString()
+  @IsOptional()
+  readonly torta_relleno3: string;
+  
+  @IsString()
+  @IsOptional()
+  readonly torta_forma: string;
+
+  @IsString()
+  @IsOptional()
+  readonly torta_peso: number;
+  
+  @IsString()
+  @IsOptional()
+  readonly torta_cobertura: string;
+
+  @IsString()
+  @IsOptional()
+  readonly torta_detalles: string;
+
+  @IsString()
+  @IsOptional()
   readonly estado: string;
   
   @IsString()

@@ -62,7 +62,6 @@ export const reservasSchema = new Schema({
   },
 
   tipo_observaciones: {
-    uppercase: true,
     type: String,
     default: 'General'
   },

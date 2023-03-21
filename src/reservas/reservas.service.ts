@@ -119,7 +119,15 @@ export class ReservasService {
       cliente: cliente_descripcion,
       precio_total: reserva.precio_total,
       adelanto: reserva.adelanto,
-      productos
+      productos,
+      tipo_observaciones: reserva.tipo_observaciones,
+      torta_cobertura: reserva.torta_cobertura,
+      torta_detalles: reserva.torta_detalles,
+      torta_forma: reserva.torta_forma,
+      torta_peso: reserva.torta_peso,
+      torta_relleno1: reserva.torta_relleno1,
+      torta_relleno2: reserva.torta_relleno2,
+      torta_relleno3: reserva.torta_relleno3
     }
 
     await this.generaraComprobante(dataComprobante);

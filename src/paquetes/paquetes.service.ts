@@ -561,7 +561,7 @@ export class PaquetesService {
 
             // Impacto en cuenta corriente
 
-            const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista: pedido.mayorista._id });
+            const cuentaCorrienteDB = await this.cuentasCorrientesMayoristasModel.findOne({ mayorista: pedido.mayorista });
 
             let nuevoSaldo = cuentaCorrienteDB.saldo;
 

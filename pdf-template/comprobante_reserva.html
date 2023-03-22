@@ -21,11 +21,11 @@
       <title> Comprobante reserva </title>
   </head>
 
-  <body style="font-family: Arial, Helvetica, sans-serif; padding-left: 10px; padding-top: 10px;">
+  <body style="font-family: Arial, Helvetica, sans-serif; padding-left: 10px; padding-top: 10px; margin-right: 20px;">
 
     <!-- ORIGINAL -->
 
-    <table style="margin-left: 5px;">
+    <table style="margin-left: 0px;">
       <tr>
         <td>
           <img style="width: 100px;" src="http://localhost:3000/pdf/logo.png">            
@@ -45,7 +45,7 @@
       </div>
     </div>
 
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
 
     <div style="font-size: 9px; width: 200px;">
       <p> <span style="font-weight: bold;"> Nro de reserva: </span> {{ nro_reserva }} </p>
@@ -55,7 +55,7 @@
     </div>
     
     <!-- Productos -->
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <p style="font-size: 9px;"> <span style="font-weight: bold;"> Listado de productos </span>  </p>
       <div style="font-size: 9px; width: 200px; margin-top: 5px;">
         {{#each productos}}
@@ -71,7 +71,7 @@
 
     <!-- Detalles de torta -->
     {{#ifCond tipo_observaciones '===' 'Torta' }}  
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <div style="width: 200px;">
         <p style="font-size: 9px; font-weight: bold;"> Detalles de torta </p>
   
@@ -104,20 +104,20 @@
       </div>
     {{/ifCond}}  
 
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <p style="font-size: 9px;"> <span style="font-weight: bold;"> Monto de seña: </span> ${{ adelanto }} </p>
       <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Precio total: </span> ${{ precio_total }} </p>
       <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Falta abonar: </span> ${{ falta_abonar }} </p>
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <p style="font-size: 9px; margin-top: 10px; margin-bottom: 10px;"> Firma de cliente: </p>
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <p style="font-weight: bold; font-size: 10px;"> IMPORTANTE </p>
       <p style="font-size: 9px; margin-top: 2px; margin-bottom: 10px; width: 200px;"> 
         En caso de que no se retire la mercaderia en la fecha y hora pactada se perdera la seña
       </p>
 
     <!-- DUPLICADO -->
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
     <table style="margin-left: 5px;">
       <tr>
         <td>
@@ -138,7 +138,7 @@
       </div>
     </div>
 
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
 
     <div style="font-size: 9px; width: 200px;">
       <p> <span style="font-weight: bold;"> Nro de reserva: </span> {{ nro_reserva }} </p>
@@ -148,7 +148,7 @@
     </div>
     
     <!-- Productos -->
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <p style="font-size: 9px;"> <span style="font-weight: bold;"> Listado de productos </span>  </p>
       <div style="font-size: 9px; width: 200px; margin-top: 5px;">
         {{#each productos}}
@@ -164,7 +164,7 @@
 
     <!-- Detalles de torta -->
     {{#ifCond tipo_observaciones '===' 'Torta' }}  
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <div style="width: 200px;">
         <p style="font-size: 9px; font-weight: bold;"> Detalles de torta </p>
   
@@ -197,11 +197,11 @@
       </div>
     {{/ifCond}}  
 
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <p style="font-size: 9px;"> <span style="font-weight: bold;"> Monto de seña: </span> ${{ adelanto }} </p>
       <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Precio total: </span> ${{ precio_total }} </p>
       <p style="margin-top: 5px; font-size: 9px;"> <span style="font-weight: bold;"> Falta abonar: </span> ${{ falta_abonar }} </p>
-    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="width: 200px;"> -------------------------------- </div>
       <p style="font-weight: bold; font-size: 10px;"> IMPORTANTE </p>
       <p style="font-size: 9px; margin-top: 2px; margin-bottom: 10px; width: 200px;"> 
         En caso de que no se retire la mercaderia en la fecha y hora pactada se perdera la seña

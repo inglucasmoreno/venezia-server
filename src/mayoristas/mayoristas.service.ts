@@ -145,7 +145,7 @@ export class MayoristasService {
 
         return {
             mayoristas: mayoristasTMP,
-            totalItems: mayoristasTotal.length
+            totalItems: estado === '' ? mayoristasTotal.length : mayoristasTMP.length
         };
     
     }

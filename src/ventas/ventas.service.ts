@@ -13,7 +13,7 @@ import * as pdf from 'pdf-creator-node';
 @Injectable()
 export class VentasService {
 
-  public afip = new Afip({ CUIT: '', production: true });
+  public afip = new Afip({ CUIT: '20176652536', production: false });
 
   public LIMITE_FACTURACION = 60000;
 
@@ -21,7 +21,7 @@ export class VentasService {
     ptoVta: 4,
     docTipo: 99,    // Consumidor final
     docNro: 0,      // Consumidor final
-    cbteTipo: 6,   // Factura tipo C (COD 11)
+    cbteTipo: 6,    // Factura tipo C (COD 11)
   }
 
   constructor(
@@ -286,7 +286,7 @@ export class VentasService {
   // Crear venta
   async crearVenta(ventasDTO: VentasDTO): Promise<IVentas> {
 
-    const { productos, comprobante } = ventasDTO;
+    const { productos, comprobante, sena, adicional_credito } = ventasDTO;
 
     // Se calculan los totales de balanza y no balanza
     let total_balanza = 0;
@@ -354,8 +354,76 @@ export class VentasService {
 
       const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
-      let impNeto = this.redondear((impTotal / 1.21), 2);
-      let impIVA = this.redondear((impTotal - impNeto), 2);
+      let impNeto = 0;
+      let impIVA= 0;
+      let alicuotas = [];
+
+      if(productos.length !== 0 && !sena){
+        
+        // A = 21 y B = 10.5
+  
+        // Importes totales
+        let impTotal_A = 0
+        let impTotal_B = 0
+  
+        productos.map( (producto: any) => {
+  
+          if(producto.alicuota === 10.5){ // -> B (10.5)
+            impTotal_B += producto.precio
+          } else {                        // -> A (21)
+            impTotal_A += producto.precio
+          }
+  
+        })
+        
+        // En caso de ser pago con credito se agrega el adicional
+        if(adicional_credito !== 0 && impTotal_A !== 0){
+          impTotal_A += adicional_credito;
+        }else if(adicional_credito !== 0 && impTotal_B !== 0){
+          impTotal_B += adicional_credito;
+        }
+
+        // Importes Netos
+        let impNeto_A = this.redondear((impTotal_A / 1.21), 2);
+        let impNeto_B = this.redondear((impTotal_B / 1.105), 2);
+        impNeto = this.redondear(impNeto_A + impNeto_B, 2)
+  
+        // Importe de IVA
+        let impIVA_A = this.redondear(impTotal_A - impNeto_A, 2);
+        let impIVA_B = this.redondear(impTotal_B - impNeto_B, 2);
+        impIVA = this.redondear(impIVA_A + impIVA_B, 2);
+  
+        // Arreglo de alicuots
+          
+        if(impTotal_A !== 0){       // Alicuota -> 21
+          alicuotas.push({
+            'Id' 		: 5,                                    
+            'BaseImp' 	: impNeto_A,                          
+            'Importe' 	: impIVA_A                            
+          })
+        }
+  
+        if(impTotal_B !== 0){ // Alicuota -> 10.5
+          alicuotas.push({
+            'Id' 		: 4,                                    
+            'BaseImp' 	: impNeto_B,                          
+            'Importe' 	: impIVA_B          
+          })
+        }
+
+      }else{ // -> El importe total corresponde a una seña
+
+        impNeto = this.redondear((impTotal / 1.21), 2);
+        impIVA = this.redondear((impTotal - impNeto), 2);
+        
+        alicuotas.push({
+          'Id' 		: 5,                                    
+          'BaseImp' 	: impNeto,                          
+          'Importe' 	: impIVA                            
+        })
+
+      }
+
 
       let dataFactura = {
         'CantReg' 	  : 1,                                // Cantidad de comprobantes a registrar
@@ -375,14 +443,10 @@ export class VentasService {
         'ImpTrib' 	  : 0,                                // Importe total de tributos
         'MonId' 	    : 'PES',                            // Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
         'MonCotiz' 	  : 1,                                // Cotización de la moneda usada (1 para pesos argentinos)
-        'Iva' 		: [                                     // (Opcional) Alícuotas asociadas al comprobante
-        {
-          'Id' 		: 5,                                    // Id del tipo de IVA (5 para 21%)(ver tipos disponibles) 
-          'BaseImp' 	: impNeto,                          // Base imponible
-          'Importe' 	: impIVA                            // Importe 
-        }
-      ],
+        'Iva' 		    : alicuotas,
       };
+
+      console.log(dataFactura);
 
       const facturaElectronica = await this.afip.ElectronicBilling.createVoucher(dataFactura).catch((error) => {
         throw new NotFoundException(error.message);

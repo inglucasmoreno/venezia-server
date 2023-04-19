@@ -2,6 +2,8 @@ export class ProductosUpdateDTO {
   
   readonly descripcion: string;
 
+  readonly alicuota: number;
+
   readonly precio: number;
 
   readonly precio_mayorista: number;

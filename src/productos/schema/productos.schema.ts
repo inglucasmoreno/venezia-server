@@ -10,6 +10,11 @@ export const productosSchema = new Schema({
         trim: true
     },
 
+    alicuota: {
+      type: Number,
+      default: null
+    },
+
     precio: {
       type: Number,
       required: true,

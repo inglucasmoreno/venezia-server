@@ -5,6 +5,8 @@ export class ProductosDTO {
   @IsNotEmpty()
   readonly descripcion: string;
 
+  readonly alicuota: number;
+
   @IsNotEmpty()
   readonly precio: number;
 

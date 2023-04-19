@@ -2,6 +2,8 @@ import { IsNotEmpty } from "class-validator";
 
 export class VentasDTO {
 
+  readonly sena: boolean;
+
   @IsNotEmpty()
   readonly productos: [];
 

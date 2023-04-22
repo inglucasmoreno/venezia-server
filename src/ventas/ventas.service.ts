@@ -446,8 +446,6 @@ export class VentasService {
         'Iva' 		    : alicuotas,
       };
 
-      console.log(dataFactura);
-
       const facturaElectronica = await this.afip.ElectronicBilling.createVoucher(dataFactura).catch((error) => {
         throw new NotFoundException(error.message);
       })

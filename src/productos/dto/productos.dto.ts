@@ -19,6 +19,8 @@ export class ProductosDTO {
   readonly balanza: boolean;
 
   readonly codigo: string;
+
+  readonly cantidad: number;
   
   @IsNotEmpty()
   readonly creatorUser: string;

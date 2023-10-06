@@ -42,6 +42,11 @@ export const productosSchema = new Schema({
       default: ''
     },
 
+    cantidad: {
+      type: Number,
+      default: 0
+    },
+
     creatorUser: {
         type: Schema.Types.ObjectId,
         ref: 'usuario',

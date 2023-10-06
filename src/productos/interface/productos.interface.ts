@@ -8,6 +8,7 @@ export interface IProducto extends Document {
     readonly unidad_medida: string;
     readonly balanza: boolean;
     readonly codigo: string;
+    readonly cantidad: number;
     readonly creatorUser: string;
     readonly updatorUser: string;
     readonly activo: boolean;

@@ -23,6 +23,8 @@ export class ReservasUpdateDTO {
 
   readonly observaciones: string;
 
+  readonly usuario_generador: string;
+
   readonly tipo_observaciones: string;
 
   readonly torta_relleno1: string;

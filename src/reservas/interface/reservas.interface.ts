@@ -12,6 +12,7 @@ export interface IReservas extends Document {
     readonly fecha_finalizacion: string;
     readonly horas_antes: string;
     readonly observaciones: string;
+    readonly usuario_generador: string;
     readonly tipo_observaciones: string;
     readonly torta_relleno1: string;
     readonly torta_relleno2: string;

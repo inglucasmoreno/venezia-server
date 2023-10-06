@@ -38,6 +38,9 @@ export class ReservasDTO {
   readonly observaciones: string;
 
   @IsString()
+  readonly usuario_generador: string;
+
+  @IsString()
   @IsOptional()
   readonly tipo_observaciones: string;
 

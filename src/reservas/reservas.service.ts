@@ -249,8 +249,8 @@ export class ReservasService {
     // Filtro por parametros
     if (parametro && parametro !== '') {
       const regex = new RegExp(parametro, 'i');
-      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.identificacion': parametro }, { 'cliente.descripcion': regex }] } });
-      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.identificacion': parametro }, { 'cliente.descripcion': regex }] } });
+      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'usuario_generador': regex }, { 'cliente.identificacion': parametro }, { 'cliente.descripcion': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'usuario_generador': parametro }, { 'cliente.identificacion': parametro }, { 'cliente.descripcion': regex }] } });
     }
 
     // Ordenando datos

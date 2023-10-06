@@ -14,6 +14,8 @@ export class ProductosUpdateDTO {
 
   readonly codigo: string;
   
+  readonly cantidad: number;
+
   readonly creatorUser: string;
   
   readonly updatorUser: string;

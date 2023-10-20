@@ -6,8 +6,28 @@ import { ProductosService } from './productos.service';
 
 @Controller('productos')
 export class ProductosController {
-  
-  constructor( private productosService: ProductosService ){}
+
+    constructor(private productosService: ProductosService) { }
+
+    // Sincronizacion - Productos - Sucursal principal
+    @UseGuards(JwtAuthGuard)
+    @Get('/sincronizacion/productos')
+    async sincronizacionProductos(@Res() res) {
+        const producto = await this.productosService.sincronizacionProductos();
+        res.status(HttpStatus.OK).json({
+            producto
+        });
+    }
+
+    // Copia - Productos - Sucursal principal
+    @UseGuards(JwtAuthGuard)
+    @Post('/copia/productos')
+    async copiaProductos(@Res() res, @Body() data: any) {
+        const producto = await this.productosService.copiaProductos(data);
+        res.status(HttpStatus.OK).json({
+            producto
+        });
+    }
 
     // Productos por ID
     @UseGuards(JwtAuthGuard)
@@ -45,19 +65,19 @@ export class ProductosController {
     // Crear producto
     @UseGuards(JwtAuthGuard)
     @Post('/')
-    async crearProducto(@Res() res, @Body() productoDTO: ProductosDTO ) {
-        const producto = await this.productosService.crearProducto(productoDTO);        
+    async crearProducto(@Res() res, @Body() productoDTO: ProductosDTO) {
+        const producto = await this.productosService.crearProducto(productoDTO);
         res.status(HttpStatus.CREATED).json({
             message: 'Producto creada correctamente',
             producto
         });
     }
-    
+
     // Actualizar producto
     @UseGuards(JwtAuthGuard)
     @Put('/:id')
-    async actualizarProducto(@Res() res, @Body() productosUpdateDTO: ProductosUpdateDTO, @Param('id') productoID ) {
-        
+    async actualizarProducto(@Res() res, @Body() productosUpdateDTO: ProductosUpdateDTO, @Param('id') productoID) {
+
         const producto = await this.productosService.actualizarProducto(productoID, productosUpdateDTO);
 
         res.status(HttpStatus.OK).json({

@@ -341,14 +341,14 @@ export class VentasService {
         // Se agregar el id de la venta al producto 
         producto.venta = venta._id;
 
-        if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
-          const productoDB = await this.productosModel.findById(producto.producto);
+        // if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
+        //   const productoDB = await this.productosModel.findById(producto.producto);
 
-          if (!productoDB.cantidad)
-            await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
-          else
-            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
-        }
+        //   if (!productoDB.cantidad)
+        //     await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
+        //   else
+        //     await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
+        // }
 
       }
 
@@ -511,14 +511,14 @@ export class VentasService {
 
         producto.venta = venta._id;
 
-        if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
-          const productoDB = await this.productosModel.findById(producto.producto);
+        // if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
+        //   const productoDB = await this.productosModel.findById(producto.producto);
 
-          if (!productoDB.cantidad)
-            await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
-          else
-            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
-        }
+        //   if (!productoDB.cantidad)
+        //     await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
+        //   else
+        //     await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
+        // }
 
       }
 

@@ -14,12 +14,16 @@ import { IVentasMayoristas } from 'src/ventas-mayoristas/interface/ventas-mayori
 import { PaquetesUpdateDTO } from './dto/paquetes-update.dto';
 import { PaquetesDTO } from './dto/paquetes.dto';
 import { IPaquetes } from './interface/paquetes.interface';
+import { IProducto } from 'src/productos/interface/productos.interface';
+import { IConfiguracionesGenerales } from 'src/configuraciones-generales/interface/configuraciones-generales.interface';
 
 @Injectable()
 export class PaquetesService {
 
     constructor(
         @InjectModel('Paquetes') private readonly paquetesModel: Model<IPaquetes>,
+        @InjectModel('Productos') private readonly productosModel: Model<IProducto>,
+        @InjectModel('ConfiguracionesGenerales') private readonly configuracionesGeneralesModel: Model<IConfiguracionesGenerales>,
         @InjectModel('VentasMayoristas') private readonly ventasMayoristasModel: Model<IVentasMayoristas>,
         @InjectModel('VentasMayoristasProductos') private readonly ventasMayoristasProductosModel: Model<IVentasMayoristasProductos>,
         @InjectModel('MayoristasGastos') private readonly mayoristasGastosModel: Model<IMayoristasGastos>,
@@ -244,9 +248,9 @@ export class PaquetesService {
         pipelineTotal.push({ $match: {} });
         pipelineTotales.push({ $match: {} });
 
-        pipeline.push({ $match: { estado: {$ne:  'Creando' } } });
-        pipelineTotal.push({ $match: { estado: {$ne:  'Creando' } } });
-        pipelineTotales.push({ $match: { estado: {$ne:  'Creando' } } });
+        pipeline.push({ $match: { estado: { $ne: 'Creando' } } });
+        pipelineTotal.push({ $match: { estado: { $ne: 'Creando' } } });
+        pipelineTotales.push({ $match: { estado: { $ne: 'Creando' } } });
 
         // Por repartidor
         if (repartidor && repartidor !== '') {
@@ -525,6 +529,10 @@ export class PaquetesService {
         const { dataPaquete, pedidos } = data;
         const { fecha_paquete } = dataPaquete;
 
+        // Se verifica si el control de stock esta habilitado
+        const configuraciones = await this.configuracionesGeneralesModel.find();
+        const stockHabilitado = configuraciones[0].stock;
+
         // Adaptando fecha
         const adj_fecha = add(new Date(fecha_paquete), { hours: 3 });
         dataPaquete.fecha_paquete = adj_fecha;
@@ -545,8 +553,8 @@ export class PaquetesService {
         }
 
         // Actualizacion de pedidos
-        for(const pedido of pedidos) {
-            
+        for (const pedido of pedidos) {
+
             const dataPedido = {
                 fecha_pedido: adj_fecha,
                 deuda: pedido.deuda,
@@ -619,6 +627,52 @@ export class PaquetesService {
             await this.paquetesModel.findByIdAndUpdate(paqueteDB._id, dataPaquete);
 
         }
+
+        // Impacto en stock de los productos que pertenecen al paquete con aggregate y unidad_medida
+        const pipelineProductos = [];
+        const idPaquete = new Types.ObjectId(id);
+        pipelineProductos.push({ $match: { paquete: idPaquete } });
+
+        // Informacion de productos
+        pipelineProductos.push({
+            $lookup: { // Lookup
+                from: 'productos',
+                localField: 'producto',
+                foreignField: '_id',
+                as: 'producto'
+            }
+        }
+        );
+        
+        pipelineProductos.push({ $unwind: '$producto' });
+
+        // Informacion de unidad de medida
+        pipelineProductos.push({
+            $lookup: { // Lookup
+                from: 'unidad_medida',
+                localField: 'producto.unidad_medida',
+                foreignField: '_id',
+                as: 'producto.unidad_medida'
+            }
+        }
+        );
+
+        pipelineProductos.push({ $unwind: '$producto.unidad_medida' });
+
+        const productosVenta = await this.ventasMayoristasProductosModel.aggregate(pipelineProductos);
+        
+        for (const relacion of productosVenta) {
+            
+            if(stockHabilitado){ // Se descuenta el stock si esta habilitado el uso del mismo
+              if (!relacion.producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
+                if (!relacion.producto.cantidad)
+                  await this.productosModel.findByIdAndUpdate(relacion.producto._id, { cantidad: -relacion.cantidad });
+                else
+                  await this.productosModel.findByIdAndUpdate(relacion.producto._id, { $inc: { cantidad: -relacion.cantidad } });
+              }
+            }
+
+          }
 
         return paqueteDB;
 
@@ -1015,7 +1069,7 @@ export class PaquetesService {
         // Armando DATA de Repartidor
         let dataRepartidores = [];
 
-        totalPorRepartidor.map( total => {
+        totalPorRepartidor.map(total => {
             dataRepartidores.push({
                 repartidor_id: String(total._id.repartidor),
                 repartidor_descripcion: total._id.repartidor_apellido + ' ' + total._id.repartidor_nombre,
@@ -1023,7 +1077,7 @@ export class PaquetesService {
             })
         });
 
-        dataRepartidores.map( repartidor => {
+        dataRepartidores.map(repartidor => {
 
             repartidor.gastos = [];
             repartidor.ingresos = [];
@@ -1031,43 +1085,43 @@ export class PaquetesService {
             repartidor.total_ingresos = 0;
 
             // Gastos por repartidor
-            gastosPorRepartidor.map( (gasto: any) => {
+            gastosPorRepartidor.map((gasto: any) => {
 
-                if(String(gasto._id.repartidor) === repartidor.repartidor_id){
+                if (String(gasto._id.repartidor) === repartidor.repartidor_id) {
                     repartidor.total_gastos += gasto.monto;
                     repartidor.gastos.push({
                         tipo_gasto: gasto._id.tipo_gasto,
-                        total: gasto.monto    
+                        total: gasto.monto
                     })
                 }
 
-            }) 
+            })
 
             // Ingresos por repartidor
-            ingresosPorRepartidor.map( (ingreso: any) => {
+            ingresosPorRepartidor.map((ingreso: any) => {
 
-                if(String(ingreso._id.repartidor) === repartidor.repartidor_id){
+                if (String(ingreso._id.repartidor) === repartidor.repartidor_id) {
                     repartidor.total_ingresos += ingreso.monto;
                     repartidor.ingresos.push({
                         tipo_ingreso: ingreso._id.tipo_ingreso,
-                        total: ingreso.monto    
+                        total: ingreso.monto
                     })
                 }
 
-            }) 
+            })
 
         })
-        
+
         dataRepartidores.sort(function (a, b) {
             // A va primero que B
             if (a.repartidor_descripcion < b.repartidor_descripcion)
-              return -1;
+                return -1;
             // B va primero que A
             else if (a.repartidor_descripcion > b.repartidor_descripcion)
-              return 1;
+                return 1;
             // A y B son iguales
             else
-              return 0;
+                return 0;
         });
 
         return {

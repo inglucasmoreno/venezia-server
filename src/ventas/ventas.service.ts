@@ -10,6 +10,7 @@ import { add, format } from 'date-fns';
 import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
 import { IProducto } from 'src/productos/interface/productos.interface';
+import { IConfiguracionesGenerales } from 'src/configuraciones-generales/interface/configuraciones-generales.interface';
 
 @Injectable()
 export class VentasService {
@@ -29,6 +30,7 @@ export class VentasService {
     @InjectModel('Ventas') private readonly ventasModel: Model<IVentas>,
     @InjectModel('Productos') private readonly productosModel: Model<IProducto>,
     @InjectModel('VentasProductos') private readonly ventasProductosModel: Model<IVentasProductos>,
+    @InjectModel('ConfiguracionesGenerales') private readonly configuracionesGeneralesModel: Model<IConfiguracionesGenerales>,
   ) { }
 
   // Venta por ID
@@ -314,6 +316,10 @@ export class VentasService {
 
     const { productos, comprobante, sena, adicional_credito } = ventasDTO;
 
+    // Se verifica si el control de stock esta habilitado
+    const configuraciones = await this.configuracionesGeneralesModel.find();
+    const stockHabilitado = configuraciones[0].stock;
+
     // Se calculan los totales de balanza y no balanza
     let total_balanza = 0;
     let total_no_balanza = 0;
@@ -341,14 +347,16 @@ export class VentasService {
         // Se agregar el id de la venta al producto 
         producto.venta = venta._id;
 
-        // if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
-        //   const productoDB = await this.productosModel.findById(producto.producto);
-
-        //   if (!productoDB.cantidad)
-        //     await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
-        //   else
-        //     await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
-        // }
+        if(stockHabilitado){ // Se descuenta el stock si esta habilitado el uso del mismo
+          if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
+            const productoDB = await this.productosModel.findById(producto.producto);
+  
+            if (!productoDB.cantidad)
+              await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
+            else
+              await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
+          }
+        }
 
       }
 
@@ -511,14 +519,16 @@ export class VentasService {
 
         producto.venta = venta._id;
 
-        // if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
-        //   const productoDB = await this.productosModel.findById(producto.producto);
-
-        //   if (!productoDB.cantidad)
-        //     await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
-        //   else
-        //     await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
-        // }
+        if(stockHabilitado){ // Se descuenta el stock si esta habilitado el uso del mismo
+          if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
+            const productoDB = await this.productosModel.findById(producto.producto);
+  
+            if (!productoDB.cantidad)
+              await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
+            else
+              await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } });
+          }
+        }
 
       }
 

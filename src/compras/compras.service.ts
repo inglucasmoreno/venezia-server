@@ -5,11 +5,19 @@ import { ICompras } from './interface/compras.interface';
 import * as mongoose  from 'mongoose';
 import { ComprasDTO } from './dto/compras.dto';
 import { ComprasUpdateDTO } from './dto/compras-update.dto';
+import { add } from 'date-fns';
+import { IComprasProductos } from 'src/compras-productos/interface/compras-productos.interface';
+import { IProducto } from 'src/productos/interface/productos.interface';
+import { get } from 'http';
 
 @Injectable()
 export class ComprasService {
 
-  constructor(@InjectModel('Compras') private readonly comprasModel: Model<ICompras>,) { }
+  constructor(
+    @InjectModel('Compras') private readonly comprasModel: Model<ICompras>,
+    @InjectModel('ComprasProductos') private readonly comprasProductosModel: Model<IComprasProductos>,
+    @InjectModel('Productos') private readonly productosModel: Model<IProducto>,
+  ) { }
 
   // Compra por ID
   async getCompra(id: string): Promise<ICompras> {
@@ -104,15 +112,49 @@ export class ComprasService {
 
   // Crear compra
   async crearCompra(comprasDTO: ComprasDTO): Promise<ICompras> {
+
+    // Numero de compra
+    const ultimaCompra: any = await this.comprasModel.findOne().sort({ numero: -1 }).limit(1);
+    if (ultimaCompra) comprasDTO.numero = ultimaCompra.numero + 1;
+    else comprasDTO.numero = 1;
+    
+    comprasDTO.fecha_compra = add(new Date(comprasDTO.fecha_compra),{ hours: 3 });
+
+    // Crear compra
     const nuevaCompra = new this.comprasModel(comprasDTO);
     return await nuevaCompra.save();
+
   }
 
   // Actualizar compra
-  async actualizarCompra(id: string, comprasUpdateDTO: ComprasUpdateDTO): Promise<ICompras> {
+  async actualizarCompra(id: string, comprasUpdateDTO: any): Promise<ICompras> {
+    comprasUpdateDTO.fecha_compra = add(new Date(comprasUpdateDTO.fecha_compra),{ hours: 3 });
     const compra = await this.comprasModel.findByIdAndUpdate(id, comprasUpdateDTO, { new: true });
-    return compra;
+    return this.getCompra(compra._id);
   }
 
+  // Completar compra
+  async completarCompra(id: string): Promise<ICompras> {
+
+    const compra = await this.comprasModel.findById(id);
+    if (!compra) throw new NotFoundException('La compra no existe');
+
+    // Impacto en stock de los productos asociados a la compra
+    const productos = await this.comprasProductosModel.find({ compra: id });
+    for (const producto of productos) {
+      const productoDB = await this.productosModel.findById(producto.producto);
+      const nuevaCantidad = productoDB.cantidad + producto.cantidad;
+      await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: nuevaCantidad });
+    }
+
+    // Actalizando estado de la compra
+    const comprasUpdateDTO = {
+      estado: 'Completada',
+    }
+
+    await this.comprasModel.findByIdAndUpdate(id, comprasUpdateDTO, { new: true });
+    return this.getCompra(id);
+
+  }
 
 }

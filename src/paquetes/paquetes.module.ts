@@ -10,10 +10,14 @@ import { ventasMayoristasSchema } from 'src/ventas-mayoristas/schema/ventas-mayo
 import { PaquetesController } from './paquetes.controller';
 import { PaquetesService } from './paquetes.service';
 import { paquetesSchema } from './schema/paquetes.schema';
+import { productosSchema } from 'src/productos/schema/productos.schema';
+import { configuracionesGeneralesSchema } from 'src/configuraciones-generales/schema/configuraciones-generales.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{name: 'Paquetes', schema: paquetesSchema}]),
+    MongooseModule.forFeature([{name: 'Productos', schema: productosSchema}]),
+    MongooseModule.forFeature([{name: 'ConfiguracionesGenerales', schema: configuracionesGeneralesSchema}]),
     MongooseModule.forFeature([{name: 'VentasMayoristas', schema: ventasMayoristasSchema}]),
     MongooseModule.forFeature([{name: 'VentasMayoristasProductos', schema: ventasMayoristasProductosSchema}]),
     MongooseModule.forFeature([{name: 'MayoristasGastos', schema: mayoristasGastosSchema}]),

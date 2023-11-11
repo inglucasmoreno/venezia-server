@@ -1,16 +1,15 @@
 import { IsNotEmpty } from "class-validator";
 
-export class ComprasDTO {
+export class ComprasProductosDTO {
   
-  fecha_compra: string | Date;
+  @IsNotEmpty()
+  compra: string;
 
-  numero: number;
+  @IsNotEmpty()
+  producto: string;
 
-  numero_factura: string;
-
-  readonly comentarios: string;
-
-  estado: string;
+  @IsNotEmpty()
+  cantidad: number;
   
   @IsNotEmpty()
   readonly creatorUser: string;

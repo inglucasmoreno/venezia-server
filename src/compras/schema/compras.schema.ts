@@ -10,10 +10,27 @@ export const comprasSchema = new Schema({
     trim: true
   },
 
+  numero: {
+    type: Number,
+    required: true
+  },
+
+  numero_factura: {
+    type: String,
+    default: '',
+    trim: true
+  },
+
   comentarios: {
     type: String,
     uppercase: true,
     default: '',
+    trim: true
+  },
+
+  estado: {
+    type: String,
+    default: 'Pendiente',
     trim: true
   },
 

@@ -20,6 +20,17 @@ export class ComprasController {
     });
   }
 
+  // Completar compra
+  @UseGuards(JwtAuthGuard)
+  @Get('/completar/:id')
+  async completarCompra(@Res() res, @Param('id') compraID) {
+    const compra = await this.comprasService.completarCompra(compraID);
+    res.status(HttpStatus.OK).json({
+      message: 'Compra completada correctamente',
+      compra
+    });
+  }
+
   // Listar compras
   @UseGuards(JwtAuthGuard)
   @Get('/')

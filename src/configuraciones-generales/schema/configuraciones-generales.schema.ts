@@ -8,6 +8,16 @@ export const configuracionesGeneralesSchema = new Schema({
         default: false,
     },
 
+    venta_cantidad: {
+        type: Boolean,
+        default: false,
+    },
+
+    venta_precio: {
+        type: Boolean,
+        default: true,
+    },
+
     activo: {
         type: Boolean,
         default: true

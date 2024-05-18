@@ -6,8 +6,8 @@ import { VentasService } from './ventas.service';
 
 @Controller('ventas')
 export class VentasController {
-  
-    constructor( private ventasService: VentasService ){}
+
+    constructor(private ventasService: VentasService) { }
 
     // Venta por ID
     @UseGuards(JwtAuthGuard)
@@ -26,9 +26,9 @@ export class VentasController {
     @Get('/')
     async listarVentas(@Res() res, @Query() querys) {
         const {
-            ventas, 
-            totalItems, 
-            totalVentas, 
+            ventas,
+            totalItems,
+            totalVentas,
             totalFacturado,
             totalPedidosYa,
             totalPedidosYaOnline,
@@ -49,35 +49,35 @@ export class VentasController {
     // Crear venta
     @UseGuards(JwtAuthGuard)
     @Post('/')
-    async crearVenta(@Res() res, @Body() ventasDTO: VentasDTO ) {
-        const venta = await this.ventasService.crearVenta(ventasDTO);        
+    async crearVenta(@Res() res, @Body() ventasDTO: VentasDTO) {
+        const venta = await this.ventasService.crearVenta(ventasDTO);
         res.status(HttpStatus.CREATED).json({
             message: 'Venta creada correctamente',
             venta
         });
     }
-    
+
     // Actualizar venta
     @UseGuards(JwtAuthGuard)
     @Put('/:id')
-    async actualizarVenta(@Res() res, @Body() ventasUpdateDTO: VentasUpdateDTO, @Param('id') ventaID ) {
+    async actualizarVenta(@Res() res, @Body() ventasUpdateDTO: VentasUpdateDTO, @Param('id') ventaID) {
         const venta = await this.ventasService.actualizarVenta(ventaID, ventasUpdateDTO);
         res.status(HttpStatus.OK).json({
             message: 'Venta actualizada correctamente',
             venta
         });
-    }  
+    }
 
     // Actualizacion de facturacion
     @UseGuards(JwtAuthGuard)
     @Put('/actualizar/facturacion/:id')
-    async actualizarFacturacion(@Res() res, @Body() data: any, @Param('id') ventaID ) {
+    async actualizarFacturacion(@Res() res, @Body() data: any, @Param('id') ventaID) {
         const venta = await this.ventasService.actualizarFacturacion(ventaID, data);
         res.status(HttpStatus.OK).json({
             message: 'Venta facturada correctamente',
             venta
         });
-    }  
+    }
 
     // Generacion de comprobante
     @UseGuards(JwtAuthGuard)
@@ -97,6 +97,17 @@ export class VentasController {
         res.status(HttpStatus.OK).json({
             nro_factura,
             message: 'Proximo numero de factura correctamente'
+        });
+    }
+
+    // Obtener contribuyente
+    @UseGuards(JwtAuthGuard)
+    @Get('/contribuyente/:cuit')
+    async getContribuyente(@Res() res, @Param('cuit') cuit) {
+        const contribuyente = await this.ventasService.getContribuyente(cuit);
+        res.status(HttpStatus.OK).json({
+            contribuyente,
+            message: 'Contribuyente obtenido correctamente'
         });
     }
 

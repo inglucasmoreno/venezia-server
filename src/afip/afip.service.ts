@@ -80,6 +80,11 @@ export class AfipService {
 
   }
 
+  // Constancia de inscripcion
+  getContribuyente(cuit: string): Promise<any> {
+    return this.afip.RegisterScopeTen.getTaxpayerDetails(cuit);
+  }
+
   // Consula de padrones alcances 4, 5, 10, 13 (Datos de contribuyente)
   
   // Alcance 4

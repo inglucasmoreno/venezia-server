@@ -65,6 +65,22 @@ export const ventasSchema = new Schema({
       nroComprobante: {
         type: Number,
         default: 0,        
+      },
+      clienteRazonSocial: {
+        type: String,
+        default: '',        
+      },
+      clienteTipoPersona: {
+        type: String,
+        default: '', 
+      },
+      clienteTipoIdentificacion: {
+        type: String,
+        default: 'CUIT', 
+      },
+      clienteIdentificacion: {
+        type: String,
+        default: '', 
       }
     },
 

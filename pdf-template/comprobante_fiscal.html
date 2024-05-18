@@ -44,13 +44,28 @@
         <p style="margin-top: 5px; font-size: 8px;"> INICIO DE ACTIVIDAD: 23/08/2021 </p>
       </div>
     </div>    
+
+    {{#ifCond tipoCte '===' 'B' }}
     <div style="width: 200px;"> ---------------------------------- </div>
     <div style="font-size: 9px; width: 200px;">
       <p style="font-weight: bold; padding-left: 70px;"> FACTURA B </p>
       <p> ORIGINAL (Cod. 006) - A CONSUMIDO FINAL </p>
     </div>
     <div style="width: 200px;"> ---------------------------------- </div>
-    
+    {{/ifCond}}
+
+    {{#ifCond tipoCte '===' 'A' }}
+    <div style="width: 200px;"> ---------------------------------- </div>
+    <div style="font-size: 9px; width: 200px;">
+      <p style="font-weight: bold;"> FACTURA A </p>
+      <p> ORIGINAL (Cod. 001) </p>
+      <p> CLIENTE: {{ clienteRazonSocial }} </p>
+      <p> TIPO PERSONA: {{ clienteTipoPersona }} </p>
+      <p> {{ clienteTipoIdentificacion }}: {{ clienteIdentificacion }} </p>
+    </div>
+    <div style="width: 200px;"> ---------------------------------- </div>
+    {{/ifCond}}
+
     <!-- Productos -->
 
     <div style="font-size: 9px; width: 200px;">

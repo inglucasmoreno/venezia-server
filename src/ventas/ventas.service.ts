@@ -314,7 +314,13 @@ export class VentasService {
   // Crear venta
   async crearVenta(ventasDTO: VentasDTO): Promise<IVentas> {
 
-    const { productos, comprobante, sena, adicional_credito } = ventasDTO;
+    const { 
+      productos, 
+      comprobante, 
+      sena, 
+      adicional_credito, 
+      contribuyente
+    } = ventasDTO;
 
     // Se verifica si el control de stock esta habilitado
     const configuraciones = await this.configuracionesGeneralesModel.find();
@@ -325,8 +331,8 @@ export class VentasService {
     let total_no_balanza = 0;
 
     productos.map((producto: any) => {
-      if (producto.balanza) total_balanza += producto.precio; // Producto de balanza
-      else total_no_balanza += producto.precio;              // Producto no es de balanza
+      if (producto.balanza) total_balanza += producto.precio;   // Producto de balanza
+      else total_no_balanza += producto.precio;                 // Producto no es de balanza
     });
 
     if (comprobante === 'Normal') {
@@ -367,36 +373,26 @@ export class VentasService {
 
     } else {
 
-      // Alerta por limite de facturacion DIARIO
+      let cbteTipo = 0;
+      let docTipo = 0;
+      let docNro = 0;
 
-      // const pipelineAlerta = [];
-
-      // const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
-      // const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
-      // const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
-
-      // pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
-      // pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
-      // pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
-
-      // pipelineAlerta.push({$group:{
-      //   _id: null,
-      //   total_facturado: { $sum: "$precio_total" },
-      // }})
-      // pipelineAlerta.push({ "$unset": ["_id"] })
-
-      // const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
-
-      // const total_facturado = alertaFacturacion[0].total_facturado;
-
-      // if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
+      if(comprobante === 'Fiscal') {
+        cbteTipo = 6;                                     // Facturacion B
+        docTipo = 99;                                     // Consumidor final
+        docNro = 0;                                       // Consumidor final
+      } else if(comprobante === 'Factura A') {
+        cbteTipo = 1;                                     // Facturacion A
+        docTipo = 80;                                     // Consumido final
+        docNro = Number(contribuyente.identificacion);    // Consumidor final
+      }
 
       // --> FACTURACION ELECTRONICA
 
       let impTotal = ventasDTO.precio_total;
 
       // Ultimo numero de comprobante
-      const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, this.facturacion.cbteTipo).catch(() => {
+      const ultimoNumero = await this.afip.ElectronicBilling.getLastVoucher(this.facturacion.ptoVta, cbteTipo).catch(() => {
         throw new NotFoundException('No hay conexión con el servidor de AFIP');
       })
 
@@ -475,22 +471,22 @@ export class VentasService {
       }
 
       let dataFactura = {
-        'CantReg': 1,                                // Cantidad de comprobantes a registrar
-        'PtoVta': this.facturacion.ptoVta,          // Punto de venta
-        'CbteTipo': this.facturacion.cbteTipo,        // Tipo de comprobante (Ej. 6 = B y 11 = C)
+        'CantReg': 1,                                 // Cantidad de comprobantes a registrar
+        'PtoVta': this.facturacion.ptoVta,            // Punto de venta
+        'CbteTipo': cbteTipo,                         // Tipo de comprobante (Ej. 1 = A, 6 = B y 11 = C)
         'Concepto': 1,                                // Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios
-        'DocTipo': this.facturacion.docTipo,         // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)
-        'DocNro': this.facturacion.docNro,          // Número de documento del comprador (0 consumidor final)
-        'CbteDesde': cbteNro,                          // Número de comprobante o numero del primer comprobante en caso de ser mas de uno
-        'CbteHasta': cbteNro,                          // Número de comprobante o numero del último comprobante en caso de ser mas de uno
-        'CbteFch': parseInt(date.replace(/-/g, '')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
+        'DocTipo': docTipo,                           // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)
+        'DocNro': docNro,                             // Número de documento del comprador (0 consumidor final)
+        'CbteDesde': cbteNro,                         // Número de comprobante o numero del primer comprobante en caso de ser mas de uno
+        'CbteHasta': cbteNro,                         // Número de comprobante o numero del último comprobante en caso de ser mas de uno
+        'CbteFch': parseInt(date.replace(/-/g, '')),  // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
         'ImpTotal': impTotal,                         // Importe total del comprobante
-        'ImpTotConc': 0,                                // Importe neto no gravado
-        'ImpNeto': impNeto,                          // Importe neto gravado
-        'ImpOpEx': 0,                                // Importe exento de IVA
-        'ImpIVA': impIVA,                           // Importe total de IVA
-        'ImpTrib': 0,                                // Importe total de tributos
-        'MonId': 'PES',                            // Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
+        'ImpTotConc': 0,                              // Importe neto no gravado
+        'ImpNeto': impNeto,                           // Importe neto gravado
+        'ImpOpEx': 0,                                 // Importe exento de IVA
+        'ImpIVA': impIVA,                             // Importe total de IVA
+        'ImpTrib': 0,                                 // Importe total de tributos
+        'MonId': 'PES',                               // Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
         'MonCotiz': 1,                                // Cotización de la moneda usada (1 para pesos argentinos)
         'Iva': alicuotas,
       };
@@ -503,11 +499,16 @@ export class VentasService {
 
       const facturacion = {
         puntoVenta: this.facturacion.ptoVta,
-        tipoComprobante: this.facturacion.cbteTipo,
+        tipoComprobante: cbteTipo,
         nroComprobante: cbteNro,
+        clienteRazonSocial: cbteTipo === 6 ? '' : contribuyente.razonSocial,
+        clienteTipoPersona: cbteTipo === 6 ? '' : contribuyente.tipoPersona,
+        clienteTipoIdentificacion: contribuyente.tipoIdentificacion,
+        clienteIdentificacion: cbteTipo === 6 ? '' : contribuyente.identificacion,
       }
 
-      const dataVenta = { ...ventasDTO, facturacion, total_balanza, total_no_balanza }
+      let dataVenta = { ...ventasDTO, facturacion, total_balanza, total_no_balanza }
+      dataVenta.comprobante = 'Fiscal';
 
       const nuevaVenta = new this.ventasModel(dataVenta);
       const venta = await nuevaVenta.save();
@@ -548,30 +549,6 @@ export class VentasService {
 
   // Actualizar a comprobante fiscal
   async actualizarFacturacion(id, data: any): Promise<any> {
-
-    // Alerta por limite de facturacion DIARIO
-
-    // const pipelineAlerta = [];
-
-    // const fechaHoy = new Date(add(new Date(),{ hours: -3 }));
-    // const fechaDesde = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ hours: 3 });
-    // const fechaHasta = add(new Date(format(fechaHoy,'yyyy-MM-dd')),{ days: 1, hours: 3 });
-
-    // pipelineAlerta.push({$match:{ createdAt: { $gte: fechaDesde } }});
-    // pipelineAlerta.push({$match:{ createdAt: { $lte: fechaHasta } }});
-    // pipelineAlerta.push({$match:{ comprobante: 'Fiscal' }});
-
-    // pipelineAlerta.push({$group:{
-    //   _id: null,
-    //   total_facturado: { $sum: "$precio_total" },
-    // }})
-    // pipelineAlerta.push({ "$unset": ["_id"] })
-
-    // const alertaFacturacion = await this.ventasModel.aggregate(pipelineAlerta);
-
-    // const total_facturado = alertaFacturacion[0].total_facturado;
-
-    // if(total_facturado >= this.LIMITE_FACTURACION) throw new NotFoundException('Ya se supero el limite de facturación diario');
 
     // --> FACTURACION ELECTRONICA
 
@@ -681,7 +658,7 @@ export class VentasService {
         forma_pago,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,
-      };
+      };  
     } else { // - Comprobante - Fiscal
 
       // Informacion de comprobante
@@ -736,6 +713,10 @@ export class VentasService {
         ideTipoCte: tipoComprobante,
         fechaEmision,
         tipoComprobante,
+        clienteRazonSocial: ventaDB.facturacion.tipoComprobante === 1 ? ventaDB.facturacion.clienteRazonSocial : '',
+        clienteTipoPersona: ventaDB.facturacion.tipoComprobante === 1 ? ventaDB.facturacion.clienteTipoPersona : '',
+        clienteTipoIdentificacion: ventaDB.facturacion.tipoComprobante === 1 ? ventaDB.facturacion.clienteTipoIdentificacion : '',
+        clienteIdentificacion: ventaDB.facturacion.tipoComprobante === 1 ? ventaDB.facturacion.clienteIdentificacion : '',
         forma_pago,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,
@@ -764,6 +745,13 @@ export class VentasService {
 
     return 'Comprobante generado correctamente';
 
+  }
+
+  // Obtener contribuyente
+  async getContribuyente(cuit: string): Promise<any> {
+    const contribuyente = await this.afip.RegisterScopeTen.getTaxpayerDetails(cuit);
+    if(!contribuyente) throw new NotFoundException('No se encontro al contribuyente');
+    return contribuyente;
   }
 
   // Proximo numero de factura

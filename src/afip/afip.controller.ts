@@ -12,6 +12,18 @@ export class AfipController {
 
   // Datos de contribuyente
 
+  // Get contribuyente
+  @UseGuards(JwtAuthGuard)
+  @Get('/contribuyente/inscripcion/:cuit')
+  async contribuyente(@Res() res, @Param() params) {
+    const { cuit } = params;
+    const contribuyente = await this.afipService.getContribuyente(cuit);
+    res.status(HttpStatus.OK).json({
+        message: 'Datos de contribuyentes obtenidos correctamente',
+        contribuyente
+    });
+  }
+
   // Alcance 4
   @UseGuards(JwtAuthGuard)
   @Get('/contribuyente/alcance4/:cuit')

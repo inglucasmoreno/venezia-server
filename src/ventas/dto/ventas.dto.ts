@@ -20,6 +20,8 @@ export class VentasDTO {
   readonly adicional_credito: number;
  
   readonly comprobante: string;
+
+  readonly identContribuyente: string;
   
   readonly pedidosya_comprobante: string;
 
@@ -30,8 +32,15 @@ export class VentasDTO {
   readonly facturacion: {
     puntoVenta: number,
     tipoComprobante: number,
-    nroComprobante: number
+    nroComprobante: number,
   };
+
+  readonly contribuyente: {
+    razonSocial: string,
+    tipoPersona: string,
+    tipoIdentificacion: string,
+    identificacion: string,
+  }
   
   @IsNotEmpty()
   readonly creatorUser: string;

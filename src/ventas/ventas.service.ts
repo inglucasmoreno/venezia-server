@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
 import { IProducto } from 'src/productos/interface/productos.interface';
 import { IConfiguracionesGenerales } from 'src/configuraciones-generales/interface/configuraciones-generales.interface';
+import { IVentasReservas } from 'src/ventas-reservas/interface/ventas-reservas.interface';
 
 @Injectable()
 export class VentasService {
@@ -30,6 +31,7 @@ export class VentasService {
     @InjectModel('Ventas') private readonly ventasModel: Model<IVentas>,
     @InjectModel('Productos') private readonly productosModel: Model<IProducto>,
     @InjectModel('VentasProductos') private readonly ventasProductosModel: Model<IVentasProductos>,
+    @InjectModel('VentasReservas') private readonly ventasReservasModel: Model<IVentasReservas>,
     @InjectModel('ConfiguracionesGenerales') private readonly configuracionesGeneralesModel: Model<IConfiguracionesGenerales>,
   ) { }
 
@@ -617,12 +619,20 @@ export class VentasService {
 
   // Comprobante electronico
   async comprobanteElectronico(idVenta: string): Promise<any> {
+    
+    // Flag - Reserva
+    let instanciaReserva = '';
 
     // Buscando venta
     const ventaDB: any = await this.ventasModel.findById(idVenta);
 
     // Buscando productos
     const productosDB = await this.ventasProductosModel.find({ venta: ventaDB._id });
+
+    // La venta esta relacionada con una reserva
+    const relacion = await this.ventasReservasModel.findOne({ venta: ventaDB._id });
+    
+    if(relacion) instanciaReserva = relacion.instancia;
 
     // Productos
     let productos = [];
@@ -656,6 +666,7 @@ export class VentasService {
       dataPDF = {
         fecha: format(ventaDB.createdAt, 'dd/MM/yyyy kk:mm:ss'),
         forma_pago,
+        instanciaReserva,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,
       };  
@@ -718,6 +729,7 @@ export class VentasService {
         clienteTipoIdentificacion: ventaDB.facturacion.tipoComprobante === 1 ? ventaDB.facturacion.clienteTipoIdentificacion : '',
         clienteIdentificacion: ventaDB.facturacion.tipoComprobante === 1 ? ventaDB.facturacion.clienteIdentificacion : '',
         forma_pago,
+        instanciaReserva,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,
       };

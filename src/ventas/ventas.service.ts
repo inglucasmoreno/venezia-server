@@ -16,12 +16,12 @@ import { IVentasReservas } from 'src/ventas-reservas/interface/ventas-reservas.i
 @Injectable()
 export class VentasService {
 
-  public afip = new Afip({ CUIT: '20176652536', production: false });
+  public afip = new Afip({ CUIT: '24340603989', production: true });
 
   public LIMITE_FACTURACION = 60000;
 
   public facturacion = {
-    ptoVta: 4,
+    ptoVta: 1,
     docTipo: 99,    // Consumidor final
     docNro: 0,      // Consumidor final
     cbteTipo: 6,    // Factura tipo C (COD 11)
@@ -761,7 +761,7 @@ export class VentasService {
 
   // Obtener contribuyente
   async getContribuyente(cuit: string): Promise<any> {
-    const contribuyente = await this.afip.RegisterScopeTen.getTaxpayerDetails(cuit);
+    const contribuyente = await this.afip.RegisterScopeThirteen.getTaxpayerDetails(cuit); // Padron 13
     if(!contribuyente) throw new NotFoundException('No se encontro al contribuyente');
     return contribuyente;
   }

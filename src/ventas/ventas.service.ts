@@ -678,6 +678,9 @@ export class VentasService {
         throw new NotFoundException('Error al obtener información de comprobante');
       })
 
+      // Generar numero de comprobante
+      let codigoFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;      
+
       // -- Ajustando fechas --
 
       // Fecha de vto de CAE
@@ -694,25 +697,27 @@ export class VentasService {
       if (tipoComprobante === 6) tipoCte = 'B';
       if (tipoComprobante === 11) tipoCte = 'C';
 
-      let nroFactura = '';
+      // let nroFactura = '';
+      let nroFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`; 
+
       // Generacion de numero de factura
-      if (nroComprobante <= 9) {
-        nroFactura = '0000' + puntoVenta + '-0000000' + nroComprobante;
-      } else if (nroComprobante <= 99) {
-        nroFactura = '0000' + puntoVenta + '-000000' + nroComprobante;
-      } else if (nroComprobante <= 999) {
-        nroFactura = '0000' + puntoVenta + '-00000' + nroComprobante;
-      } else if (nroComprobante <= 9999) {
-        nroFactura = '0000' + puntoVenta + '-0000' + nroComprobante;
-      } else if (nroComprobante <= 99999) {
-        nroFactura = '0000' + puntoVenta + '-000' + nroComprobante;
-      } else if (nroComprobante <= 999999) {
-        nroFactura = '0000' + puntoVenta + '-00' + nroComprobante;
-      } else if (nroComprobante <= 9999999) {
-        nroFactura = '0000' + puntoVenta + '-0' + nroComprobante;
-      } else if (nroComprobante <= 99999999) {
-        nroFactura = '0000' + puntoVenta + '-' + nroComprobante;
-      }
+      // if (nroComprobante <= 9) {
+      //   nroFactura = '0000' + puntoVenta + '-0000000' + nroComprobante;
+      // } else if (nroComprobante <= 99) {
+      //   nroFactura = '0000' + puntoVenta + '-000000' + nroComprobante;
+      // } else if (nroComprobante <= 999) {
+      //   nroFactura = '0000' + puntoVenta + '-00000' + nroComprobante;
+      // } else if (nroComprobante <= 9999) {
+      //   nroFactura = '0000' + puntoVenta + '-0000' + nroComprobante;
+      // } else if (nroComprobante <= 99999) {
+      //   nroFactura = '0000' + puntoVenta + '-000' + nroComprobante;
+      // } else if (nroComprobante <= 999999) {
+      //   nroFactura = '0000' + puntoVenta + '-00' + nroComprobante;
+      // } else if (nroComprobante <= 9999999) {
+      //   nroFactura = '0000' + puntoVenta + '-0' + nroComprobante;
+      // } else if (nroComprobante <= 99999999) {
+      //   nroFactura = '0000' + puntoVenta + '-' + nroComprobante;
+      // }
 
       html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/comprobante_fiscal.html', 'utf-8');
       dataPDF = {
@@ -733,6 +738,7 @@ export class VentasService {
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,
       };
+
     }
 
     var options = {

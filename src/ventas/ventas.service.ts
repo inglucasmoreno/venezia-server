@@ -16,12 +16,12 @@ import { IVentasReservas } from 'src/ventas-reservas/interface/ventas-reservas.i
 @Injectable()
 export class VentasService {
 
-  public afip = new Afip({ CUIT: '24340603989', production: true });
+  public afip = new Afip({ CUIT: '20176652536', production: false });
 
   public LIMITE_FACTURACION = 60000;
 
   public facturacion = {
-    ptoVta: 1,
+    ptoVta: 4,
     docTipo: 99,    // Consumidor final
     docNro: 0,      // Consumidor final
     cbteTipo: 6,    // Factura tipo C (COD 11)

@@ -1,114 +1,114 @@
 <!DOCTYPE html>
 <html>
 
-  <link rel="stylesheet" href="template.css">
+<link rel="stylesheet" href="template.css">
 
-  <style>
+<style>
+  /* CSS de PDF */
 
-      /* CSS de PDF */
+  * {
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+</style>
 
-      * {
-          box-sizing: border-box;
-          margin: 0px;
-          padding: 0px;
-          font-family: Arial, Helvetica, sans-serif;
-      }
+<head>
+  <mate charest="utf-8" />
+  <title> Comprobante electronico </title>
+</head>
 
-  </style>
+<body style="font-family: Arial, Helvetica, sans-serif; padding-left: 10px; padding-top: 10px;">
 
-  <head>
-      <mate charest="utf-8" />
-      <title> Comprobante electronico </title>
-  </head>
+  <table style="margin-left: 5px;">
+    <tr>
+      <td>
+        <img style="width: 100px;" src="http://localhost:3000/pdf/logo.png">
+      </td>
+      <td>
+        <p style="margin-top: 10px; font-size: 8px; margin-left: 15px;"> <span> Fecha y hora </p>
+        <p style="font-size: 8px; margin-left: 15px;"> <span> {{ fecha }} </p>
+      </td>
+    </tr>
+  </table>
 
-  <body style="font-family: Arial, Helvetica, sans-serif; padding-left: 10px; padding-top: 10px;">
+  <div style="margin-top: 15px; width: 200px;">
+    <div>
+      <p style="margin-top: 12px; font-size: 9px;"> <span> VENEZIA S.R.L </span> </p>
+      <p style="margin-top: 5px; font-size: 9px;"> <span> CUIT:30717460258 IIBB:12-3071746025-8 </span> </p>
+      <p style="margin-top: 5px; font-size: 8px;"> ARISTOBULO DEL VALLE 202 </p>
+      <p style="margin-top: 5px; font-size: 8px;"> SAN LUIS (5700) - SAN LUIS </p>
+      <p style="margin-top: 5px; font-size: 8px;"> INICIO DE ACTIVIDAD: 23/08/2021 </p>
+    </div>
+  </div>
 
-    <table style="margin-left: 5px;">
+  {{#ifCond tipoCte '===' 'B' }}
+  <div style="width: 200px;"> ---------------------------------- </div>
+  <div style="font-size: 9px; width: 200px;">
+    <p style="font-weight: bold; padding-left: 70px;"> FACTURA B </p>
+    <p> ORIGINAL (Cod. 006) - A CONSUMIDO FINAL </p>
+  </div>
+  <div style="width: 200px;"> ---------------------------------- </div>
+  {{/ifCond}}
+
+  {{#ifCond tipoCte '===' 'A' }}
+  <div style="width: 200px;"> ---------------------------------- </div>
+  <div style="font-size: 9px; width: 200px;">
+    <p style="font-weight: bold;"> FACTURA A </p>
+    <p> ORIGINAL (Cod. 001) </p>
+    <p> CLIENTE: {{ clienteRazonSocial }} </p>
+    <p> TIPO PERSONA: {{ clienteTipoPersona }} </p>
+    <p> {{ clienteTipoIdentificacion }}: {{ clienteIdentificacion }} </p>
+  </div>
+  <div style="width: 200px;"> ---------------------------------- </div>
+  {{/ifCond}}
+
+  <!-- Productos -->
+
+  {{#ifCond instanciaReserva '===' 'Adelanto' }}
+  <p style="font-size: 9px;"> <span> PAGO DE SEÑA - RESERVA </span> </p>
+  {{/ifCond}}
+
+  <div style="font-size: 9px; width: 200px;">
+    {{#each productos}}
+    <div style="margin-bottom: 5px;">
+      <p> {{ descripcion }} </p>
+      {{#ifCond cantidad '!==' 0 }}
+      <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>
+      <p style="font-size: 8px;"> Cantidad: {{ cantidad }} </p>
+      {{/ifCond}}
+      <p style="font-size: 8px;"> Total: ${{ precio }} </p>
+    </div>
+    {{/each}}
+  </div>
+
+  <div style="width: 200px;"> ---------------------------------- </div>
+
+  <p style="font-size: 9px;"> <span style="font-weight: bold;"> TOTAL: </span> ${{ total }} </p>
+  {{#ifCond instanciaReserva '===' 'Adelanto' }}
+  <p style="font-size: 9px;"> <span style="font-weight: bold;"> Concepto: </span> Seña de reserva </p>
+  {{/ifCond}}
+  {{#ifCond instanciaReserva '===' 'Completada' }}
+  <p style="font-size: 9px;"> <span style="font-weight: bold;"> Concepto: </span> Cancelación de reserva </p>
+  {{/ifCond}}
+  <p style="font-size: 9px;"> <span style="font-weight: bold;"> Forma de pago: </span> {{ forma_pago }} </p>
+
+  <div style="width: 200px;"> ---------------------------------- </div>
+  <div style="font-size: 8px; width: 200px;">
+    <p> REFERENCIA ELECTRONICA DEL COMPROBANTE </p>
+    <table>
       <tr>
-        <td>
-          <img style="width: 100px;" src="http://localhost:3000/pdf/logo.png">            
-        </td>
-        <td>
-          <p style="margin-top: 10px; font-size: 8px; margin-left: 15px;"> <span> Fecha y hora </p>
-          <p style="font-size: 8px; margin-left: 15px;"> <span> {{ fecha }} </p>
-        </td>
+        <td style="padding-left: 5px;"> CAE {{ CAE }} </td>
+        <td style="padding-left: 20px;"> Fecha Vto.: {{ vtoCAE }} </td>
       </tr>
     </table>
+  </div>
+  <div style="width: 200px;"> ---------------------------------- </div>
 
-    <div style="margin-top: 15px; width: 200px;">
-      <div>
-        <p style="margin-top: 12px; font-size: 9px;"> <span> VENEZIA S.R.L </span> </p>
-        <p style="margin-top: 5px; font-size: 9px;"> <span> CUIT:30717460258   IIBB:12-3071746025-8 </span> </p>
-        <p style="margin-top: 5px; font-size: 8px;"> ARISTOBULO DEL VALLE 202 </p>
-        <p style="margin-top: 5px; font-size: 8px;"> SAN LUIS (5700) - SAN LUIS </p>
-        <p style="margin-top: 5px; font-size: 8px;"> INICIO DE ACTIVIDAD: 23/08/2021 </p>
-      </div>
-    </div>    
+  <br>
+  <br>
 
-    {{#ifCond tipoCte '===' 'B' }}
-    <div style="width: 200px;"> ---------------------------------- </div>
-    <div style="font-size: 9px; width: 200px;">
-      <p style="font-weight: bold; padding-left: 70px;"> FACTURA B </p>
-      <p> ORIGINAL (Cod. 006) - A CONSUMIDO FINAL </p>
-    </div>
-    <div style="width: 200px;"> ---------------------------------- </div>
-    {{/ifCond}}
-
-    {{#ifCond tipoCte '===' 'A' }}
-    <div style="width: 200px;"> ---------------------------------- </div>
-    <div style="font-size: 9px; width: 200px;">
-      <p style="font-weight: bold;"> FACTURA A </p>
-      <p> ORIGINAL (Cod. 001) </p>
-      <p> CLIENTE: {{ clienteRazonSocial }} </p>
-      <p> TIPO PERSONA: {{ clienteTipoPersona }} </p>
-      <p> {{ clienteTipoIdentificacion }}: {{ clienteIdentificacion }} </p>
-    </div>
-    <div style="width: 200px;"> ---------------------------------- </div>
-    {{/ifCond}}
-
-    <!-- Productos -->
-
-    {{#ifCond instanciaReserva '===' 'Adelanto' }}
-    <p style="font-size: 9px;"> <span> PAGO DE SEÑA - RESERVA </span> </p>
-    {{/ifCond}}
-
-    <div style="font-size: 9px; width: 200px;">
-      {{#each productos}}
-      <div style="margin-bottom: 5px;">
-        <p> {{ descripcion }} </p>
-        <!-- <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>  
-        <p style="font-size: 8px;"> Cantidad: {{ cantidad }} (${{ precio }}) </p>  -->
-        <p style="font-size: 8px;"> ${{ precio }} </p>  
-      </div>
-      {{/each}}     
-    </div>
-
-    <div style="width: 200px;"> ---------------------------------- </div>
-
-    <p style="font-size: 9px;"> <span style="font-weight: bold;"> TOTAL: </span> ${{ total }} </p>
-    {{#ifCond instanciaReserva '===' 'Adelanto' }}
-    <p style="font-size: 9px;"> <span style="font-weight: bold;"> Concepto: </span> Seña de reserva </p>
-    {{/ifCond}}
-    {{#ifCond instanciaReserva '===' 'Completada' }}
-    <p style="font-size: 9px;"> <span style="font-weight: bold;"> Concepto: </span> Cancelación de reserva </p>
-    {{/ifCond}}
-    <p style="font-size: 9px;"> <span style="font-weight: bold;"> Forma de pago: </span> {{ forma_pago }} </p>
-
-    <div style="width: 200px;"> ---------------------------------- </div>
-    <div style="font-size: 8px; width: 200px;">
-      <p> REFERENCIA ELECTRONICA DEL COMPROBANTE </p>
-      <table>
-        <tr>
-          <td style="padding-left: 5px;"> CAE {{ CAE }} </td>
-          <td style="padding-left: 20px;"> Fecha Vto.: {{ vtoCAE }} </td>
-        </tr>
-      </table>
-    </div>
-    <div style="width: 200px;"> ---------------------------------- </div>
-
-    <br>
-    <br>
-  
-  </body>
+</body>
 
 </html>

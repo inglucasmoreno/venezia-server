@@ -199,12 +199,12 @@ export class ComprasProductosService {
   async crearCompraProducto(comprasProductosDTO: ComprasProductosDTO): Promise<IComprasProductos> {
 
     // Se incrementa el stock del producto
-    const producto = await this.productosModel.findById(comprasProductosDTO.producto);
-    if (!producto) throw new NotFoundException('El producto no existe');
+    // const producto = await this.productosModel.findById(comprasProductosDTO.producto);
+    // if (!producto) throw new NotFoundException('El producto no existe');
 
-    const cantidad = producto.cantidad + comprasProductosDTO.cantidad;
-    const productoUpdateDTO = { cantidad };
-    await this.productosModel.findByIdAndUpdate(comprasProductosDTO.producto, productoUpdateDTO, { new: true });
+    // const cantidad = producto.cantidad + comprasProductosDTO.cantidad;
+    // const productoUpdateDTO = { cantidad };
+    // await this.productosModel.findByIdAndUpdate(comprasProductosDTO.producto, productoUpdateDTO, { new: true });
 
     // Crear compra-producto
     const nuevaCompraProducto = new this.comprasProductosModel(comprasProductosDTO);

@@ -114,7 +114,7 @@ export class ComprasService {
   async crearCompra(comprasDTO: ComprasDTO): Promise<ICompras> {
 
     // Numero de compra
-    const ultimaCompra: any = await this.comprasModel.findOne().sort({ numero: -1 }).limit(1);
+    const ultimaCompra: any = await this.comprasModel.findOne().sort({ createdAt: -1 }).limit(1);
     if (ultimaCompra) comprasDTO.numero = ultimaCompra.numero + 1;
     else comprasDTO.numero = 1;
     

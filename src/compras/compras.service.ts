@@ -118,6 +118,10 @@ export class ComprasService {
     if (ultimaCompra) comprasDTO.numero = ultimaCompra.numero + 1;
     else comprasDTO.numero = 1;
     
+    // Verificar si no existe otra compra con el mismo numero
+    const existeCompra = await this.comprasModel.findOne({ numero: comprasDTO.numero });
+    if (existeCompra) throw new NotFoundException('El numero de compra ya existe');
+
     comprasDTO.fecha_compra = add(new Date(comprasDTO.fecha_compra),{ hours: 3 });
 
     // Crear compra

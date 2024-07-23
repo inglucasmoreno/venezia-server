@@ -48,7 +48,9 @@
   <div style="font-size: 9px; width: 200px;">
     <p style="font-weight: bold; padding-left: 70px;"> FACTURA B </p>
     <p> ORIGINAL (Cod. 006) - A CONSUMIDO FINAL </p>
-    <p style="padding-left: 60px;"> {{ nroFactura }} </p>
+    <p> FECHA/HORA: {{ fecha }} </p>
+    <p> PUNTO DE VENTA: {{ puntoVenta }} </p>
+    <p> COMPROBANTE NRO: {{ nroComprobante }} </p>
   </div>
   <div style="width: 200px;"> ---------------------------------- </div>
   {{/ifCond}}
@@ -58,7 +60,9 @@
   <div style="font-size: 9px; width: 200px;">
     <p style="font-weight: bold;"> FACTURA A </p>
     <p> ORIGINAL (Cod. 001) </p>
-    <p> {{ nroFactura }} </p>
+    <p> FECHA/HORA: {{ fecha }} </p>
+    <p> PUNTO DE VENTA: {{ puntoVenta }} </p>
+    <p> COMPROBANTE NRO: {{ nroComprobante }} </p>
     <p> CLIENTE: {{ clienteRazonSocial }} </p>
     <p> TIPO PERSONA: {{ clienteTipoPersona }} </p>
     <p> {{ clienteTipoIdentificacion }}: {{ clienteIdentificacion }} </p>

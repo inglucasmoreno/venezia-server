@@ -699,6 +699,8 @@ export class VentasService {
 
       // let nroFactura = '';
       let nroFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`; 
+      let puntoVentaString = `${puntoVenta.toString().padStart(5, '0')}`;
+      let nroComprobanteString = `${(nroComprobante).toString().padStart(8, '0')}`;
 
       // Generacion de numero de factura
       // if (nroComprobante <= 9) {
@@ -723,6 +725,8 @@ export class VentasService {
       dataPDF = {
         CAE: comprobante.CodAutorizacion,
         nroFactura,
+        nroComprobante: nroComprobanteString,
+        puntoVenta: puntoVentaString,
         fecha: format(ventaDB.createdAt, 'dd/MM/yyyy kk:mm:ss'),
         vtoCAE,
         tipoCte,

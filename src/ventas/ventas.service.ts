@@ -12,6 +12,9 @@ import * as pdf from 'pdf-creator-node';
 import { IProducto } from 'src/productos/interface/productos.interface';
 import { IConfiguracionesGenerales } from 'src/configuraciones-generales/interface/configuraciones-generales.interface';
 import { IVentasReservas } from 'src/ventas-reservas/interface/ventas-reservas.interface';
+import * as QRCode from 'qrcode';
+import { writeFile } from 'fs';
+import { th } from 'date-fns/locale';
 
 @Injectable()
 export class VentasService {
@@ -316,11 +319,11 @@ export class VentasService {
   // Crear venta
   async crearVenta(ventasDTO: VentasDTO): Promise<IVentas> {
 
-    const { 
-      productos, 
-      comprobante, 
-      sena, 
-      adicional_credito, 
+    const {
+      productos,
+      comprobante,
+      sena,
+      adicional_credito,
       contribuyente
     } = ventasDTO;
 
@@ -355,10 +358,10 @@ export class VentasService {
         // Se agregar el id de la venta al producto 
         producto.venta = venta._id;
 
-        if(stockHabilitado){ // Se descuenta el stock si esta habilitado el uso del mismo
+        if (stockHabilitado) { // Se descuenta el stock si esta habilitado el uso del mismo
           if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
             const productoDB = await this.productosModel.findById(producto.producto);
-  
+
             if (!productoDB.cantidad)
               await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
             else
@@ -379,11 +382,11 @@ export class VentasService {
       let docTipo = 0;
       let docNro = 0;
 
-      if(comprobante === 'Fiscal') {
+      if (comprobante === 'Fiscal') {
         cbteTipo = 6;                                     // Facturacion B
         docTipo = 99;                                     // Consumidor final
         docNro = 0;                                       // Consumidor final
-      } else if(comprobante === 'Factura A') {
+      } else if (comprobante === 'Factura A') {
         cbteTipo = 1;                                     // Facturacion A
         docTipo = 80;                                     // Consumido final
         docNro = Number(contribuyente.identificacion);    // Consumidor final
@@ -522,10 +525,10 @@ export class VentasService {
 
         producto.venta = venta._id;
 
-        if(stockHabilitado){ // Se descuenta el stock si esta habilitado el uso del mismo
+        if (stockHabilitado) { // Se descuenta el stock si esta habilitado el uso del mismo
           if (!producto.balanza) { // Se reduce la cantidad de cada producto en el stock si no es de balanza
             const productoDB = await this.productosModel.findById(producto.producto);
-  
+
             if (!productoDB.cantidad)
               await this.productosModel.findByIdAndUpdate(producto.producto, { cantidad: -producto.cantidad });
             else
@@ -619,7 +622,7 @@ export class VentasService {
 
   // Comprobante electronico
   async comprobanteElectronico(idVenta: string): Promise<any> {
-    
+
     // Flag - Reserva
     let instanciaReserva = '';
 
@@ -631,8 +634,8 @@ export class VentasService {
 
     // La venta esta relacionada con una reserva
     const relacion = await this.ventasReservasModel.findOne({ venta: ventaDB._id });
-    
-    if(relacion) instanciaReserva = relacion.instancia;
+
+    if (relacion) instanciaReserva = relacion.instancia;
 
     // Productos
     let productos = [];
@@ -669,7 +672,7 @@ export class VentasService {
         instanciaReserva,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,
-      };  
+      };
     } else { // - Comprobante - Fiscal
 
       // Informacion de comprobante
@@ -678,8 +681,93 @@ export class VentasService {
         throw new NotFoundException('Error al obtener información de comprobante');
       })
 
-      // Generar numero de comprobante
-      let codigoFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;      
+      const {
+        CodAutorizacion,
+        MonId,
+        MonCotiz,
+        ImpTotal,
+        PtoVta,
+        DocTipo,
+        DocNro,
+        CbteTipo,
+        CbteDesde,
+        CbteFch,
+        EmisionTipo,
+      } = comprobante;
+
+      // console.log(comprobante);
+
+      // Adaptando formato de fecha
+      let CbteFchAdaptada = this.convertirFormatoFecha(CbteFch);
+
+      // Codificacion - Base64
+      const datosQR = {
+        ver: 1,
+        fecha: CbteFchAdaptada,
+        cuit: Number(this.afip.CUIT),
+        ptoVta: PtoVta,
+        tipoCmp: CbteTipo,
+        nroCmp: Number(CbteDesde),
+        importe: Number(ImpTotal),
+        moneda: MonId,
+        ctz: Number(MonCotiz),
+        tipoDocRec: DocTipo,
+        nroDocRec: Number(DocNro),
+        tipoCodAut: EmisionTipo === "CAE" ? "E" : "A",
+        codAut: Number(CodAutorizacion),
+      };
+
+      // Codificar en base64
+      const cadenaJson = JSON.stringify(datosQR);
+      const cadenaEnBase64 = btoa(cadenaJson);
+
+      const urlQR = `https://www.afip.gob.ar/fe/qr/?p=${cadenaEnBase64}`;
+
+      // QRCode.toDataURL(urlQR, { errorCorrectionLevel: 'H' }, function (err, url) {
+      //   if (err) throw err;
+
+      //   // Convertir Data URL a Buffer
+      //   const base64Data = url.split(';base64,').pop();
+      //   if (base64Data) {
+      //     const buffer = Buffer.from(base64Data, 'base64');
+
+      //     // Especifica la ruta y el nombre del archivo donde quieres guardar el QR
+      //     const pathArchivo = './public/codigoQR.png';
+
+      //     // Guardar el archivo
+      //     writeFile(pathArchivo, buffer, (error) => {
+      //       if (error) throw error;
+      //     });
+      //   }
+      // });
+
+      try{
+        // Convertir QRCode.toDataURL a una versión que retorna una promesa
+        const url = await new Promise<string>((resolve, reject) => {
+          QRCode.toDataURL(urlQR, { errorCorrectionLevel: 'H' }, (err, url) => {
+            if (err) reject(err);
+            else resolve(url);
+          });
+          
+        });
+  
+        // Convertir Data URL a Buffer
+        const base64Data = url.split(';base64,').pop();
+        if (!base64Data) throw new Error("No se pudo obtener los datos en base64 del QR.");
+  
+        const buffer = Buffer.from(base64Data, 'base64');
+  
+        // Especifica la ruta y el nombre del archivo donde quieres guardar el QR
+        const pathArchivo = './public/codigoQR.png';
+  
+        // Guardar el archivo usando la versión de promesa de writeFile
+        await writeFile(pathArchivo, buffer, () => {});
+  
+        // Generar numero de comprobante
+        let codigoFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;
+      } catch (error) {
+        throw new Error("Error al generar el QR.");
+      }
 
       // -- Ajustando fechas --
 
@@ -698,7 +786,7 @@ export class VentasService {
       if (tipoComprobante === 11) tipoCte = 'C';
 
       // let nroFactura = '';
-      let nroFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`; 
+      let nroFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;
       let puntoVentaString = `${puntoVenta.toString().padStart(5, '0')}`;
       let nroComprobanteString = `${(nroComprobante).toString().padStart(8, '0')}`;
 
@@ -772,7 +860,7 @@ export class VentasService {
   // Obtener contribuyente
   async getContribuyente(cuit: string): Promise<any> {
     const contribuyente = await this.afip.RegisterScopeThirteen.getTaxpayerDetails(cuit); // Padron 13
-    if(!contribuyente) throw new NotFoundException('No se encontro al contribuyente');
+    if (!contribuyente) throw new NotFoundException('No se encontro al contribuyente');
     return contribuyente;
   }
 
@@ -815,6 +903,24 @@ export class VentasService {
 
     return nroFactura;
 
+  }
+
+  // Función para convertir la fecha de formato YYYYMMDD a YYYY-MM-DD
+  convertirFormatoFecha(fechaOriginal: string): string {
+    // Asegurarse de que la fechaOriginal tiene la longitud esperada
+    if (fechaOriginal.length !== 8) {
+      throw new Error("La fecha debe tener exactamente 8 caracteres en el formato YYYYMMDD.");
+    }
+
+    // Extraer año, mes y día de la fechaOriginal
+    let año = fechaOriginal.substring(0, 4);
+    let mes = fechaOriginal.substring(4, 6);
+    let día = fechaOriginal.substring(6, 8);
+
+    // Construir la nueva fecha en el formato deseado
+    let fechaConvertida = `${año}-${mes}-${día}`;
+
+    return fechaConvertida;
   }
 
 }

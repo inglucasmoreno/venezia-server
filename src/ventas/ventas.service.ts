@@ -14,7 +14,6 @@ import { IConfiguracionesGenerales } from 'src/configuraciones-generales/interfa
 import { IVentasReservas } from 'src/ventas-reservas/interface/ventas-reservas.interface';
 import * as QRCode from 'qrcode';
 import { writeFile } from 'fs';
-import { th } from 'date-fns/locale';
 
 @Injectable()
 export class VentasService {
@@ -695,8 +694,6 @@ export class VentasService {
         EmisionTipo,
       } = comprobante;
 
-      // console.log(comprobante);
-
       // Adaptando formato de fecha
       let CbteFchAdaptada = this.convertirFormatoFecha(CbteFch);
 
@@ -758,18 +755,19 @@ export class VentasService {
         const buffer = Buffer.from(base64Data, 'base64');
   
         // Especifica la ruta y el nombre del archivo donde quieres guardar el QR
-        const pathArchivo = './public/codigoQR.png';
+
+        const pathPublic = process.env.PUBLIC_DIR || './public';
+        const pathArchivoQR = `${pathPublic}/codigoQR.png`;
   
         // Guardar el archivo usando la versión de promesa de writeFile
-        await writeFile(pathArchivo, buffer, () => {});
+        await writeFile(pathArchivoQR, buffer, () => {});
   
-        // Generar numero de comprobante
-        let codigoFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;
       } catch (error) {
         throw new Error("Error al generar el QR.");
       }
-
-      // -- Ajustando fechas --
+      
+      // Generar numero de comprobante
+      let codigoFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;
 
       // Fecha de vto de CAE
       const vtoCAEtmp = await this.afip.ElectronicBilling.formatDate(comprobante.FchVto);

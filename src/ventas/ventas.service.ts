@@ -741,35 +741,34 @@ export class VentasService {
       //   }
       // });
 
-      try{
+      try {
         // Convertir QRCode.toDataURL a una versión que retorna una promesa
         const url = await new Promise<string>((resolve, reject) => {
           QRCode.toDataURL(urlQR, { errorCorrectionLevel: 'H' }, (err, url) => {
             if (err) reject(err);
             else resolve(url);
           });
-          
+
         });
-  
+
         // Convertir Data URL a Buffer
         const base64Data = url.split(';base64,').pop();
         if (!base64Data) throw new Error("No se pudo obtener los datos en base64 del QR.");
-  
+
         const buffer = Buffer.from(base64Data, 'base64');
-  
+
         // Especifica la ruta y el nombre del archivo donde quieres guardar el QR
         const pathArchivo = './public/codigoQR.png';
-  
+
         // Guardar el archivo usando la versión de promesa de writeFile
-        await writeFile(pathArchivo, buffer, () => {});
-  
+        await writeFile(pathArchivo, buffer, () => { });
+
         // Generar numero de comprobante
-        let codigoFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;
       } catch (error) {
         throw new Error("Error al generar el QR.");
       }
 
-      // -- Ajustando fechas --
+      let codigoFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;
 
       // Fecha de vto de CAE
       const vtoCAEtmp = await this.afip.ElectronicBilling.formatDate(comprobante.FchVto);
@@ -789,25 +788,6 @@ export class VentasService {
       let nroFactura = `${puntoVenta.toString().padStart(5, '0')}-${(nroComprobante).toString().padStart(8, '0')}`;
       let puntoVentaString = `${puntoVenta.toString().padStart(5, '0')}`;
       let nroComprobanteString = `${(nroComprobante).toString().padStart(8, '0')}`;
-
-      // Generacion de numero de factura
-      // if (nroComprobante <= 9) {
-      //   nroFactura = '0000' + puntoVenta + '-0000000' + nroComprobante;
-      // } else if (nroComprobante <= 99) {
-      //   nroFactura = '0000' + puntoVenta + '-000000' + nroComprobante;
-      // } else if (nroComprobante <= 999) {
-      //   nroFactura = '0000' + puntoVenta + '-00000' + nroComprobante;
-      // } else if (nroComprobante <= 9999) {
-      //   nroFactura = '0000' + puntoVenta + '-0000' + nroComprobante;
-      // } else if (nroComprobante <= 99999) {
-      //   nroFactura = '0000' + puntoVenta + '-000' + nroComprobante;
-      // } else if (nroComprobante <= 999999) {
-      //   nroFactura = '0000' + puntoVenta + '-00' + nroComprobante;
-      // } else if (nroComprobante <= 9999999) {
-      //   nroFactura = '0000' + puntoVenta + '-0' + nroComprobante;
-      // } else if (nroComprobante <= 99999999) {
-      //   nroFactura = '0000' + puntoVenta + '-' + nroComprobante;
-      // }
 
       html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/comprobante_fiscal.html', 'utf-8');
       dataPDF = {

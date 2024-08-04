@@ -716,7 +716,7 @@ export class VentasService {
 
       // Codificar en base64
       const cadenaJson = JSON.stringify(datosQR);
-      const cadenaEnBase64 = btoa(cadenaJson);
+      const cadenaEnBase64 = Buffer.from(cadenaJson).toString('base64');
 
       const urlQR = `https://www.afip.gob.ar/fe/qr/?p=${cadenaEnBase64}`;
 

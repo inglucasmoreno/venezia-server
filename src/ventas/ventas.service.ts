@@ -741,7 +741,7 @@ export class VentasService {
       try {
         // Convertir QRCode.toDataURL a una versión que retorna una promesa
         const url = await new Promise<string>((resolve, reject) => {
-          QRCode.toDataURL(urlQR, { errorCorrectionLevel: 'H' }, (err, url) => {
+          QRCode.toDataURL(urlQR, { errorCorrectionLevel: 'L' }, (err, url) => {
             if (err) reject(err);
             else resolve(url);
           });

@@ -39,6 +39,9 @@ import { VentasReservasModule } from './ventas-reservas/ventas-reservas.module';
 import { ComprasModule } from './compras/compras.module';
 import { ComprasProductosModule } from './compras-productos/compras-productos.module';
 import { ConfiguracionesGeneralesModule } from './configuraciones-generales/configuraciones-generales.module';
+import { MesasModule } from './mesas/mesas.module';
+import { MesasPedidosModule } from './mesas-pedidos/mesas-pedidos.module';
+import { MesasPedidosProductosModule } from './mesas-pedidos-productos/mesas-pedidos-productos.module';
 
 @Module({
   imports: [
@@ -66,7 +69,7 @@ import { ConfiguracionesGeneralesModule } from './configuraciones-generales/conf
     UsuariosModule, 
     AuthModule,
     InicializacionModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
-    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule, MayoristasModule, RepartidoresModule, MayoristasTiposGastosModule, MayoristasGastosModule, CajasMayoristasModule, MayoristasTiposIngresosModule, MayoristasIngresosModule, CuentasCorrientesMayoristasModule, CobrosMayoristasModule, CobrosPedidosModule, PaquetesModule, ClientesModule, ReservasProductosModule, ReservasModule, VentasReservasModule,ComprasModule, ComprasProductosModule, ConfiguracionesGeneralesModule,         // Para trabajar con WebSocket
+    SocketModule, UnidadMedidaModule, ProductosModule, VentasModule, VentasProductosModule, AfipModule, CajasModule, IngresosGastosModule, PedidosyaModule, VentasMayoristasModule, VentasMayoristasProductosModule, MayoristasModule, RepartidoresModule, MayoristasTiposGastosModule, MayoristasGastosModule, CajasMayoristasModule, MayoristasTiposIngresosModule, MayoristasIngresosModule, CuentasCorrientesMayoristasModule, CobrosMayoristasModule, CobrosPedidosModule, PaquetesModule, ClientesModule, ReservasProductosModule, ReservasModule, VentasReservasModule,ComprasModule, ComprasProductosModule, ConfiguracionesGeneralesModule, MesasModule, MesasPedidosModule, MesasPedidosProductosModule,
     
   ],
   

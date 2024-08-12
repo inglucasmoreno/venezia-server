@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { MesasPedidosProductosService } from './mesas-pedidos-productos.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { MesasPedidosProductosDTO } from './dto/mesas-pedidos-productos.dto';
@@ -7,7 +7,7 @@ import { MesasPedidosProductosUpdateDTO } from './dto/mesas-pedidos-productos-up
 @Controller('mesas-pedidos-productos')
 export class MesasPedidosProductosController {
 
-    constructor(private mesasPedidosProductosService: MesasPedidosProductosService) { }
+  constructor(private mesasPedidosProductosService: MesasPedidosProductosService) { }
 
   // Relacion por ID
   @UseGuards(JwtAuthGuard)
@@ -49,6 +49,17 @@ export class MesasPedidosProductosController {
     const relacion = await this.mesasPedidosProductosService.actualizarRelacion(relacionID, mesasPedidosProductosUpdateDTO);
     res.status(HttpStatus.OK).json({
       message: 'Relacion actualizada correctamente',
+      relacion
+    });
+  }
+
+  // Eliminar relacion
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:id')
+  async eliminarRelacion(@Res() res, @Param('id') relacionID) {
+    const relacion = await this.mesasPedidosProductosService.eliminarRelacion(relacionID);
+    res.status(HttpStatus.OK).json({
+      message: 'Relacion eliminada correctamente',
       relacion
     });
   }

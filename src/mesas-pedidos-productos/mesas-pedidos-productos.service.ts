@@ -11,6 +11,7 @@ export class MesasPedidosProductosService {
 
     constructor(
         @InjectModel('MesasPedidosProductos') private readonly mesasPedidosProductosModel: Model<IMesasPedidosProductos>,
+        @InjectModel('MesasPedidos') private readonly mesasPedidosModel: Model<IMesasPedidosProductos>,
     ) { }
 
     // MesaPedidoProducto por ID
@@ -23,7 +24,7 @@ export class MesasPedidosProductosService {
 
         // Relacion por ID
         const idRelacion = new mongoose.Types.ObjectId(id);
-        pipeline.push({ $match: { _id: idRelacion } })        
+        pipeline.push({ $match: { _id: idRelacion } })
 
         // Informacion de mesa
         pipeline.push({
@@ -149,6 +150,19 @@ export class MesasPedidosProductosService {
 
         pipeline.push({ $unwind: '$producto' });
 
+        // Unidades de medida
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'unidad_medida',
+                localField: 'producto.unidad_medida',
+                foreignField: '_id',
+                as: 'producto.unidad_medida'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$producto.unidad_medida' });
+
         // Informacion de usuario creador
         pipeline.push({
             $lookup: { // Lookup
@@ -191,13 +205,50 @@ export class MesasPedidosProductosService {
     // Crear relacion
     async crearRelacion(mesasPedidosProductosDTO: MesasPedidosProductosDTO): Promise<IMesasPedidosProductos> {
         const nuevaRelacion = new this.mesasPedidosProductosModel(mesasPedidosProductosDTO);
-        return await nuevaRelacion.save();
+        const nuevaRelacionDB = await nuevaRelacion.save();
+        await this.actualizarPrecioPedido(mesasPedidosProductosDTO.mesa);
+        return await this.getRelacion(nuevaRelacionDB._id);
     }
 
     // Actualizar relacion
     async actualizarRelacion(id: string, mesasPedidosProductosUpdateDTO: MesasPedidosProductosUpdateDTO): Promise<IMesasPedidosProductos> {
+        
         const relacion = await this.mesasPedidosProductosModel.findByIdAndUpdate(id, mesasPedidosProductosUpdateDTO, { new: true });
+
+        // Se actualizar el precio total del pedido
+        await this.actualizarPrecioPedido(relacion.mesa);
+
         return relacion;
+
+    }
+
+    // Eliminar relacion
+    async eliminarRelacion(id: string): Promise<any> {
+
+        // Se elimina la relacion
+        const relacion = await this.mesasPedidosProductosModel.findByIdAndDelete(id);
+
+        // Se actualizar el precio total del pedido
+        await this.actualizarPrecioPedido(relacion.mesa);
+
+        return relacion;
+
+    }
+
+    // Actualizar precio de pedido
+    async actualizarPrecioPedido(mesa: string): Promise<any> {
+
+        let precioTotal = 0;
+        const productos = await this.mesasPedidosProductosModel.find({ mesa });
+        productos.forEach((relacion) => { precioTotal += relacion.precioTotal; });
+
+        // Se actualiza el precio total del pedido
+        const pedidoDB: any = await this.mesasPedidosModel.findOne({ mesa });
+        pedidoDB.precioTotal = precioTotal;
+        await pedidoDB.save();
+
+        return pedidoDB;
+
     }
 
 }

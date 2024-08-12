@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { MesasService } from './mesas.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { MesasDTO } from './dto/mesas.dto';
@@ -52,5 +52,15 @@ export class MesasController {
           mesa
       });
   }
+
+  // Eliminar mesa
+    @UseGuards(JwtAuthGuard)
+    @Delete('/:id')
+    async eliminarMesa(@Res() res, @Param('id') mesaID ) {
+        await this.mesasService.eliminarMesa(mesaID);
+        res.status(HttpStatus.OK).json({
+            message: 'Mesa eliminada correctamente',
+        });
+    }
 
 }

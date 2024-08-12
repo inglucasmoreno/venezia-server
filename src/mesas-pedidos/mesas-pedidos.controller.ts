@@ -9,6 +9,17 @@ export class MesasPedidosController {
 
   constructor(private mesasPedidosService: MesasPedidosService) { }
 
+  // Pedido por Mesa
+  @UseGuards(JwtAuthGuard)
+  @Get('/mesa/:id')
+  async getPedidoPorMesa(@Res() res, @Param('id') idMesa) {
+    const pedido = await this.mesasPedidosService.getPedidoPorMesa(idMesa);
+    res.status(HttpStatus.OK).json({
+      message: 'Pedido obtenido correctamente',
+      pedido
+    });
+  }
+
   // Pedido por ID
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
@@ -34,7 +45,7 @@ export class MesasPedidosController {
   // Crear pedido
   @UseGuards(JwtAuthGuard)
   @Post('/')
-  async crearPedido(@Res() res, @Body() mesasPedidosDTO: MesasPedidosDTO) {
+  async crearPedido(@Res() res, @Body() mesasPedidosDTO: any) {
     const pedido = await this.mesasPedidosService.crearPedido(mesasPedidosDTO);
     res.status(HttpStatus.CREATED).json({
       message: 'Pedido creado correctamente',
@@ -50,6 +61,26 @@ export class MesasPedidosController {
     res.status(HttpStatus.OK).json({
       message: 'Pedido actualizado correctamente',
       pedido
+    });
+  }
+
+  // Cancelar pedido
+  @UseGuards(JwtAuthGuard)
+  @Put('/cancelar/:id')
+  async cancelarPedido(@Res() res, @Param('id') mesaID) {
+    await this.mesasPedidosService.cancelarPedido(mesaID);
+    res.status(HttpStatus.OK).json({
+      message: 'Pedido cancelado correctamente',
+    });
+  }
+
+  // Imprimir detalles de pedido
+  @UseGuards(JwtAuthGuard)
+  @Get('/imprimir/detalles/:id')
+  async generarComprobante(@Res() res, @Param('id') mesaID) {
+    await this.mesasPedidosService.imprimirDetallesPedido(mesaID);
+    res.status(HttpStatus.OK).json({
+      message: 'Comprobante generado correctamente'
     });
   }
 

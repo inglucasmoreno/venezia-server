@@ -2,8 +2,6 @@
 export class MesasPedidosUpdateDTO {
   
   readonly mesa: string;
-
-  readonly numero: number;
   
   readonly precioTotal: number;
 

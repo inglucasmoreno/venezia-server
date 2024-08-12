@@ -4,8 +4,6 @@ export class MesasPedidosDTO {
   
   @IsNotEmpty()
   readonly mesa: string;
-
-  numero: number;
   
   readonly precioTotal: number;
 

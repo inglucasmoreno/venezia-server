@@ -131,5 +131,15 @@ export class MesasService {
 
   }
 
+  // Eliminar mesa
+  async eliminarMesa(id: string): Promise<String> {
+
+    const mesa = await this.mesasModel.findByIdAndDelete(id);
+    if (!mesa) throw new NotFoundException('La mesa no existe');
+
+    return 'Mesa eliminada correctamente';
+
+  }
+
 
 }

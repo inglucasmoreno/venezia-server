@@ -9,12 +9,6 @@ export const mesasPedidosSchema = new Schema({
     required: true
   },
 
-  numero: {
-    type: Number,
-    unique: true,
-    required: true,
-  },
-
   precioTotal: {
     type: Number,
     default: 0,

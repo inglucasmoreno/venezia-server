@@ -8,6 +8,8 @@ export class VentasProductosDTO {
     @IsNotEmpty()
     readonly producto: string;
 
+    readonly alicuota: number;
+
     @IsNotEmpty()
     readonly descripcion: string;
 

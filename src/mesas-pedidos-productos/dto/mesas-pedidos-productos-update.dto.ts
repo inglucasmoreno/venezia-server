@@ -7,6 +7,8 @@ export class MesasPedidosProductosUpdateDTO {
 
     readonly producto: string;
 
+    readonly alicuota: number;
+
     readonly descripcion: string;
 
     readonly unidadMedida: string;

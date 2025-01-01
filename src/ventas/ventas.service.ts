@@ -638,9 +638,18 @@ export class VentasService {
 
     // Productos
     let productos = [];
+    let ivaTotal = 0;
+
     productosDB.map(producto => {
+
+      if (producto.alicuota) {        
+        const iva = (producto.precio * producto.alicuota) / 100;
+        ivaTotal += iva;
+      }
+
       productos.push({
         descripcion: producto.descripcion,
+        alicuota: producto.alicuota,
         unidad_medida: producto.unidad_medida,
         precio: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio),
         precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_unitario),
@@ -670,8 +679,10 @@ export class VentasService {
         forma_pago,
         instanciaReserva,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
+        ivaTotal: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ivaTotal),
         productos: productos,
       };
+
     } else { // - Comprobante - Fiscal
 
       // Informacion de comprobante
@@ -808,6 +819,7 @@ export class VentasService {
         instanciaReserva,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total),
         productos: productos,
+        ivaTotal: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ivaTotal),
       };
 
     }

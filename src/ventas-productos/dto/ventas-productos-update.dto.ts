@@ -4,6 +4,8 @@ export class VentasProductosUpdateDTO {
 
     readonly producto: string;
 
+    readonly alicuota: number;
+
     readonly descripcion: string;
 
     readonly balanza: boolean;

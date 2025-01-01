@@ -2,6 +2,7 @@ import { Document } from 'mongoose';
 export interface IVentasProductos extends Document {
     readonly venta: string;
     readonly producto: string;
+    readonly alicuota: number;
     readonly descripcion: string;
     readonly balanza: boolean;
     readonly unidad_medida: string;

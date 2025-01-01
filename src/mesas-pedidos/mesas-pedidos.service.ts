@@ -211,6 +211,7 @@ export class MesasPedidosService {
         pedido: nuevoPedidoDB._id,
         producto: elemento.producto,
         precio: elemento.precio,
+        alicuota: elemento.alicuota,
         precioTotal: elemento.precioTotal,
         cantidad: elemento.cantidad,
         creatorUser: elemento.creatorUser,
@@ -302,10 +303,19 @@ export class MesasPedidosService {
 
     // Preparacion de productos
     let productosPDF = [];
+    let ivaTotal = 0;
+
     productos.forEach((elemento: any) => {
+
+      if (elemento.alicuota) {        
+        const iva = (elemento.precioTotal * elemento.alicuota) / 100;
+        ivaTotal += iva;
+      }
+
       productosPDF.push({
         descripcion: elemento.producto.descripcion,
         unidad_medida: elemento.producto.unidad_medida.descripcion,
+        alicuota: elemento.alicuota,
         cantidad: elemento.cantidad,
         precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(elemento.precio),
         precio: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(elemento.precioTotal),
@@ -318,6 +328,7 @@ export class MesasPedidosService {
     html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/cafeteria_detalles_pedido.html', 'utf-8');
     dataPDF = {
       fecha: format(pedidoDB.createdAt, 'dd/MM/yyyy kk:mm:ss'),
+      ivaTotal: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ivaTotal),
       total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pedidoDB.precioTotal),
       productos: productosPDF,
     };

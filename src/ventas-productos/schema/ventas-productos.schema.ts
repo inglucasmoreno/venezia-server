@@ -2,7 +2,7 @@
 import { Schema } from 'mongoose';
 
 export const ventasProductosSchema = new Schema({
-   
+
     venta: {
         type: Schema.Types.ObjectId,
         ref: 'venta',
@@ -15,6 +15,11 @@ export const ventasProductosSchema = new Schema({
         required: true
     },
 
+    alicuota: {
+        type: Number,
+        default: 21
+    },
+
     descripcion: {
         type: String,
         uppercase: true,
@@ -24,7 +29,7 @@ export const ventasProductosSchema = new Schema({
     balanza: {
         type: Boolean,
         required: true,
-      },
+    },
 
     unidad_medida: {
         type: String,
@@ -65,4 +70,4 @@ export const ventasProductosSchema = new Schema({
         default: true
     }
 
-},{ timestamps: true, collection: 'ventas-productos' });
+}, { timestamps: true, collection: 'ventas-productos' });

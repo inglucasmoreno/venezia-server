@@ -84,7 +84,13 @@
       <p style="font-size: 8px;"> ${{ precio_unitario }} x {{ unidad_medida }} </p>
       <p style="font-size: 8px;"> Cantidad: {{ cantidad }} </p>
       {{/ifCond}}
-      <p style="font-size: 8px;"> Total: ${{ precio }} </p>
+      <p style="font-size: 8px;"> 
+        Total: ${{ precio }} 
+        {{#ifCond alicuota '!==' null }}
+          <span> (IVA  {{ alicuota }}%) </span> 
+        {{/ifCond}}
+      </p>
+  
     </div>
     {{/each}}
   </div>
@@ -101,6 +107,16 @@
   <p style="font-size: 9px;"> <span style="font-weight: bold;"> Forma de pago: </span> {{ forma_pago }} </p>
 
   <div style="width: 200px;"> ---------------------------------- </div>
+  
+  {{#ifCond instanciaReserva '!==' 'Adelanto' }}
+  <p style="font-size: 9px;"> REGIMEN DE TRANSPARENCIA </p>
+  <p style="font-size: 9px;"> FISCAL AL CONSUMIDOR </p>
+  <p style="font-size: 9px;"> <span> IVA Contenido: </span> ${{ ivaTotal }} </p>
+  <div style="width: 200px;"> ---------------------------------- </div>
+  {{/ifCond}}
+  
+
+
   <div style="font-size: 8px; width: 200px;">
     <p> REFERENCIA ELECTRONICA DEL COMPROBANTE </p>
     <table>

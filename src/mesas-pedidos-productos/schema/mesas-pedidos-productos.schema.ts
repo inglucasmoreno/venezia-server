@@ -21,6 +21,11 @@ export const mesasPedidosProductosSchema = new Schema({
         required: true,
     },
 
+    alicuota: {
+        type: Number,
+        default: 21,
+    },
+
     precio: {
         type: Number,
         required: true,

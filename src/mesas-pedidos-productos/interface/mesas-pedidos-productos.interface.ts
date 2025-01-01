@@ -5,6 +5,7 @@ export interface IMesasPedidosProductos extends Document {
   readonly mesa: string;
   readonly pedido: string;
   readonly producto: string;
+  readonly alicuota: number;
   readonly cantidad: number;
   readonly precio: number;
   readonly precioTotal: number;

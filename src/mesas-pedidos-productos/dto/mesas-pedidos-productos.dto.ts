@@ -12,6 +12,9 @@ export class MesasPedidosProductosDTO {
     readonly producto: string;
 
     @IsNotEmpty()
+    readonly alicuota: number;
+
+    @IsNotEmpty()
     readonly cantidad: number;
     
     @IsNotEmpty()
